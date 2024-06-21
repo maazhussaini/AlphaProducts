@@ -1,0 +1,10 @@
+flask
+sqlalchemy
+pyodbc
+flask-sqlalchemy
+pandas
+flask-restful
+Flask-Migrate
+marshmallow-sqlalchemy
+Flask-Cors
+python-dotenv
