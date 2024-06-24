@@ -6,7 +6,7 @@ from exceptions import ValidationError
 class JobApplicationForm(db.Model):
     __tablename__ = 'JobApplicationForms'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     initial_id = db.Column(db.String(80), nullable=False)
 
     # Personal Information
@@ -103,7 +103,7 @@ class JobApplicationForm(db.Model):
     
     @staticmethod
     def validate_phone_number(phone_number):
-        if not re.match(r'^(?!0+$)\d{11}$', phone_number):
+        if not re.match(r"^(?!0+$)\d{11}$", phone_number):
             raise ValidationError("Invalid phone number format.")
 
     @staticmethod
@@ -151,4 +151,246 @@ class NewJoinerApproval(db.Model):
             "updatedBy" : self.updatedBy,
             "updatedDate" : self.updatedDate.isoformat() if self.updatedDate else None,
             "inActive" : self.inActive
+        }
+
+class InterviewSchedules(db.Model):
+    __tablename__ = 'InterviewSchedules'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    interviewTypeId = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=True)
+    time = db.Column(db.Time, nullable=True)
+    venue = db.Column(db.String(500), nullable=True)
+    jobApplicationFormId = db.Column(db.Integer, nullable=True)
+    interviewConductorId = db.Column(db.String(300), nullable=True)
+    demoTopic = db.Column(db.String(100), nullable=True)
+    position = db.Column(db.String(250), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    createdBy = db.Column(db.Integer, nullable=True)
+    createDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    campusId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f'<InterviewSchedule {self.id}>'
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "interviewTypeId": self.interviewTypeId,
+            "date": self.date.isoformat() if self.date else None,
+            "time": self.time.isoformat() if self.time else None,
+            "venue": self.venue,
+            "jobApplicationFormId": self.jobApplicationFormId,
+            "interviewConductorId": self.interviewConductorId,
+            "demoTopic": self.demoTopic,
+            "position": self.position,
+            "location": self.location,
+            "createdBy": self.createdBy,
+            "createDate": self.createDate.isoformat() if self.createDate else None,
+            "campusId": self.campusId
+            
+        }
+
+class DeductionHead(db.Model):
+    __tablename__ = 'DeductionHead'
+    deductionHead_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    deductionHead_Name = db.Column(db.String(100), nullable=False)
+    
+    def __repr__(self):
+        return f'<DeductionHead {self.deductionHead_Id}>'
+    
+    def to_dict(self):
+        return {
+            "deductionHead_Id": self.deductionHead_Id,
+            "deductionHead_Name": self.deductionHead_Name
+        }
+
+class OneTimeDeduction(db.Model):
+    __tablename__ = 'OneTimeDeduction'
+    oneTimeDeduction_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    oneTimeDeduction_StaffId = db.Column(db.Integer, nullable=False)
+    oneTimeDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.deductionHead_Id'), nullable=False)
+    oneTimeDeduction_Amount = db.Column(db.Float, nullable=False)
+    oneTimeDeduction_DeductionMonth = db.Column(db.String(15), nullable=False)
+    oneTimeDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
+    creatorId = db.Column(db.Integer, nullable=False)
+    createDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updatorId = db.Column(db.Integer, nullable=True)
+    updateDate = db.Column(db.DateTime, nullable=True)
+    inActive = db.Column(db.Boolean, nullable=False)
+
+    deduction_head = db.relationship('DeductionHead', backref=db.backref('oneTimeDeduction', lazy=True))
+    
+    def __repr__(self):
+        return f'<DeductionHead {self.oneTimeDeduction_Id}>'
+    
+    def to_dict(self):
+        return {
+            "oneTimeDeduction_Id": self.oneTimeDeduction_Id,
+            "oneTimeDeduction_StaffId": self.oneTimeDeduction_StaffId,
+            "oneTimeDeduction_DeductionHeadId": self.oneTimeDeduction_DeductionHeadId,
+            "oneTimeDeduction_Amount": self.oneTimeDeduction_Amount,
+            "oneTimeDeduction_DeductionMonth": self.oneTimeDeduction_DeductionMonth,
+            "oneTimeDeduction_ApprovedBy": self.oneTimeDeduction_ApprovedBy,
+            "creatorId": self.creatorId,
+            "createDate": self.createDate.isoformat(),
+            "updatorId": self.updatorId,
+            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+            "inActive": self.inActive
+        }
+
+class ScheduledDeduction(db.Model):
+    __tablename__ = 'ScheduledDeduction'
+    scheduledDeduction_Id = db.Column(db.Integer, primary_key=True)
+    scheduledDeduction_StaffId = db.Column(db.Integer, nullable=False)
+    scheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.deductionHead_Id'), nullable=False)
+    scheduledDeduction_AmountPerMonth = db.Column(db.Float, nullable=False)
+    scheduledDeduction_StartDate = db.Column(db.DateTime, nullable=False)
+    scheduledDeduction_EndDate = db.Column(db.DateTime, nullable=False)
+    scheduledDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
+    creatorId = db.Column(db.Integer, nullable=False)
+    createDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updatorId = db.Column(db.Integer)
+    updateDate = db.Column(db.DateTime)
+    inActive = db.Column(db.Boolean, nullable=False)
+    
+    deduction_head = db.relationship('DeductionHead', backref=db.backref('scheduledDeduction', lazy=True))
+    
+    def __repr__(self):
+        return f'<DeductionHead {self.deductionHead_Id}>'
+    
+    def to_dict(self):
+        return {
+            "scheduledDeduction_Id": self.scheduledDeduction_Id,
+            "scheduledDeduction_StaffId": self.scheduledDeduction_StaffId,
+            "scheduledDeduction_DeductionHeadId": self.scheduledDeduction_DeductionHeadId,
+            "scheduledDeduction_AmountPerMonth": self.scheduledDeduction_AmountPerMonth,
+            "scheduledDeduction_StartDate": self.scheduledDeduction_StartDate.isoformat(),
+            "scheduledDeduction_EndDate": self.scheduledDeduction_EndDate.isoformat(),
+            "scheduledDeduction_ApprovedBy": self.scheduledDeduction_ApprovedBy,
+            "creatorId": self.creatorId,
+            "createDate": self.createDate.isoformat(),
+            "updatorId": self.updatorId,
+            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+            "inActive": self.inActive
+        }
+
+class IAR(db.Model):
+    __tablename__ = 'IAR'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    form_Id = db.Column(db.Integer, nullable=False)
+    IAR_Type_Id = db.Column(db.Integer, db.ForeignKey('IAR_Types.id'), nullable=False)
+    status_Check = db.Column(db.Boolean, nullable=False)
+    remarks = db.Column(db.String(150), nullable=False)
+    creatorId = db.Column(db.Integer, nullable=True)
+    createdDate = db.Column(db.DateTime, nullable=True)
+
+    iar_type = db.relationship('IAR_Types', backref=db.backref('iars', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'form_Id': self.form_Id,
+            'IAR_Type_Id': self.IAR_Type_Id,
+            'status_Check': self.status_Check,
+            'remarks': self.remarks,
+            'creatorId': self.creatorId,
+            'createdDate': self.createdDate.isoformat() if self.createdDate else None
+        }
+
+class IAR_Remarks(db.Model):
+    __tablename__ = 'IAR_Remarks'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    IAR_Id = db.Column(db.Integer, db.ForeignKey('IAR.id'), nullable=False)
+    remarks = db.Column(db.String(150), nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    creatorId = db.Column(db.Integer, nullable=True)
+    createDate = db.Column(db.DateTime, nullable=True)
+
+    iar = db.relationship('IAR', backref=db.backref('IAR_Id', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'IAR_Id': self.IAR_Id,
+            'remarks': self.remarks,
+            'status': self.status,
+            'creatorId': self.creatorId,
+            'createDate': self.createDate.isoformat() if self.createDate else None
+        }
+
+class IAR_Types(db.Model):
+    __tablename__ = 'IAR_Types'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+class EmailTypes(db.Model):
+    __tablename__ = 'EmailTypes'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+class EmailStorageSystem(db.Model):
+    __tablename__ = 'EmailStorageSystem'
+    email_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    email_Title = db.Column(db.String(100), nullable=True)
+    email_Subject = db.Column(db.String(250), nullable=True)
+    email_Body = db.Column(db.Text, nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    creatorId = db.Column(db.Integer, nullable=True)
+    createdDate = db.Column(db.DateTime, nullable=True)
+    updatorId = db.Column(db.Integer, nullable=True)
+    updatedDate = db.Column(db.DateTime, nullable=True)
+    emailType = db.Column(db.Integer, db.ForeignKey('EmailTypes.id'), nullable=True)
+
+    email_type = db.relationship('EmailTypes', backref=db.backref('emails', lazy=True))
+
+    def to_dict(self):
+        return {
+            'email_Id': self.email_Id,
+            'email_Title': self.email_Title,
+            'email_Subject': self.email_Subject,
+            'email_Body': self.email_Body,
+            'status': self.status,
+            'creatorId': self.creatorId,
+            'createdDate': self.createdDate.isoformat() if self.createdDate else None,
+            'updatorId': self.updatorId,
+            'updatedDate': self.updatedDate.isoformat() if self.updatedDate else None,
+            'emailType': self.emailType
+        }
+
+class AvailableJobs(db.Model):
+    __tablename__ = 'AvailableJobs'
+    job_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    job_Title = db.Column(db.String(100), nullable=False)
+    job_Level = db.Column(db.String(100), nullable=False)
+    job_PostedBy = db.Column(db.Integer, nullable=True)
+    job_Status = db.Column(db.Boolean, nullable=True)
+    creatorId = db.Column(db.Integer, nullable=True)
+    createdDate = db.Column(db.DateTime, nullable=True)
+    updatorId = db.Column(db.Integer, nullable=True)
+    updatedDate = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'job_Id': self.job_Id,
+            'job_Title': self.job_Title,
+            'job_Level': self.job_Level,
+            'job_PostedBy': self.job_PostedBy,
+            'job_Status': self.job_Status,
+            'creatorId': self.creatorId,
+            'createdDate': self.createdDate.isoformat() if self.createdDate else None,
+            'updatorId': self.updatorId,
+            'updatedDate': self.updatedDate.isoformat() if self.updatedDate else None
         }

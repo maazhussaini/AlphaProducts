@@ -1,6 +1,6 @@
 from flask_restful import Api
 from flask import Blueprint
-from resources.resources import JobApplicationFormResource, NewJoinerApprovalResource
+from resources.resources import JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource
 
 def register_routes(app):
     api_bp = Blueprint('api', __name__)
@@ -9,3 +9,17 @@ def register_routes(app):
     
     api.add_resource(JobApplicationFormResource, '/job_application_forms', '/job_application_forms/<int:id>')
     api.add_resource(NewJoinerApprovalResource, '/new_joiner_approvals', '/new_joiner_approvals/<int:id>')
+    api.add_resource(InterviewSchedulesResource, '/interviewSchedules', '/interviewSchedules/<int:id>')
+    
+    api.add_resource(DeductionHeadResource, '/deductionHead', '/deductionHead/<int:id>')
+    api.add_resource(OneTimeDeductionResource, '/oneTimeDeduction', '/oneTimeDeduction/<int:id>')
+    api.add_resource(ScheduledDeductionResource, '/scheduledDeduction', '/scheduledDeduction/<int:id>')
+    
+    api.add_resource(IARResource, '/iar', '/iar/<int:id>')
+    api.add_resource(IARRemarksResource, '/iar_remarks', '/iar_remarks/<int:id>')
+    api.add_resource(IARTypesResource, '/iar_types', '/iar_types/<int:id>')
+    
+    api.add_resource(EmailStorageSystemResource, '/emailStorageSystem', '/emailStorageSystem/<int:id>')
+    api.add_resource(EmailTypesResource, '/emailTypes', '/emailTypes/<int:id>')
+    
+    api.add_resource(AvailableJobsResource, '/availableJobs', '/availableJobs/<int:id>')
