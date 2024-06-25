@@ -2,59 +2,109 @@ from flask_restful import Resource, reqparse, abort
 from models.models import JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs
 from datetime import datetime
 from app import db
-from flask import jsonify, make_response
+from flask import jsonify, request
+from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 
 class JobApplicationFormResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = [
-            {"field":"first_name", "headerName": "First Name", "width": width},
-            {"field":"last_name", "headerName": "Last Name", "width": width},
-            {"field":"father_name", "headerName": "Father's Name", "width": width},
-            {"field":"cnic", "headerName": "CNIC", "width": width},
-            {"field":"passport_number", "headerName": "Passport Number", "width": width},
-            {"field":"dob", "headerName": "Date of Birth", "width": width},
-            {"field":"age", "headerName": "Age", "width": width},
-            {"field":"gender", "headerName": "Gender", "width": width},
-            {"field":"cell_phone", "headerName": "Cell Phone", "width": width},
-            {"field":"alternate_number", "headerName": "Alternate Number", "width": width},
-            {"field":"email", "headerName": "Email Address", "width": width},
-            {"field":"residence", "headerName": "Address", "width": width},
-            {"field":"education_level", "headerName": "Education Level", "width": width},
-            {"field":"education_level_others", "headerName": "Others", "width": width},
-            {"field":"degree", "headerName": "Degree", "width": width},
-            {"field":"specialization", "headerName": "Specialization", "width": width},
-            {"field":"institute", "headerName": "Institute", "width": width},
-            {"field":"fresh", "headerName": "Fresh", "width": width},
-            {"field":"experienced", "headerName": "Experienced", "width": width},
-            {"field":"total_years_of_experience", "headerName": "Total Years of Experience", "width": width},
-            {"field":"name_of_last_employer", "headerName": "Name of Last Employer", "width": width},
-            {"field":"employment_duration_from", "headerName": "Employment Duration: From", "width": width},
-            {"field":"employment_duration_to", "headerName": "Employment Duration: To", "width": width},
-            {"field":"designation", "headerName": "Designation", "width": width},
-            {"field":"reason_for_leaving", "headerName": "Reason For Leaving(if already left)", "width": width},
-            {"field":"last_drawn_gross_salary", "headerName": "Last Drawn Gross Salary", "width": width},
-            {"field":"benefits_if_any", "headerName": "Benefits if any", "width": width},
-            {"field":"preferred_campus", "headerName": "Preferred Campus", "width": width},
-            {"field":"preferred_location", "headerName": "Preferred Location", "width": width},
-            {"field":"preferred_job_type", "headerName": "Preferred Job Type", "width": width},
-            {"field":"section", "headerName": "Section", "width": width},
-            {"field":"subject", "headerName": "Subject", "width": width},
-            {"field":"expected_salary", "headerName": "Expected Salary", "width": width},
-            {"field":"cv_path", "headerName": "CV", "width": width},
-            {"field":"coverLetter_Path", "headerName": "Cover Letter", "width": width}
-        ]
+    
+    def get(self, id=None):
         
-        if id:
-            job_application_form = JobApplicationForm.query.get_or_404(id)
-            job_application_form = job_application_form.to_dict()
-            return {"data": job_application_form, "columns": columns}
-        else:
-            job_application_forms = JobApplicationForm.query.all()
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-            return {
-                "data": [form.to_dict() for form in job_application_forms], 
-                "columns":columns
-            }
+            if page_no < 1 or page_size < 1:
+                return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            columns = [
+                {"field":"first_name", "headerName": "First Name", "width": width},
+                {"field":"last_name", "headerName": "Last Name", "width": width},
+                {"field":"father_name", "headerName": "Father's Name", "width": width},
+                {"field":"cnic", "headerName": "CNIC", "width": width},
+                {"field":"passport_number", "headerName": "Passport Number", "width": width},
+                {"field":"dob", "headerName": "Date of Birth", "width": width},
+                {"field":"age", "headerName": "Age", "width": width},
+                {"field":"gender", "headerName": "Gender", "width": width},
+                {"field":"cell_phone", "headerName": "Cell Phone", "width": width},
+                {"field":"alternate_number", "headerName": "Alternate Number", "width": width},
+                {"field":"email", "headerName": "Email Address", "width": width},
+                {"field":"residence", "headerName": "Address", "width": width},
+                {"field":"education_level", "headerName": "Education Level", "width": width},
+                {"field":"education_level_others", "headerName": "Others", "width": width},
+                {"field":"degree", "headerName": "Degree", "width": width},
+                {"field":"specialization", "headerName": "Specialization", "width": width},
+                {"field":"institute", "headerName": "Institute", "width": width},
+                {"field":"fresh", "headerName": "Fresh", "width": width},
+                {"field":"experienced", "headerName": "Experienced", "width": width},
+                {"field":"total_years_of_experience", "headerName": "Total Years of Experience", "width": width},
+                {"field":"name_of_last_employer", "headerName": "Name of Last Employer", "width": width},
+                {"field":"employment_duration_from", "headerName": "Employment Duration: From", "width": width},
+                {"field":"employment_duration_to", "headerName": "Employment Duration: To", "width": width},
+                {"field":"designation", "headerName": "Designation", "width": width},
+                {"field":"reason_for_leaving", "headerName": "Reason For Leaving(if already left)", "width": width},
+                {"field":"last_drawn_gross_salary", "headerName": "Last Drawn Gross Salary", "width": width},
+                {"field":"benefits_if_any", "headerName": "Benefits if any", "width": width},
+                {"field":"preferred_campus", "headerName": "Preferred Campus", "width": width},
+                {"field":"preferred_location", "headerName": "Preferred Location", "width": width},
+                {"field":"preferred_job_type", "headerName": "Preferred Job Type", "width": width},
+                {"field":"section", "headerName": "Section", "width": width},
+                {"field":"subject", "headerName": "Subject", "width": width},
+                {"field":"expected_salary", "headerName": "Expected Salary", "width": width},
+                {"field":"cv_path", "headerName": "CV", "width": width},
+                {"field":"coverLetter_Path", "headerName": "Cover Letter", "width": width}
+            ]
+            
+            if id:
+                job_application_form = JobApplicationForm.query.get_or_404(id)
+                
+                return {
+                    "data": [job_application_form.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            else:
+                query = JobApplicationForm.query.order_by(JobApplicationForm.id)
+                total = query.count()
+
+                # Apply pagination
+                job_application_forms = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [form.to_dict() for form in job_application_forms],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -245,23 +295,74 @@ class JobApplicationFormResource(Resource):
             return {'error': 'Internal Server Error', 'message': str(e)}, 500
 
 class NewJoinerApprovalResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = [
-        {"fields": "newJoinerApproval_StaffId", "headerName": "Staff ID", "width": width},
-        {"fields": "newJoinerApproval_Salary", "headerName": "Salary", "width": width},
-        {"fields": "newJoinerApproval_HiringApprovedBy", "headerName": "Hiring Approved By", "width": width},
-        {"fields": "newJoinerApproval_Remarks", "headerName": "Remarks", "width": width},
-        {"fields": "newJoinerApproval_FileVerified", "headerName": "File Verified", "width": width},
-        {"fields": "newJoinerApproval_EmpDetailsVerified", "headerName": "Employee Details Verified", "width": width},
-        {"fields": "newJoinerApproval_AddToPayrollMonth", "headerName": "Add to Payroll Month", "width": width},
-    ]
-        if id:
-            new_joiner_approval = NewJoinerApproval.query.get_or_404(id)
-            new_joiner_approval = new_joiner_approval.to_dict()
-            return {"data": new_joiner_approval, "columns": columns}
-        else:
-            new_joiner_approvals = NewJoinerApproval.query.all()
-            return {"data": [approval.to_dict() for approval in new_joiner_approvals], "columns": columns}
+    def get(self, id=None):
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            columns = [
+            {"fields": "newJoinerApproval_StaffId", "headerName": "Staff ID", "width": width},
+            {"fields": "newJoinerApproval_Salary", "headerName": "Salary", "width": width},
+            {"fields": "newJoinerApproval_HiringApprovedBy", "headerName": "Hiring Approved By", "width": width},
+            {"fields": "newJoinerApproval_Remarks", "headerName": "Remarks", "width": width},
+            {"fields": "newJoinerApproval_FileVerified", "headerName": "File Verified", "width": width},
+            {"fields": "newJoinerApproval_EmpDetailsVerified", "headerName": "Employee Details Verified", "width": width},
+            {"fields": "newJoinerApproval_AddToPayrollMonth", "headerName": "Add to Payroll Month", "width": width},
+        ]
+            if id:
+                new_joiner_approval = NewJoinerApproval.query.get_or_404(id)
+                return {
+                    "data": [new_joiner_approval.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            else:
+                
+                query = NewJoinerApproval.query.order_by(NewJoinerApproval.newJoinerApproval_Id)
+                total = query.count()
+
+                # Apply pagination
+                new_joiner_approvals = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [approval.to_dict() for approval in new_joiner_approvals],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -337,35 +438,87 @@ class NewJoinerApprovalResource(Resource):
             return {'error': 'Internal Server Error', 'message': str(e)}, 500
 
 class InterviewSchedulesResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = [
-            {"field":'interview_type_id', "headerName": "Interview Type ID", "width": width},
-            {"field":'date', "headerName": "Date", "width": width},
-            {"field":'time', "headerName": "Time", "width": width},
-            {"field":'venue', "headerName": "Venue", "width": width},
-            {"field":'job_application_form_id', "headerName": "Job Application Form Id", "width": width},
-            {"field":'interview_conductor_id', "headerName": "Interview Conductor Id", "width": width},
-            {"field":'demo_topic', "headerName": "Demo Topic", "width": width},
-            {"field":'position', "headerName": "Position", "width": width},
-            {"field":'location', "headerName": "Location", "width": width},
-            {"field":'created_by', "headerName": "Created By", "width": width},
-            {"field":'create_date', "headerName": "Created Date", "width": width},
-            {"field":'campus_id', "headerName": "Campus Id", "width": width}
-        ]
-        if id is None:
-            interviews = InterviewSchedules.query.all()
-            return {
-                "data": [interview.to_dict() for interview in interviews], 
-                "columns":columns
-            }
-        else:
-            interview = InterviewSchedules.query.get(id)
-            if interview is None:
-                abort(404, message=f"Interview schedule {id} doesn't exist")
-            
-            interview = interview.to_dict()
-            return {"data": interview, "columns": columns}
     
+    def get(self, id=None):
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            columns = [
+                {"field":'interview_type_id', "headerName": "Interview Type ID", "width": width},
+                {"field":'date', "headerName": "Date", "width": width},
+                {"field":'time', "headerName": "Time", "width": width},
+                {"field":'venue', "headerName": "Venue", "width": width},
+                {"field":'job_application_form_id', "headerName": "Job Application Form Id", "width": width},
+                {"field":'interview_conductor_id', "headerName": "Interview Conductor Id", "width": width},
+                {"field":'demo_topic', "headerName": "Demo Topic", "width": width},
+                {"field":'position', "headerName": "Position", "width": width},
+                {"field":'location', "headerName": "Location", "width": width},
+                {"field":'created_by', "headerName": "Created By", "width": width},
+                {"field":'create_date', "headerName": "Created Date", "width": width},
+                {"field":'campus_id', "headerName": "Campus Id", "width": width}
+            ]
+            
+            if id is None:
+                
+                query = InterviewSchedules.query.order_by(InterviewSchedules.id)
+                total = query.count()
+
+                # Apply pagination
+                interviews = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [interview.to_dict() for interview in interviews],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                
+            else:
+                interview = InterviewSchedules.query.get(id)
+                if interview is None:
+                    abort(404, message=f"Interview schedule {id} doesn't exist")
+                
+                interview = interview.to_dict()
+                return {
+                    "data": [interview.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('interviewTypeId', type=int, required=True, help="Interview type ID is required")
@@ -470,24 +623,74 @@ class InterviewSchedulesResource(Resource):
             abort(400, message=f"Error deleting interview schedule: {str(e)}")
 
 class DeductionHeadResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = {
-            "field": "deductionHead_Name", "headerName": "Deduction Head Name", "width": width
-        }
-        if id is None:
-            deductionHeads = DeductionHead.query.all()
-            return {
-                "data": [deductionHead.to_dict() for deductionHead in deductionHeads], 
-                "columns":columns
-            }
-        else:
-            deductionHeads = DeductionHead.query.get(id)
-            if deductionHeads is None:
-                abort(404, message=f"deductionHeads {id} doesn't exist")
+    def get(self, id=None):
+
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-            deductionHeads = deductionHeads.to_dict()
-            return {"data": deductionHeads, "columns": columns}
-    
+            columns = [
+                {"field": "deductionHead_Id", "headerName": "Deduction Head Id", "width": width},
+                {"field": "deductionHead_Name", "headerName": "Deduction Head Name", "width": width}
+            ]
+            
+            if id is None:
+                query = DeductionHead.query.order_by(DeductionHead.deductionHead_Id)
+                total = query.count()
+
+                # Apply pagination
+                deductionHeads = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [deductionHead.to_dict() for deductionHead in deductionHeads],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                deductionHeads = DeductionHead.query.all()
+                
+            else:
+                deductionHeads = DeductionHead.query.get(id)
+                if deductionHeads is None:
+                    abort(404, message=f"deductionHeads {id} doesn't exist")
+                
+                deductionHeads = deductionHeads.to_dict()
+                return {
+                    "data": [deductionHeads.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('deductionHead_Name', type=str, required=True, help="Deduction head name is required")
@@ -533,35 +736,82 @@ class DeductionHeadResource(Resource):
             abort(400, message=f"Error deleting deduction head: {str(e)}")
 
 class OneTimeDeductionResource(Resource):
-    def get(self, id=None, width="150"):
+    def get(self, id=None):
         
-        columns = [
-            {"field":"oneTimeDeduction_Id", "headername": "Id", "width": width},
-            {"field":"oneTimeDeduction_StaffId", "headername": "Staff Id", "width": width},
-            {"field":"oneTimeDeduction_DeductionHeadId", "headername": "Deduction Head Id", "width": width},
-            {"field":"oneTimeDeduction_Amount", "headername": "Amount", "width": width},
-            {"field":"oneTimeDeduction_DeductionMonth", "headername": "Deduction Month", "width": width},
-            {"field":"oneTimeDeduction_ApprovedBy", "headername": "Approved By", "width": width},
-            {"field":"creatorId", "headername": "Creator Id", "width": width},
-            {"field":"createDate", "headername": "Created Date", "width": width},
-            {"field":"updatorId", "headername": "Updator Id", "width": width},
-            {"field":"updateDate", "headername": "Updated Date", "width": width},
-            {"field":"inActive", "headername": "In active", "width": width}
-        ]
-        if id is None:
-            oneTimeDeductions = OneTimeDeduction.query.all()
-            return {
-                "data": [oneTimeDeduction.to_dict() for oneTimeDeduction in oneTimeDeductions], 
-                "columns":columns
-            }
-        else:
-            oneTimeDeductions = OneTimeDeduction.query.get(id)
-            if oneTimeDeductions is None:
-                abort(404, message=f"Interview schedule {id} doesn't exist")
-            
-            oneTimeDeductions = oneTimeDeductions.to_dict()
-            return {"data": oneTimeDeductions, "columns": columns}
-    
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+        
+            columns = [
+                {"field":"oneTimeDeduction_Id", "headername": "Id", "width": width},
+                {"field":"oneTimeDeduction_StaffId", "headername": "Staff Id", "width": width},
+                {"field":"oneTimeDeduction_DeductionHeadId", "headername": "Deduction Head Id", "width": width},
+                {"field":"oneTimeDeduction_Amount", "headername": "Amount", "width": width},
+                {"field":"oneTimeDeduction_DeductionMonth", "headername": "Deduction Month", "width": width},
+                {"field":"oneTimeDeduction_ApprovedBy", "headername": "Approved By", "width": width},
+                {"field":"creatorId", "headername": "Creator Id", "width": width},
+                {"field":"createDate", "headername": "Created Date", "width": width},
+                {"field":"updatorId", "headername": "Updator Id", "width": width},
+                {"field":"updateDate", "headername": "Updated Date", "width": width},
+                {"field":"inActive", "headername": "In active", "width": width}
+            ]
+
+            if id is None:
+                
+                query = OneTimeDeduction.query.order_by(OneTimeDeduction.id)
+                total = query.count()
+
+                # Apply pagination
+                oneTimeDeductions = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [oneTimeDeduction.to_dict() for oneTimeDeduction in oneTimeDeductions],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+
+            else:
+                oneTimeDeductions = OneTimeDeduction.query.get(id)
+                if oneTimeDeductions is None:
+                    abort(404, message=f"Interview schedule {id} doesn't exist")
+                
+                return {
+                    "data": [oneTimeDeductions.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('oneTimeDeduction_StaffId', type=int, required=True, help="Staff ID is required")
@@ -657,35 +907,84 @@ class OneTimeDeductionResource(Resource):
 
 class ScheduledDeductionResource(Resource):
     
-    def get(self, id=None, width="150"):
+    def get(self, id=None):
         
-        columns = [
-            {"field":"scheduledDeduction_Id", "headerName": "Id", "width": width},
-            {"field":"scheduledDeduction_StaffId", "headerName": "Staff Id", "width": width},
-            {"field":"scheduledDeduction_DeductionHeadId", "headerName": "Deduction head Id", "width": width},
-            {"field":"scheduledDeduction_AmountPerMonth", "headerName": "Amount Per Month", "width": width},
-            {"field":"scheduledDeduction_StartDate", "headerName": "Start Date", "width": width},
-            {"field":"scheduledDeduction_EndDate", "headerName": "End Date", "width": width},
-            {"field":"scheduledDeduction_ApprovedBy", "headerName": "Approved By", "width": width},
-            {"field":"creatorId", "headerName": "Creator Id", "width": width},
-            {"field":"createDate", "headerName": "Created Date", "width": width},
-            {"field":"updatorId", "headerName": "Updator Id", "width": width},
-            {"field":"updateDate", "headerName": "Updated Date", "width": width},
-            {"field":"inActive", "headerName": "In Active", "width": width}
-        ]
-        if id is None:
-            deductions = ScheduledDeduction.query.all()
-            return {
-                "data": [deduction.to_dict() for deduction in deductions], 
-                "columns":columns
-            }
-        else:
-            deduction = ScheduledDeduction.query.get(id)
-            if deduction is None:
-                abort(404, message=f"Interview schedule {id} doesn't exist")
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-            deduction = deduction.to_dict()
-            return {"data": deduction, "columns": columns}
+            columns = [
+                {"field":"scheduledDeduction_Id", "headerName": "Id", "width": width},
+                {"field":"scheduledDeduction_StaffId", "headerName": "Staff Id", "width": width},
+                {"field":"scheduledDeduction_DeductionHeadId", "headerName": "Deduction head Id", "width": width},
+                {"field":"scheduledDeduction_AmountPerMonth", "headerName": "Amount Per Month", "width": width},
+                {"field":"scheduledDeduction_StartDate", "headerName": "Start Date", "width": width},
+                {"field":"scheduledDeduction_EndDate", "headerName": "End Date", "width": width},
+                {"field":"scheduledDeduction_ApprovedBy", "headerName": "Approved By", "width": width},
+                {"field":"creatorId", "headerName": "Creator Id", "width": width},
+                {"field":"createDate", "headerName": "Created Date", "width": width},
+                {"field":"updatorId", "headerName": "Updator Id", "width": width},
+                {"field":"updateDate", "headerName": "Updated Date", "width": width},
+                {"field":"inActive", "headerName": "In Active", "width": width}
+            ]
+            
+            # if id is None:
+            if id:
+                
+                deduction = ScheduledDeduction.query.get(id)
+                if deduction is None:
+                    abort(404, message=f"Interview schedule {id} doesn't exist")
+                
+                return {
+                    "data": [deduction.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+                
+            else:
+
+                query = ScheduledDeduction.query.order_by(ScheduledDeduction.scheduledDeduction_Id)
+                total = query.count()
+
+                # Apply pagination
+                deductions = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [deduction.to_dict() for deduction in deductions],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -768,7 +1067,6 @@ class ScheduledDeductionResource(Resource):
             db.session.rollback()
             abort(400, message=f"Error updating scheduled deduction: {str(e)}")
 
-
     def delete(self, id):
         deduction = ScheduledDeduction.query.get(id)
         if not deduction:
@@ -784,25 +1082,80 @@ class ScheduledDeductionResource(Resource):
 
 class IARResource(Resource):
     
-    def get(self, id=None, width="150"):
-        columns = [
-            {"field":"id", "headerName": "id", "width": width},
-            {"field":"form_Id", "headerName": "Form Id", "width": width},
-            {"field":"IAR_Type_Id", "headerName": "IAR Type Id", "width": width},
-            {"field":"status_Check", "headerName": "Status Check", "width": width},
-            {"field":"remarks", "headerName": "Remarks", "width": width},
-            {"field":"creatorId", "headerName": "Creator Id", "width": width},
-            {"field":"createdDate", "headerName": "Created Date", "width": width}
-        ]
-        if id is None:
-            iars = IAR.query.all()
-            return {"date": [iar.to_dict() for iar in iars], "columns": columns}
-        else:
-            iar = IAR.query.get(id)
-            if iar is None:
-                abort(404, message=f"IAR {id} doesn't exist")
-            return {"data": iar.to_dict(), "columns": ""}
+    def get(self, id=None):
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
 
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+        
+            columns = [
+                {"field":"id", "headerName": "id", "width": width},
+                {"field":"form_Id", "headerName": "Form Id", "width": width},
+                {"field":"IAR_Type_Id", "headerName": "IAR Type Id", "width": width},
+                {"field":"status_Check", "headerName": "Status Check", "width": width},
+                {"field":"remarks", "headerName": "Remarks", "width": width},
+                {"field":"creatorId", "headerName": "Creator Id", "width": width},
+                {"field":"createdDate", "headerName": "Created Date", "width": width}
+            ]
+            
+            if id:
+                
+                iar = IAR.query.get(id)
+                if iar is None:
+                    abort(404, message=f"IAR {id} doesn't exist")
+                
+                return {
+                    "data": [iar.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            else:
+                query = IAR.query.order_by(IAR.id)
+                total = query.count()
+
+                # Apply pagination
+                iars = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [iar.to_dict() for iar in iars],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+                
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('form_Id', type=int, required=True, help="Form ID is required")
@@ -886,24 +1239,75 @@ class IARResource(Resource):
             abort(400, message=f"Error deleting IAR: {str(e)}")
 
 class IARRemarksResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = [
-            {"field":"id", "headerName": "id", "width": width},
-            {"field":"IAR_Id", "headerName": "IAR id", "width": width},
-            {"field":"remarks", "headerName": "Remarks", "width": width},
-            {"field":"status", "headerName": "Status", "width": width},
-            {"field":"creatorId", "headerName": "Creator Id", "width": width},
-            {"field":"createDate", "headerName": "Created Date", "width": width}
-        ]
-        if id is None:
-            remarks = IAR_Remarks.query.all()
+    def get(self, id=None):
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-            return {"data": [remark.to_dict() for remark in remarks], "columns": columns}
-        else:
-            remark = IAR_Remarks.query.get(id)
-            if remark is None:
-                abort(404, message=f"IAR_Remarks {id} doesn't exist")
-            return {"data": remark.to_dict(), "columns": columns}
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+        
+            columns = [
+                {"field":"id", "headerName": "id", "width": width},
+                {"field":"IAR_Id", "headerName": "IAR id", "width": width},
+                {"field":"remarks", "headerName": "Remarks", "width": width},
+                {"field":"status", "headerName": "Status", "width": width},
+                {"field":"creatorId", "headerName": "Creator Id", "width": width},
+                {"field":"createDate", "headerName": "Created Date", "width": width}
+            ]
+            if id is None:
+                query = IAR_Remarks.query.order_by(IAR_Remarks.id)
+                total = query.count()
+
+                # Apply pagination
+                remarks = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [remark.to_dict() for remark in remarks],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+            else:
+                remark = IAR_Remarks.query.get(id)
+                if remark is None:
+                    abort(404, message=f"IAR_Remarks {id} doesn't exist")
+                return {
+                    "data": [remark.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+                
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -974,19 +1378,71 @@ class IARRemarksResource(Resource):
             abort(400, message=f"Error deleting IAR_Remarks: {str(e)}")
 
 class IARTypesResource(Resource):
-    def get(self, id=None, width="150"):
-        columns = [
-            {"field": "id", "headerName": "Id", "width": width},
-            {"field": "name", "headerName": "Name", "width": width}
-        ]
-        if id is None:
-            types = IAR_Types.query.all()
-            return [iar_type.to_dict() for iar_type in types], 200
-        else:
-            iar_type = IAR_Types.query.get(id)
-            if iar_type is None:
-                abort(404, message=f"IAR_Types {id} doesn't exist")
-            return {"data": iar_type.to_dict(), "columns": columns}
+    def get(self, id=None, ):
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            columns = [
+                {"field": "id", "headerName": "Id", "width": width},
+                {"field": "name", "headerName": "Name", "width": width}
+            ]
+            if id:
+                iar_type = IAR_Types.query.get(id)
+                if iar_type is None:
+                    abort(404, message=f"IAR_Types {id} doesn't exist")
+                return {
+                    "data": [iar_type.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            else:
+                query = IAR_Types.query.order_by(IAR_Types.id)
+                total = query.count()
+
+                # Apply pagination
+                types = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [iar_type.to_dict() for iar_type in types],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+                
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -1037,14 +1493,70 @@ class IARTypesResource(Resource):
 class EmailTypesResource(Resource):
     
     def get(self, id=None):
-        if id is None:
-            email_types = EmailTypes.query.all()
-            return [email_type.to_dict() for email_type in email_types]
-        else:
-            email_type = EmailTypes.query.get(id)
-            if email_type is None:
-                abort(404, message=f"EmailTypes {id} doesn't exist")
-            return email_type.to_dict()
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+
+            columns = [
+                {"field":"id", "headerName": "Id", "width": width},
+                {"field":"name", "headerName": "Name", "width": width},
+            ]
+            
+            if id is None:
+                query = EmailTypes.query.order_by(EmailTypes.id)
+                total = query.count()
+
+                # Apply pagination
+                email_types = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [email_type.to_dict() for email_type in email_types],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+            
+            else:
+                email_type = EmailTypes.query.get(id)
+                if email_type is None:
+                    abort(404, message=f"EmailTypes {id} doesn't exist")
+                
+                return {
+                    "data": [email_type.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+            
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -1093,17 +1605,76 @@ class EmailTypesResource(Resource):
 
 class EmailStorageSystemResource(Resource):
     def get(self, id=None):
-        columns = [
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-        ]
-        if id is None:
-            emails = EmailStorageSystem.query.all()
-            return {"data": [email.to_dict() for email in emails], "columns": columns}, 200
-        else:
-            email = EmailStorageSystem.query.get(id)
-            if email is None:
-                abort(404, message=f"EmailStorageSystem {id} doesn't exist")
-            return {"data": email.to_dict(), "columns": columns}, 200
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+
+            columns = [
+                {"field":"email_Id", "headerName": "", "width": width},
+                {"field":"email_Title", "headerName": "", "width": width},
+                {"field":"email_Subject", "headerName": "", "width": width},
+                {"field":"email_Body", "headerName": "", "width": width},
+                {"field":"status", "headerName": "", "width": width},
+                {"field":"creatorId", "headerName": "", "width": width},
+                {"field":"createdDate", "headerName": "", "width": width},
+                {"field":"updatorId", "headerName": "", "width": width},
+                {"field":"updatedDate", "headerName": "", "width": width},
+                {"field":"emailType", "headerName": "", "width": width}
+            ]
+            if id is None:
+                
+                query = EmailStorageSystem.query.order_by(EmailStorageSystem.email_Id)
+                total = query.count()
+
+                # Apply pagination
+                emails = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [email.to_dict() for email in emails],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+            else:
+                email = EmailStorageSystem.query.get(id)
+                if email is None:
+                    abort(404, message=f"EmailStorageSystem {id} doesn't exist")
+                return {
+                    "data": [email.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -1194,17 +1765,74 @@ class EmailStorageSystemResource(Resource):
 
 class AvailableJobsResource(Resource):
     def get(self, id=None):
-        columns = [
+        
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
             
-        ]
-        if id is None:
-            jobs = AvailableJobs.query.all()
-            return {"data": [job.to_dict() for job in jobs], "columns": columns}, 200
-        else:
-            job = AvailableJobs.query.get(id)
-            if job is None:
-                abort(404, message=f"AvailableJobs {id} doesn't exist")
-            return {"data": job.to_dict(), "columns": columns}
+            if page_no < 1 or page_size < 1:
+                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            columns = [
+                {"field":"job_Id", "headerName": "Id", "width": width},
+                {"field":"job_Title", "headerName": "Title", "width": width},
+                {"field":"job_Level", "headerName": "Level", "width": width},
+                {"field":"job_PostedBy", "headerName": "Posted By", "width": width},
+                {"field":"job_Status", "headerName": "Status", "width": width},
+                {"field":"creatorId", "headerName": "Creator Id", "width": width},
+                {"field":"createdDate", "headerName": "Created Date", "width": width},
+                {"field":"updatorId", "headerName": "Updator Id", "width": width},
+                {"field":"updatedDate", "headerName": "Updated Date", "width": width}
+            ]
+            if id is None:
+                query = AvailableJobs.query.order_by(AvailableJobs.job_Id)
+                total = query.count()
+
+                # Apply pagination
+                jobs = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+
+                return {
+                    "data": [job.to_dict() for job in jobs],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size,
+                    "columns": columns
+                }, 200
+            else:
+                job = AvailableJobs.query.get(id)
+                if job is None:
+                    abort(404, message=f"AvailableJobs {id} doesn't exist")
+                return {
+                    "data": [job.to_dict()],
+                    "total": 1,
+                    "pageNo": page_no,
+                    "pageSize": page_size, 
+                    "columns": columns
+                }, 200
+            
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
         parser = reqparse.RequestParser()
