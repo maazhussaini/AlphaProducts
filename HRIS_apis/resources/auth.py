@@ -13,21 +13,16 @@ class UserLoginResource(Resource):
 
         # Replace this with your actual user verification logic
         
-        encrypted_identity = {
-            "userName": encrypt(args['username']),
-            "password": decrypt("6lXyW/rmKFEwwZzLQn9EYw==")
-        }
-        print(encrypted_identity)
-        
         try:
-            user = Users.query.filter_by(username=encrypted_identity['userName']).first()
+            user = Users.query.filter_by(username=encrypt(args['username'])).first()
             if user:
-                password= user.password
+                password= decrypt(user.password)
                 
             # password = Users.query.filter_by(password=encrypted_identity['password']).first()
             
             if user and password:
-                access_token = create_access_token(identity={'username': encrypted_identity})
+                print(decrypt(user.username), decrypt(user.password))
+                access_token = create_access_token(identity={'username': encrypt(args['username'])})
                 
                 # Fetch related UserCampus and Role information
                 user_campus = UserCampus.query.filter_by(userId=user.user_Id).first()
