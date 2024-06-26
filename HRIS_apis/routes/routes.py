@@ -3,7 +3,7 @@ from flask import Blueprint
 from resources.resources import (
     JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
-    EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource
+    EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource
 )
 from resources.customApi import CustomApiResource
 from resources.auth import UserLoginResource
@@ -33,3 +33,8 @@ def register_routes(app):
     api.add_resource(AvailableJobsResource, '/availableJobs', '/availableJobs/<int:id>')
     
     api.add_resource(CustomApiResource, '/customApiResource', '/customApiResource/<int:id>')
+
+    # Add the resources to the API
+    api.add_resource(StaffInfoResource, '/staffInfo', '/staffInfo/<int:id>')
+    api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
+    

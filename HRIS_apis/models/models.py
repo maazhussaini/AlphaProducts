@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 import re
 from exceptions import ValidationError
-
+import json
 
 class Users(db.Model):
     __tablename__ = 'USERS'
@@ -135,7 +135,7 @@ class UserCampus(db.Model):
             "creatorId": self.creatorId,
             "creatorIP": self.creatorIP,
             "creatorTerminal": self.creatorTerminal,
-            "createDate": self.createDate,
+            "createDate": self.createDate.isoformat() if self.createDate else None,
             "status": self.status
         }
 
@@ -274,7 +274,7 @@ class JobApplicationForm(db.Model):
             'father_name': self.father_name,
             'cnic': self.cnic,
             'passport_number': self.passport_number,
-            'dob': self.dob.isoformat(),
+            'dob': self.dob.isoformat() if self.dob else None,
             'age': self.age,
             'gender': self.gender,
             'cell_phone': self.cell_phone,
@@ -601,3 +601,209 @@ class AvailableJobs(db.Model):
             'updatorId': self.updatorId,
             'updatedDate': self.updatedDate.isoformat() if self.updatedDate else None
         }
+
+class StaffInfo(db.Model):
+    __tablename__ = 'StaffInfo'
+    Staff_ID = db.Column(db.Integer, primary_key=True)
+    Personal_ID = db.Column(db.String(100))
+    S_Name = db.Column(db.String(50), nullable=False)
+    S_FName = db.Column(db.String(100))
+    S_Gender = db.Column(db.Integer, nullable=False)
+    S_CNIC = db.Column(db.String(50))
+    S_Email = db.Column(db.String(250))
+    S_ContactNo = db.Column(db.String(50))
+    S_DoB = db.Column(db.DateTime, nullable=False)
+    S_JoiningDate = db.Column(db.DateTime, nullable=False)
+    S_firstJOrderNo = db.Column(db.String(50))
+    S_JoiningDesg = db.Column(db.Integer)
+    S_JoiningGrade = db.Column(db.Integer)
+    S_firstJPlace = db.Column(db.String(50))
+    S_PresentDesignation = db.Column(db.Integer)
+    S_PresentGrade = db.Column(db.Integer)
+    S_SchoolName = db.Column(db.String(100))
+    S_District = db.Column(db.String(50))
+    S_Union = db.Column(db.String(50))
+    S_WardNo = db.Column(db.String(50))
+    S_Village = db.Column(db.String(50))
+    Designation_ID = db.Column(db.Integer, nullable=False)
+    Grade_ID = db.Column(db.Integer)
+    IsActive = db.Column(db.Boolean, nullable=False)
+    IsNonTeacher = db.Column(db.Boolean, nullable=False)
+    S_Salary = db.Column(db.Float)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime)
+    PhotoPath = db.Column(db.String(500))
+    IsDisable = db.Column(db.Boolean, nullable=False)
+    disableDetail = db.Column(db.String(255))
+    EOBI = db.Column(db.String(50))
+    ProbationPeriod = db.Column(db.Float)
+    ProbationEndDate = db.Column(db.DateTime)
+    IsPermanent = db.Column(db.Boolean, nullable=False)
+    IsTerminate = db.Column(db.Boolean)
+    DepartmentId = db.Column(db.Integer)
+    HouseNo = db.Column(db.String(255))
+    Street_Sector_BlockNo = db.Column(db.String(255))
+    AreaId = db.Column(db.BigInteger)
+    CityId = db.Column(db.BigInteger)
+    District = db.Column(db.String(50))
+    Province = db.Column(db.String(50))
+    CountryId = db.Column(db.BigInteger)
+    PresentAddress = db.Column(db.String(500))
+    TempAddress = db.Column(db.String(500))
+    Whatsapp = db.Column(db.String(20))
+    EmergencyContactName = db.Column(db.String(50))
+    EmergencyContactNo = db.Column(db.String(50))
+    HomeNo = db.Column(db.String(20))
+    Rent_Personal = db.Column(db.String(20))
+    MaritalStatus = db.Column(db.String(50))
+    AccountTitle = db.Column(db.String(50))
+    AccountNo = db.Column(db.String(50))
+    BankName = db.Column(db.String(50))
+    Branch = db.Column(db.String(50))
+    IsFatherName = db.Column(db.Boolean)
+    FHWName = db.Column(db.String(50))
+    FHWCNIC = db.Column(db.String(20))
+    FWHDOB = db.Column(db.DateTime)
+    CampusId = db.Column(db.Integer)
+    BarcodeId = db.Column(db.String(50), nullable=False)
+    IsAppearLive = db.Column(db.Boolean, nullable=False)
+    Category = db.Column(db.Integer)
+    FId = db.Column(db.Integer)
+    Initials = db.Column(db.String(50))
+    IsSalaryOn = db.Column(db.Boolean)
+    EmpId = db.Column(db.Integer)
+    IsAEN = db.Column(db.Integer)
+    ReportingOfficerId = db.Column(db.Integer)
+    FileNumber = db.Column(db.Integer)
+    FileLocation = db.Column(db.String(255))
+    IsExit = db.Column(db.Boolean)
+    Grace_In = db.Column(db.Integer)
+    Grace_Out = db.Column(db.Integer)
+    ShiftType = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'Staff_ID': self.Staff_ID,
+            'Personal_ID': self.Personal_ID,
+            'S_Name': self.S_Name,
+            'S_FName': self.S_FName,
+            'S_Gender': self.S_Gender,
+            'S_CNIC': self.S_CNIC,
+            'S_Email': self.S_Email,
+            'S_ContactNo': self.S_ContactNo,
+            'S_DoB': self.S_DoB.isoformat() if self.S_DoB else None,
+            'S_JoiningDate': self.S_JoiningDate.isoformat() if self.S_JoiningDate else None,
+            'S_firstJOrderNo': self.S_firstJOrderNo,
+            'S_JoiningDesg': self.S_JoiningDesg,
+            'S_JoiningGrade': self.S_JoiningGrade,
+            'S_firstJPlace': self.S_firstJPlace,
+            'S_PresentDesignation': self.S_PresentDesignation,
+            'S_PresentGrade': self.S_PresentGrade,
+            'S_SchoolName': self.S_SchoolName,
+            'S_District': self.S_District,
+            'S_Union': self.S_Union,
+            'S_WardNo': self.S_WardNo,
+            'S_Village': self.S_Village,
+            'Designation_ID': self.Designation_ID,
+            'Grade_ID': self.Grade_ID,
+            'IsActive': self.IsActive,
+            'IsNonTeacher': self.IsNonTeacher,
+            'S_Salary': self.S_Salary,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'PhotoPath': self.PhotoPath,
+            'IsDisable': self.IsDisable,
+            'disableDetail': self.disableDetail,
+            'EOBI': self.EOBI,
+            'ProbationPeriod': self.ProbationPeriod,
+            'ProbationEndDate': self.ProbationEndDate.isoformat() if self.ProbationEndDate else None,
+            'IsPermanent': self.IsPermanent,
+            'IsTerminate': self.IsTerminate,
+            'DepartmentId': self.DepartmentId,
+            'HouseNo': self.HouseNo,
+            'Street_Sector_BlockNo': self.Street_Sector_BlockNo,
+            'AreaId': self.AreaId,
+            'CityId': self.CityId,
+            'District': self.District,
+            'Province': self.Province,
+            'CountryId': self.CountryId,
+            'PresentAddress': self.PresentAddress,
+            'TempAddress': self.TempAddress,
+            'Whatsapp': self.Whatsapp,
+            'EmergencyContactName': self.EmergencyContactName,
+            'EmergencyContactNo': self.EmergencyContactNo,
+            'HomeNo': self.HomeNo,
+            'Rent_Personal': self.Rent_Personal,
+            'MaritalStatus': self.MaritalStatus,
+            'AccountTitle': self.AccountTitle,
+            'AccountNo': self.AccountNo,
+            'BankName': self.BankName,
+            'Branch': self.Branch,
+            'IsFatherName': self.IsFatherName,
+            'FHWName': self.FHWName,
+            'FHWCNIC': self.FHWCNIC,
+            'FWHDOB': self.FWHDOB.isoformat() if self.FWHDOB else None,
+            'CampusId': self.CampusId,
+            'BarcodeId': self.BarcodeId,
+            'IsAppearLive': self.IsAppearLive,
+            'Category': self.Category,
+            'FId': self.FId,
+            'Initials': self.Initials,
+            'IsSalaryOn': self.IsSalaryOn,
+            'EmpId': self.EmpId,
+            'IsAEN': self.IsAEN,
+            'ReportingOfficerId': self.ReportingOfficerId,
+            'FileNumber': self.FileNumber,
+            'FileLocation': self.FileLocation,
+            'IsExit': self.IsExit,
+            'Grace_In': self.Grace_In,
+            'Grace_Out': self.Grace_Out,
+            'ShiftType': self.ShiftType
+        }
+
+class StaffDepartment(db.Model):
+    __tablename__ = 'StaffDepartments'
+
+    Id = db.Column(db.Integer, primary_key=True)
+    DepartmentName = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    ManagerId = db.Column(db.Integer, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'DepartmentName': self.DepartmentName,
+            'status': self.status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId,
+            'ManagerId': self.ManagerId,
+        }
+

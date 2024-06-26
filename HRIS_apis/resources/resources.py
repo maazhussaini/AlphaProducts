@@ -1,14 +1,16 @@
 from flask_restful import Resource, reqparse, abort
 from models.models import (
     JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
-    ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs
+    ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
+    StaffInfo, StaffDepartment
 )
-from datetime import datetime
+from datetime import datetime, date
 from app import db
 from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
+import json
 
 class JobApplicationFormResource(Resource):
     
@@ -1792,7 +1794,7 @@ class AvailableJobsResource(Resource):
             width = args['width']
             
             if page_no < 1 or page_size < 1:
-                raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+                return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
             
             columns = [
                 {"field":"job_Id", "headerName": "Id", "width": width},
@@ -1922,4 +1924,663 @@ class AvailableJobsResource(Resource):
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error deleting AvailableJobs: {str(e)}")
+
+class DateTimeEncoder(json.JSONEncoder):
+        #Override the default method
+        def default(self, obj):
+            if isinstance(obj, (date, datetime)):
+                return obj.isoformat()
+
+class StaffInfoResource(Resource):
+    def get(self, id=None):
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            if id:
+                staff = StaffInfo.query.get_or_404(id)
+                print("Date of Joining: ", staff.S_JoiningDate)
+                
+                return json.loads(json.dumps({
+                    "Employee Name": str(staff.Staff_ID) + " | " + staff.S_Name,
+                    "Designation": staff.Designation_ID,
+                    "Campus": staff.CampusId,
+                    "Department": staff.DepartmentId,
+                    "Date of Joining": staff.S_JoiningDate
+                    }, indent=4, cls=DateTimeEncoder)), 200
+            else:
+                
+                query = StaffInfo.query.order_by(StaffInfo.Staff_ID)
+                total = query.count()
+                
+                paginated_staff = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+                
+                return {
+                    "data": [json.loads(json.dumps(staff.to_dict())) for staff in paginated_staff],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size
+                }, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+    
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('Personal_ID', type=str)
+        parser.add_argument('S_Name', type=str, required=True, help='Name is required')
+        parser.add_argument('S_FName', type=str)
+        parser.add_argument('S_Gender', type=int, required=True, help='Gender is required')
+        parser.add_argument('S_CNIC', type=str)
+        parser.add_argument('S_Email', type=str)
+        parser.add_argument('S_ContactNo', type=str)
+        parser.add_argument('S_DoB', type=str, required=True, help='Date of Birth is required')
+        parser.add_argument('S_JoiningDate', type=str, required=True, help='Joining Date is required')
+        parser.add_argument('S_firstJOrderNo', type=str)
+        parser.add_argument('S_JoiningDesg', type=int)
+        parser.add_argument('S_JoiningGrade', type=int)
+        parser.add_argument('S_firstJPlace', type=str)
+        parser.add_argument('S_PresentDesignation', type=int)
+        parser.add_argument('S_PresentGrade', type=int)
+        parser.add_argument('S_SchoolName', type=str)
+        parser.add_argument('S_District', type=str)
+        parser.add_argument('S_Union', type=str)
+        parser.add_argument('S_WardNo', type=str)
+        parser.add_argument('S_Village', type=str)
+        parser.add_argument('Designation_ID', type=int, required=True, help='Designation ID is required')
+        parser.add_argument('Grade_ID', type=int)
+        parser.add_argument('IsActive', type=bool, required=True, help='IsActive is required')
+        parser.add_argument('IsNonTeacher', type=bool, required=True, help='IsNonTeacher is required')
+        parser.add_argument('S_Salary', type=float)
+        parser.add_argument('UpdaterId', type=int)
+        parser.add_argument('UpdaterIP', type=str)
+        parser.add_argument('UpdaterTerminal', type=str)
+        parser.add_argument('UpdateDate', type=str)
+        parser.add_argument('CreatorId', type=int)
+        parser.add_argument('CreatorIP', type=str)
+        parser.add_argument('CreatorTerminal', type=str)
+        parser.add_argument('CreateDate', type=str)
+        parser.add_argument('PhotoPath', type=str)
+        parser.add_argument('IsDisable', type=bool, required=True, help='IsDisable is required')
+        parser.add_argument('disableDetail', type=str)
+        parser.add_argument('EOBI', type=str)
+        parser.add_argument('ProbationPeriod', type=float)
+        parser.add_argument('ProbationEndDate', type=str)
+        parser.add_argument('IsPermanent', type=bool, required=True, help='IsPermanent is required')
+        parser.add_argument('IsTerminate', type=bool)
+        parser.add_argument('DepartmentId', type=int)
+        parser.add_argument('HouseNo', type=str)
+        parser.add_argument('Street_Sector_BlockNo', type=str)
+        parser.add_argument('AreaId', type=int)
+        parser.add_argument('CityId', type=int)
+        parser.add_argument('District', type=str)
+        parser.add_argument('Province', type=str)
+        parser.add_argument('CountryId', type=int)
+        parser.add_argument('PresentAddress', type=str)
+        parser.add_argument('TempAddress', type=str)
+        parser.add_argument('Whatsapp', type=str)
+        parser.add_argument('EmergencyContactName', type=str)
+        parser.add_argument('EmergencyContactNo', type=str)
+        parser.add_argument('HomeNo', type=str)
+        parser.add_argument('Rent_Personal', type=str)
+        parser.add_argument('MaritalStatus', type=str)
+        parser.add_argument('AccountTitle', type=str)
+        parser.add_argument('AccountNo', type=str)
+        parser.add_argument('BankName', type=str)
+        parser.add_argument('Branch', type=str)
+        parser.add_argument('IsFatherName', type=bool)
+        parser.add_argument('FHWName', type=str)
+        parser.add_argument('FHWCNIC', type=str)
+        parser.add_argument('FWHDOB', type=str)
+        parser.add_argument('CampusId', type=int)
+        parser.add_argument('BarcodeId', type=str, required=True, help='BarcodeId is required')
+        parser.add_argument('IsAppearLive', type=bool, required=True, help='IsAppearLive is required')
+        parser.add_argument('Category', type=int)
+        parser.add_argument('FId', type=int)
+        parser.add_argument('Initials', type=str)
+        parser.add_argument('IsSalaryOn', type=bool)
+        parser.add_argument('EmpId', type=int)
+        parser.add_argument('IsAEN', type=int)
+        parser.add_argument('ReportingOfficerId', type=int)
+        parser.add_argument('FileNumber', type=int)
+        parser.add_argument('FileLocation', type=str)
+        parser.add_argument('IsExit', type=bool)
+        parser.add_argument('Grace_In', type=int)
+        parser.add_argument('Grace_Out', type=int)
+        parser.add_argument('ShiftType', type=int)
+        args = parser.parse_args()
+
+        try:
+            new_staff = StaffInfo(
+                Personal_ID=args['Personal_ID'],
+                S_Name=args['S_Name'],
+                S_FName=args['S_FName'],
+                S_Gender=args['S_Gender'],
+                S_CNIC=args['S_CNIC'],
+                S_Email=args['S_Email'],
+                S_ContactNo=args['S_ContactNo'],
+                S_DoB=datetime.strptime(args['S_DoB'], '%Y-%m-%d'),
+                S_JoiningDate=datetime.strptime(args['S_JoiningDate'], '%Y-%m-%d'),
+                S_firstJOrderNo=args['S_firstJOrderNo'],
+                S_JoiningDesg=args['S_JoiningDesg'],
+                S_JoiningGrade=args['S_JoiningGrade'],
+                S_firstJPlace=args['S_firstJPlace'],
+                S_PresentDesignation=args['S_PresentDesignation'],
+                S_PresentGrade=args['S_PresentGrade'],
+                S_SchoolName=args['S_SchoolName'],
+                S_District=args['S_District'],
+                S_Union=args['S_Union'],
+                S_WardNo=args['S_WardNo'],
+                S_Village=args['S_Village'],
+                Designation_ID=args['Designation_ID'],
+                Grade_ID=args['Grade_ID'],
+                IsActive=args['IsActive'],
+                IsNonTeacher=args['IsNonTeacher'],
+                S_Salary=args['S_Salary'],
+                UpdaterId=args['UpdaterId'],
+                UpdaterIP=args['UpdaterIP'],
+                UpdaterTerminal=args['UpdaterTerminal'],
+                UpdateDate=datetime.strptime(args['UpdateDate'], '%Y-%m-%d') if args['UpdateDate'] else None,
+                CreatorId=args['CreatorId'],
+                CreatorIP=args['CreatorIP'],
+                CreatorTerminal=args['CreatorTerminal'],
+                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d') if args['CreateDate'] else datetime.utcnow(),
+                PhotoPath=args['PhotoPath'],
+                IsDisable=args['IsDisable'],
+                disableDetail=args['disableDetail'],
+                EOBI=args['EOBI'],
+                ProbationPeriod=args['ProbationPeriod'],
+                ProbationEndDate=datetime.strptime(args['ProbationEndDate'], '%Y-%m-%d') if args['ProbationEndDate'] else None,
+                IsPermanent=args['IsPermanent'],
+                IsTerminate=args['IsTerminate'],
+                DepartmentId=args['DepartmentId'],
+                HouseNo=args['HouseNo'],
+                Street_Sector_BlockNo=args['Street_Sector_BlockNo'],
+                AreaId=args['AreaId'],
+                CityId=args['CityId'],
+                District=args['District'],
+                Province=args['Province'],
+                CountryId=args['CountryId'],
+                PresentAddress=args['PresentAddress'],
+                TempAddress=args['TempAddress'],
+                Whatsapp=args['Whatsapp'],
+                EmergencyContactName=args['EmergencyContactName'],
+                EmergencyContactNo=args['EmergencyContactNo'],
+                HomeNo=args['HomeNo'],
+                Rent_Personal=args['Rent_Personal'],
+                MaritalStatus=args['MaritalStatus'],
+                AccountTitle=args['AccountTitle'],
+                AccountNo=args['AccountNo'],
+                BankName=args['BankName'],
+                Branch=args['Branch'],
+                IsFatherName=args['IsFatherName'],
+                FHWName=args['FHWName'],
+                FHWCNIC=args['FHWCNIC'],
+                FWHDOB=datetime.strptime(args['FWHDOB'], '%Y-%m-%d') if args['FWHDOB'] else None,
+                CampusId=args['CampusId'],
+                BarcodeId=args['BarcodeId'],
+                IsAppearLive=args['IsAppearLive'],
+                Category=args['Category'],
+                FId=args['FId'],
+                Initials=args['Initials'],
+                IsSalaryOn=args['IsSalaryOn'],
+                EmpId=args['EmpId'],
+                IsAEN=args['IsAEN'],
+                ReportingOfficerId=args['ReportingOfficerId'],
+                FileNumber=args['FileNumber'],
+                FileLocation=args['FileLocation'],
+                IsExit=args['IsExit'],
+                Grace_In=args['Grace_In'],
+                Grace_Out=args['Grace_Out'],
+                ShiftType=args['ShiftType'],
+            )
+
+            db.session.add(new_staff)
+            db.session.commit()
+            return new_staff.to_dict(), 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('Personal_ID', type=str)
+        parser.add_argument('S_Name', type=str)
+        parser.add_argument('S_FName', type=str)
+        parser.add_argument('S_Gender', type=int)
+        parser.add_argument('S_CNIC', type=str)
+        parser.add_argument('S_Email', type=str)
+        parser.add_argument('S_ContactNo', type=str)
+        parser.add_argument('S_DoB', type=str)
+        parser.add_argument('S_JoiningDate', type=str)
+        parser.add_argument('S_firstJOrderNo', type=str)
+        parser.add_argument('S_JoiningDesg', type=int)
+        parser.add_argument('S_JoiningGrade', type=int)
+        parser.add_argument('S_firstJPlace', type=str)
+        parser.add_argument('S_PresentDesignation', type=int)
+        parser.add_argument('S_PresentGrade', type=int)
+        parser.add_argument('S_SchoolName', type=str)
+        parser.add_argument('S_District', type=str)
+        parser.add_argument('S_Union', type=str)
+        parser.add_argument('S_WardNo', type=str)
+        parser.add_argument('S_Village', type=str)
+        parser.add_argument('Designation_ID', type=int)
+        parser.add_argument('Grade_ID', type=int)
+        parser.add_argument('IsActive', type=bool)
+        parser.add_argument('IsNonTeacher', type=bool)
+        parser.add_argument('S_Salary', type=float)
+        parser.add_argument('UpdaterId', type=int)
+        parser.add_argument('UpdaterIP', type=str)
+        parser.add_argument('UpdaterTerminal', type=str)
+        parser.add_argument('UpdateDate', type=str)
+        parser.add_argument('CreatorId', type=int)
+        parser.add_argument('CreatorIP', type=str)
+        parser.add_argument('CreatorTerminal', type=str)
+        parser.add_argument('CreateDate', type=str)
+        parser.add_argument('PhotoPath', type=str)
+        parser.add_argument('IsDisable', type=bool)
+        parser.add_argument('disableDetail', type=str)
+        parser.add_argument('EOBI', type=str)
+        parser.add_argument('ProbationPeriod', type=float)
+        parser.add_argument('ProbationEndDate', type=str)
+        parser.add_argument('IsPermanent', type=bool)
+        parser.add_argument('IsTerminate', type=bool)
+        parser.add_argument('DepartmentId', type=int)
+        parser.add_argument('HouseNo', type=str)
+        parser.add_argument('Street_Sector_BlockNo', type=str)
+        parser.add_argument('AreaId', type=int)
+        parser.add_argument('CityId', type=int)
+        parser.add_argument('District', type=str)
+        parser.add_argument('Province', type=str)
+        parser.add_argument('CountryId', type=int)
+        parser.add_argument('PresentAddress', type=str)
+        parser.add_argument('TempAddress', type=str)
+        parser.add_argument('Whatsapp', type=str)
+        parser.add_argument('EmergencyContactName', type=str)
+        parser.add_argument('EmergencyContactNo', type=str)
+        parser.add_argument('HomeNo', type=str)
+        parser.add_argument('Rent_Personal', type=str)
+        parser.add_argument('MaritalStatus', type=str)
+        parser.add_argument('AccountTitle', type=str)
+        parser.add_argument('AccountNo', type=str)
+        parser.add_argument('BankName', type=str)
+        parser.add_argument('Branch', type=str)
+        parser.add_argument('IsFatherName', type=bool)
+        parser.add_argument('FHWName', type=str)
+        parser.add_argument('FHWCNIC', type=str)
+        parser.add_argument('FWHDOB', type=str)
+        parser.add_argument('CampusId', type=int)
+        parser.add_argument('BarcodeId', type=str)
+        parser.add_argument('IsAppearLive', type=bool)
+        parser.add_argument('Category', type=int)
+        parser.add_argument('FId', type=int)
+        parser.add_argument('Initials', type=str)
+        parser.add_argument('IsSalaryOn', type=bool)
+        parser.add_argument('EmpId', type=int)
+        parser.add_argument('IsAEN', type=int)
+        parser.add_argument('ReportingOfficerId', type=int)
+        parser.add_argument('FileNumber', type=int)
+        parser.add_argument('FileLocation', type=str)
+        parser.add_argument('IsExit', type=bool)
+        parser.add_argument('Grace_In', type=int)
+        parser.add_argument('Grace_Out', type=int)
+        parser.add_argument('ShiftType', type=int)
+        args = parser.parse_args()
+
+        try:
+            staff = StaffInfo.query.get_or_404(id)
+
+            if args['Personal_ID'] is not None:
+                staff.Personal_ID = args['Personal_ID']
+            if args['S_Name'] is not None:
+                staff.S_Name = args['S_Name']
+            if args['S_FName'] is not None:
+                staff.S_FName = args['S_FName']
+            if args['S_Gender'] is not None:
+                staff.S_Gender = args['S_Gender']
+            if args['S_CNIC'] is not None:
+                staff.S_CNIC = args['S_CNIC']
+            if args['S_Email'] is not None:
+                staff.S_Email = args['S_Email']
+            if args['S_ContactNo'] is not None:
+                staff.S_ContactNo = args['S_ContactNo']
+            if args['S_DoB'] is not None:
+                staff.S_DoB = datetime.strptime(args['S_DoB'], '%Y-%m-%d')
+            if args['S_JoiningDate'] is not None:
+                staff.S_JoiningDate = datetime.strptime(args['S_JoiningDate'], '%Y-%m-%d')
+            if args['S_firstJOrderNo'] is not None:
+                staff.S_firstJOrderNo = args['S_firstJOrderNo']
+            if args['S_JoiningDesg'] is not None:
+                staff.S_JoiningDesg = args['S_JoiningDesg']
+            if args['S_JoiningGrade'] is not None:
+                staff.S_JoiningGrade = args['S_JoiningGrade']
+            if args['S_firstJPlace'] is not None:
+                staff.S_firstJPlace = args['S_firstJPlace']
+            if args['S_PresentDesignation'] is not None:
+                staff.S_PresentDesignation = args['S_PresentDesignation']
+            if args['S_PresentGrade'] is not None:
+                staff.S_PresentGrade = args['S_PresentGrade']
+            if args['S_SchoolName'] is not None:
+                staff.S_SchoolName = args['S_SchoolName']
+            if args['S_District'] is not None:
+                staff.S_District = args['S_District']
+            if args['S_Union'] is not None:
+                staff.S_Union = args['S_Union']
+            if args['S_WardNo'] is not None:
+                staff.S_WardNo = args['S_WardNo']
+            if args['S_Village'] is not None:
+                staff.S_Village = args['S_Village']
+            if args['Designation_ID'] is not None:
+                staff.Designation_ID = args['Designation_ID']
+            if args['Grade_ID'] is not None:
+                staff.Grade_ID = args['Grade_ID']
+            if args['IsActive'] is not None:
+                staff.IsActive = args['IsActive']
+            if args['IsNonTeacher'] is not None:
+                staff.IsNonTeacher = args['IsNonTeacher']
+            if args['S_Salary'] is not None:
+                staff.S_Salary = args['S_Salary']
+            if args['UpdaterId'] is not None:
+                staff.UpdaterId = args['UpdaterId']
+            if args['UpdaterIP'] is not None:
+                staff.UpdaterIP = args['UpdaterIP']
+            if args['UpdaterTerminal'] is not None:
+                staff.UpdaterTerminal = args['UpdaterTerminal']
+            if args['UpdateDate'] is not None:
+                staff.UpdateDate = datetime.strptime(args['UpdateDate'], '%Y-%m-%d')
+            if args['CreatorId'] is not None:
+                staff.CreatorId = args['CreatorId']
+            if args['CreatorIP'] is not None:
+                staff.CreatorIP = args['CreatorIP']
+            if args['CreatorTerminal'] is not None:
+                staff.CreatorTerminal = args['CreatorTerminal']
+            if args['CreateDate'] is not None:
+                staff.CreateDate = datetime.strptime(args['CreateDate'], '%Y-%m-%d')
+            if args['PhotoPath'] is not None:
+                staff.PhotoPath = args['PhotoPath']
+            if args['IsDisable'] is not None:
+                staff.IsDisable = args['IsDisable']
+            if args['disableDetail'] is not None:
+                staff.disableDetail = args['disableDetail']
+            if args['EOBI'] is not None:
+                staff.EOBI = args['EOBI']
+            if args['ProbationPeriod'] is not None:
+                staff.ProbationPeriod = args['ProbationPeriod']
+            if args['ProbationEndDate'] is not None:
+                staff.ProbationEndDate = datetime.strptime(args['ProbationEndDate'], '%Y-%m-%d')
+            if args['IsPermanent'] is not None:
+                staff.IsPermanent = args['IsPermanent']
+            if args['IsTerminate'] is not None:
+                staff.IsTerminate = args['IsTerminate']
+            if args['DepartmentId'] is not None:
+                staff.DepartmentId = args['DepartmentId']
+            if args['HouseNo'] is not None:
+                staff.HouseNo = args['HouseNo']
+            if args['Street_Sector_BlockNo'] is not None:
+                staff.Street_Sector_BlockNo = args['Street_Sector_BlockNo']
+            if args['AreaId'] is not None:
+                staff.AreaId = args['AreaId']
+            if args['CityId'] is not None:
+                staff.CityId = args['CityId']
+            if args['District'] is not None:
+                staff.District = args['District']
+            if args['Province'] is not None:
+                staff.Province = args['Province']
+            if args['CountryId'] is not None:
+                staff.CountryId = args['CountryId']
+            if args['PresentAddress'] is not None:
+                staff.PresentAddress = args['PresentAddress']
+            if args['TempAddress'] is not None:
+                staff.TempAddress = args['TempAddress']
+            if args['Whatsapp'] is not None:
+                staff.Whatsapp = args['Whatsapp']
+            if args['EmergencyContactName'] is not None:
+                staff.EmergencyContactName = args['EmergencyContactName']
+            if args['EmergencyContactNo'] is not None:
+                staff.EmergencyContactNo = args['EmergencyContactNo']
+            if args['HomeNo'] is not None:
+                staff.HomeNo = args['HomeNo']
+            if args['Rent_Personal'] is not None:
+                staff.Rent_Personal = args['Rent_Personal']
+            if args['MaritalStatus'] is not None:
+                staff.MaritalStatus = args['MaritalStatus']
+            if args['AccountTitle'] is not None:
+                staff.AccountTitle = args['AccountTitle']
+            if args['AccountNo'] is not None:
+                staff.AccountNo = args['AccountNo']
+            if args['BankName'] is not None:
+                staff.BankName = args['BankName']
+            if args['Branch'] is not None:
+                staff.Branch = args['Branch']
+            if args['IsFatherName'] is not None:
+                staff.IsFatherName = args['IsFatherName']
+            if args['FHWName'] is not None:
+                staff.FHWName = args['FHWName']
+            if args['FHWCNIC'] is not None:
+                staff.FHWCNIC = args['FHWCNIC']
+            if args['FWHDOB'] is not None:
+                staff.FWHDOB = datetime.strptime(args['FWHDOB'], '%Y-%m-%d')
+            if args['CampusId'] is not None:
+                staff.CampusId = args['CampusId']
+            if args['BarcodeId'] is not None:
+                staff.BarcodeId = args['BarcodeId']
+            if args['IsAppearLive'] is not None:
+                staff.IsAppearLive = args['IsAppearLive']
+            if args['Category'] is not None:
+                staff.Category = args['Category']
+            if args['FId'] is not None:
+                staff.FId = args['FId']
+            if args['Initials'] is not None:
+                staff.Initials = args['Initials']
+            if args['IsSalaryOn'] is not None:
+                staff.IsSalaryOn = args['IsSalaryOn']
+            if args['EmpId'] is not None:
+                staff.EmpId = args['EmpId']
+            if args['IsAEN'] is not None:
+                staff.IsAEN = args['IsAEN']
+            if args['ReportingOfficerId'] is not None:
+                staff.ReportingOfficerId = args['ReportingOfficerId']
+            if args['FileNumber'] is not None:
+                staff.FileNumber = args['FileNumber']
+            if args['FileLocation'] is not None:
+                staff.FileLocation = args['FileLocation']
+            if args['IsExit'] is not None:
+                staff.IsExit = args['IsExit']
+            if args['Grace_In'] is not None:
+                staff.Grace_In = args['Grace_In']
+            if args['Grace_Out'] is not None:
+                staff.Grace_Out = args['Grace_Out']
+            if args['ShiftType'] is not None:
+                staff.ShiftType = args['ShiftType']
+
+            db.session.commit()
+            return staff.to_dict(), 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    def delete(self, id):
+        try:
+            staff = StaffInfo.query.get_or_404(id)
+            db.session.delete(staff)
+            db.session.commit()
+            return {"message": "Staff member deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+class StaffDepartmentResource(Resource):
+    def get(self, id=None):
+        try:
+            # Parse and validate pagination parameters
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            parser.add_argument('width', type=str, default="150", location='args', help='width must be an string')
+
+            # Check if request content type is JSON and parse the body if so
+            if request.content_type == 'application/json':
+                parser.add_argument('pageNo', type=int, default=1, location='json', help='Page number must be an integer')
+                parser.add_argument('pageSize', type=int, default=10, location='json', help='Page size must be an integer')
+                parser.add_argument('width', type=str, default="150", location='json', help='width must be an string')
+
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            width = args['width']
+            
+            if page_no < 1 or page_size < 1:
+                return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
+            
+            if id:
+                department = StaffDepartment.query.get_or_404(id)
+                return jsonify({"data": department.to_dict()})
+            else:
+                query = StaffDepartment.query.order_by(StaffDepartment.Id)
+                total = query.count()
+                departments = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+                return jsonify({
+                    "data": [dept.to_dict() for dept in departments],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size
+                })
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('DepartmentName', type=str, required=False)
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('UpdaterId', type=int, required=False)
+        parser.add_argument('UpdaterIP', type=str, required=False)
+        parser.add_argument('UpdaterTerminal', type=str, required=False)
+        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatorIP', type=str, required=False)
+        parser.add_argument('CreatorTerminal', type=str, required=False)
+        parser.add_argument('CreateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        parser.add_argument('ManagerId', type=int, required=False)
+        args = parser.parse_args()
+
+        try:
+            new_department = StaffDepartment(
+                DepartmentName=args['DepartmentName'],
+                status=args['status'],
+                UpdaterId=args['UpdaterId'],
+                UpdaterIP=args['UpdaterIP'],
+                UpdaterTerminal=args['UpdaterTerminal'],
+                UpdateDate=args['UpdateDate'],
+                CreatorId=args['CreatorId'],
+                CreatorIP=args['CreatorIP'],
+                CreatorTerminal=args['CreatorTerminal'],
+                CreateDate=args['CreateDate'],
+                CampusId=args['CampusId'],
+                ManagerId=args['ManagerId']
+            )
+
+            db.session.add(new_department)
+            db.session.commit()
+            return {"message": "Staff department created", "id": new_department.Id}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('DepartmentName', type=str, required=False)
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('UpdaterId', type=int, required=False)
+        parser.add_argument('UpdaterIP', type=str, required=False)
+        parser.add_argument('UpdaterTerminal', type=str, required=False)
+        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatorIP', type=str, required=False)
+        parser.add_argument('CreatorTerminal', type=str, required=False)
+        parser.add_argument('CreateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        parser.add_argument('ManagerId', type=int, required=False)
+        args = parser.parse_args()
+
+        try:
+            department = StaffDepartment.query.get_or_404(id)
+
+            if args['DepartmentName']:
+                department.DepartmentName = args['DepartmentName']
+            if args['status'] is not None:
+                department.status = args['status']
+            if args['UpdaterId']:
+                department.UpdaterId = args['UpdaterId']
+            if args['UpdaterIP']:
+                department.UpdaterIP = args['UpdaterIP']
+            if args['UpdaterTerminal']:
+                department.UpdaterTerminal = args['UpdaterTerminal']
+            if args['UpdateDate']:
+                department.UpdateDate = args['UpdateDate']
+            if args['CreatorId']:
+                department.CreatorId = args['CreatorId']
+            if args['CreatorIP']:
+                department.CreatorIP = args['CreatorIP']
+            if args['CreatorTerminal']:
+                department.CreatorTerminal = args['CreatorTerminal']
+            if args['CreateDate']:
+                department.CreateDate = args['CreateDate']
+            if args['CampusId']:
+                department.CampusId = args['CampusId']
+            if args['ManagerId']:
+                department.ManagerId = args['ManagerId']
+
+            db.session.commit()
+            return {"message": "Staff department updated", "id": department.Id}, 200
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        try:
+            department = StaffDepartment.query.get_or_404(id)
+            db.session.delete(department)
+            db.session.commit()
+            return {"message": "Staff department deleted"}, 200
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 

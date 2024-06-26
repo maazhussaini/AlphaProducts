@@ -25,7 +25,11 @@ class UserLoginResource(Resource):
                 access_token = create_access_token(identity={'username': encrypt(args['username'])})
                 
                 # Fetch related UserCampus and Role information
-                user_campus = UserCampus.query.filter_by(userId=user.user_Id).first()
+                user_campus = UserCampus.query.filter_by(id=1).first()
+                
+                print(user.campusId)
+                if user_campus:
+                    print(list(user_campus.to_dict()))
                 
                 roles = Role.query.filter_by(campusId=user.campusId).first()
                 userType = UserType.query.filter_by(campusId=user_campus.id).first()
@@ -46,10 +50,10 @@ class UserLoginResource(Resource):
                 
                 return {
                     'authID': access_token,
-                    "campusId": user.campusId,
+                    "campusId": user_campus.id,
                     "userName": user.username,
                     "userType": userTypeName,
-                    "userTypeId": user.userType_id,
+                    "userTypeId": userType_id,
                     "userId": user.user_Id,
                     "userFirstName": user.firstname,
                     "staffId": staff_id,

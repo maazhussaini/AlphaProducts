@@ -1,12 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-
-# importing os module for environment variables
 import os
-# importing necessary functions from dotenv library
 from dotenv import load_dotenv 
-# loading variables from .env file
+from datetime import datetime, date
+import json
+
 load_dotenv() 
 
 db = SQLAlchemy()

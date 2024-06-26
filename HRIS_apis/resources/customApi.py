@@ -62,3 +62,47 @@ class CustomApiResource(Resource):
             
         except Exception as e:
             return {'message': str(e)}, 500
+        
+class CallProcedureResource(Resource):
+    
+    def get(self):
+        data = request.get_json()
+        procedure_name = data.get('procedure_name')
+        parameters = data.get('parameters', {})
+
+        if not procedure_name:
+            return jsonify({'error': 'Procedure name is required'}), 400
+
+        # Validate that parameters are either absent or a dictionary
+        if parameters and not isinstance(parameters, dict):
+            return jsonify({'error': 'Parameters should be a dictionary if provided'}), 400
+
+        # Prepare the parameters if they exist
+        param_values = []
+        if parameters:
+            param_keys = sorted(parameters.keys())
+            param_values = [parameters[key] for key in param_keys]
+
+        # Connect to the database
+        connection = db.engine.raw_connection()
+        try:
+            cursor = connection.cursor()
+
+            if param_values:
+                cursor.callproc(procedure_name, param_values)
+            else:
+                cursor.callproc(procedure_name)
+
+            results = cursor.fetchall()
+            cursor.close()
+            connection.commit()
+
+            # Convert results to a list of dictionaries for JSON response
+            result_list = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in results]
+
+            return jsonify(result_list)
+        except Exception as e:
+            connection.rollback()
+            return jsonify({'error': str(e)}), 500
+        finally:
+            connection.close()
