@@ -8,3 +8,5 @@ Flask-Migrate
 marshmallow-sqlalchemy
 Flask-Cors
 python-dotenv
+flask-jwt-extended
+pycryptodome

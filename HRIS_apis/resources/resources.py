@@ -1,9 +1,14 @@
 from flask_restful import Resource, reqparse, abort
-from models.models import JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs
+from models.models import (
+    JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
+    ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs
+)
 from datetime import datetime
 from app import db
 from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from sqlalchemy import and_
 
 class JobApplicationFormResource(Resource):
     
@@ -1764,6 +1769,7 @@ class EmailStorageSystemResource(Resource):
             abort(400, message=f"Error deleting EmailStorageSystem: {str(e)}")
 
 class AvailableJobsResource(Resource):
+    @jwt_required()
     def get(self, id=None):
         
         try:
@@ -1834,6 +1840,7 @@ class AvailableJobsResource(Resource):
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
+    @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('job_Title', type=str, required=True, help="Job Title is required")

@@ -3,6 +3,213 @@ from datetime import datetime
 import re
 from exceptions import ValidationError
 
+
+class Users(db.Model):
+    __tablename__ = 'USERS'
+
+    user_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(100), nullable=True)
+    lastModified = db.Column(db.DateTime, nullable=True)
+    inactive = db.Column(db.Boolean, nullable=False)
+    firstname = db.Column(db.String(50), nullable=True)
+    lastname = db.Column(db.String(50), nullable=True)
+    title = db.Column(db.String(30), nullable=True)
+    initial = db.Column(db.String(3), nullable=True)
+    email = db.Column(db.String(250), nullable=True)
+    password = db.Column(db.String(50), nullable=True)
+    status = db.Column(db.Boolean, nullable=False)
+    userType_id = db.Column(db.Integer, nullable=True)
+    mobileNo = db.Column(db.String(15), nullable=True)
+    teacher_id = db.Column(db.Integer, nullable=True)
+    updaterId = db.Column(db.BigInteger, nullable=True)
+    updaterIP = db.Column(db.String(20), nullable=True)
+    updaterTerminal = db.Column(db.String(255), nullable=True)
+    updateDate = db.Column(db.DateTime, nullable=True)
+    creatorId = db.Column(db.BigInteger, nullable=True)
+    creatorIP = db.Column(db.String(20), nullable=True)
+    creatorTerminal = db.Column(db.String(255), nullable=True)
+    createDate = db.Column(db.DateTime, nullable=True)
+    guardianCNIC = db.Column(db.String(15), nullable=True)
+    campusId = db.Column(db.Integer, nullable=True)
+    isClassAccess = db.Column(db.Boolean, nullable=True)
+    groupId = db.Column(db.Integer, nullable=True)
+    userToken = db.Column(db.String(200), nullable=True)
+    notificationToken = db.Column(db.String(200), nullable=True)
+    ispasswordchanged = db.Column(db.Boolean, nullable=False)
+    isAEN = db.Column(db.Integer, nullable=True)
+
+    # user_campus = db.relationship('UserCampus', back_populates='user')
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+    def to_dict(self):
+        return {
+            "user_Id": self.user_Id,
+            "username": self.username,
+            "lastModified": self.lastModified,
+            "inactive": self.inactive,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "title": self.title,
+            "initial": self.initial,
+            "email": self.email,
+            "password": self.password,
+            "status": self.status,
+            "userType_id": self.userType_id,
+            "mobileNo": self.mobileNo,
+            "teacher_id": self.teacher_id,
+            "updaterId": self.updaterId,
+            "updaterIP": self.updaterIP,
+            "updaterTerminal": self.updaterTerminal,
+            "updateDate": self.updateDate,
+            "creatorId": self.creatorId,
+            "creatorIP": self.creatorIP,
+            "creatorTerminal": self.creatorTerminal,
+            "createDate": self.createDate,
+            "guardianCNIC": self.guardianCNIC,
+            "campusId": self.campusId,
+            "isClassAccess": self.isClassAccess,
+            "groupId": self.groupId,
+            "userToken": self.userToken,
+            "notificationToken": self.notificationToken,
+            "ispasswordchanged": self.ispasswordchanged,
+            "isAEN": self.isAEN
+        }
+
+class UserType(db.Model):
+    __tablename__ = 'UserType'
+    userTypeId = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    userTypeName = db.Column(db.String(50), nullable=False)
+    priority = db.Column(db.Integer, nullable=False)
+    updaterId = db.Column(db.BigInteger)
+    updaterIP = db.Column(db.String(20))
+    updaterTerminal = db.Column(db.String(255))
+    updateDate = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    creatorId = db.Column(db.BigInteger)
+    creatorIP = db.Column(db.String(20))
+    creatorTerminal = db.Column(db.String(255))
+    createDate = db.Column(db.DateTime, default=datetime.utcnow)
+    campusId = db.Column(db.Integer, db.ForeignKey('UserCampus.id'))
+
+    # campus = db.relationship('UserCampus', back_populates='user_types')
+
+    def __repr__(self):
+        return f"<UserType {self.userTypeName}>"
+
+class UserCampus(db.Model):
+    __tablename__ = 'UserCampus'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    userId = db.Column(db.Integer, db.ForeignKey('USERS.user_Id'))
+    campusId = db.Column(db.Integer, nullable=True)
+    staffId = db.Column(db.Integer, nullable=True)
+    date = db.Column(db.DateTime, nullable=True)
+    updaterId = db.Column(db.BigInteger, nullable=True)
+    updaterIP = db.Column(db.String(20), nullable=True)
+    updaterTerminal = db.Column(db.String(255), nullable=True)
+    updateDate = db.Column(db.DateTime, nullable=True)
+    creatorId = db.Column(db.BigInteger, nullable=True)
+    creatorIP = db.Column(db.String(20), nullable=True)
+    creatorTerminal = db.Column(db.String(255), nullable=True)
+    createDate = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.Boolean, nullable=False)
+
+    # user = db.relationship('Users', back_populates='user_campus')
+    # roles = db.relationship('Role', back_populates='campus')
+    
+    def __repr__(self):
+        return {"Campus": self.campus_id}
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "userId": self.userId,
+            "campusId": self.campusId,
+            "staffId": self.staffId,
+            "date": self.date,
+            "updaterId": self.updaterId,
+            "updaterIP": self.updaterIP,
+            "updaterTerminal": self.updaterTerminal,
+            "updateDate": self.updateDate,
+            "creatorId": self.creatorId,
+            "creatorIP": self.creatorIP,
+            "creatorTerminal": self.creatorTerminal,
+            "createDate": self.createDate,
+            "status": self.status
+        }
+
+class Role(db.Model):
+    __tablename__ = 'ROLES'
+
+    role_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    roleName = db.Column(db.String(150), nullable=False)
+    roleDescription = db.Column(db.String(250), nullable=True)
+    isSysAdmin = db.Column(db.Boolean, nullable=False)
+    lastModified = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.Boolean, nullable=False)
+    statisticWidget = db.Column(db.Boolean, nullable=True)
+    studentInfoWidget = db.Column(db.Boolean, nullable=True)
+    studentProgressWidget = db.Column(db.Boolean, nullable=True)
+    studentFeeWidget = db.Column(db.Boolean, nullable=True)
+    recentActivityWidget = db.Column(db.Boolean, nullable=True)
+    calenderWidget = db.Column(db.Boolean, nullable=True)
+    studentAttendanceWidget = db.Column(db.Boolean, nullable=True)
+    financeWidget = db.Column(db.Boolean, nullable=True)
+    bestStudentWidget = db.Column(db.Boolean, nullable=True)
+    bestTeacherWidget = db.Column(db.Boolean, nullable=True)
+    toDoListWidget = db.Column(db.Boolean, nullable=True)
+    updaterId = db.Column(db.BigInteger, nullable=True)
+    updaterIP = db.Column(db.String(20), nullable=True)
+    updaterTerminal = db.Column(db.String(255), nullable=True)
+    updateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    creatorId = db.Column(db.BigInteger, nullable=True)
+    creatorIP = db.Column(db.String(20), nullable=True)
+    creatorTerminal = db.Column(db.String(255), nullable=True)
+    createDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    probationPeriodWidget = db.Column(db.Boolean, nullable=True)
+    campusId = db.Column(db.Integer, db.ForeignKey('UserCampus.id'), nullable=True)
+    roomBunkAndAbsent = db.Column(db.Boolean, nullable=True)
+    booksDueWidget = db.Column(db.Boolean, nullable=True)
+
+    # campus = db.relationship('UserCampus', back_populates='roles')
+    
+    def __repr__(self):
+        return f'<Role {self.roleName}>'
+
+    def to_dict(self):
+        return {
+            "role_id": self.role_id,
+            "roleName": self.roleName,
+            "roleDescription": self.roleDescription,
+            "isSysAdmin": self.isSysAdmin,
+            "lastModified": self.lastModified,
+            "status": self.status,
+            "statisticWidget": self.statisticWidget,
+            "studentInfoWidget": self.studentInfoWidget,
+            "studentProgressWidget": self.studentProgressWidget,
+            "studentFeeWidget": self.studentFeeWidget,
+            "recentActivityWidget": self.recentActivityWidget,
+            "calenderWidget": self.calenderWidget,
+            "studentAttendanceWidget": self.studentAttendanceWidget,
+            "financeWidget": self.financeWidget,
+            "bestStudentWidget": self.bestStudentWidget,
+            "bestTeacherWidget": self.bestTeacherWidget,
+            "toDoListWidget": self.toDoListWidget,
+            "updaterId": self.updaterId,
+            "updaterIP": self.updaterIP,
+            "updaterTerminal": self.updaterTerminal,
+            "updateDate": self.updateDate,
+            "creatorId": self.creatorId,
+            "creatorIP": self.creatorIP,
+            "creatorTerminal": self.creatorTerminal,
+            "createDate": self.createDate,
+            "probationPeriodWidget": self.probationPeriodWidget,
+            "campusId": self.campusId,
+            "roomBunkAndAbsent": self.roomBunkAndAbsent,
+            "booksDueWidget": self.booksDueWidget
+        }
+
 class JobApplicationForm(db.Model):
     __tablename__ = 'JobApplicationForms'
 
