@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse, abort
 from models.models import (
     JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
     ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
-    StaffInfo, StaffDepartment
+    StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType
 )
 from datetime import datetime, date
 from app import db
@@ -11,6 +11,7 @@ from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
 import json
+from sqlalchemy.exc import SQLAlchemyError
 
 class JobApplicationFormResource(Resource):
     
@@ -2584,3 +2585,357 @@ class StaffDepartmentResource(Resource):
             db.session.rollback()
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
+class StaffTransferResource(Resource):
+    def get(self, id=None):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('pageNo', type=int, default=1, location='args', help='Page number must be an integer')
+            parser.add_argument('pageSize', type=int, default=10, location='args', help='Page size must be an integer')
+            args = parser.parse_args()
+
+            page_no = args['pageNo']
+            page_size = args['pageSize']
+            
+            if id:
+                staff_transfer = StaffTransfer.query.get_or_404(id)
+                return jsonify({"data": staff_transfer.to_dict()})
+            else:
+                query = StaffTransfer.query.order_by(StaffTransfer.Id)
+                total = query.count()
+                transfers = query.paginate(page=page_no, per_page=page_size, error_out=False).items
+                return jsonify({
+                    "data": [transfer.to_dict() for transfer in transfers],
+                    "total": total,
+                    "pageNo": page_no,
+                    "pageSize": page_size
+                })
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def post(self):
+        """
+        Handles the creation of a new staff transfer request.
+        Parses incoming request data, creates a new StaffTransfer record,
+        and updates related tables within a single transaction.
+        """
+        # Parse the incoming request data
+        parser = reqparse.RequestParser()
+        parser.add_argument('StaffId', type=int, required=True, help='StaffId is required')
+        parser.add_argument('Transfer_Type', type=str, required=True, help='Transfer_Type is required')
+        parser.add_argument('Transfer_Date', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help='Transfer_Date is required in format %Y-%m-%dT%H:%M:%S')
+        parser.add_argument('Reason_for_Transfer', type=str, required=True, help='Reason_for_Transfer is required')
+        parser.add_argument('Transfer_from_Campus', type=int, required=True, help='Transfer_from_Campus is required')
+        parser.add_argument('Transfer_To_Campus', type=int, required=True, help='Transfer_To_Campus is required')
+        parser.add_argument('DepartmentId', type=int, required=True, help='DepartmentId is required')
+        parser.add_argument('DesignationId', type=int, required=True, help='DesignationId is required')
+        parser.add_argument('ReportingOfficerId', type=int, required=True, help='ReportingOfficerId is required')
+        parser.add_argument('Transfer_initiated_by', type=int, required=True, help='Transfer_initiated_by is required')
+        parser.add_argument('Transfer_approval', type=int, required=True, help='Transfer_approval is required')
+        parser.add_argument('Remarks', type=str, required=True, help='Remarks is required')
+        args = parser.parse_args()
+
+        try:
+            # Retrieve the staff record
+            staff = StaffInfo.query.get(args['StaffId'])
+            if staff is None:
+                return {"message": "Staff not found"}, 404
+
+            # Determine the from_campus_id based on the IsAEN flag
+            from_campus_id = 11 if staff.IsAEN == 1 else staff.CampusId
+            to_campus_id = args['Transfer_To_Campus']
+
+            # Create a new StaffTransfer record
+            new_transfer = StaffTransfer(
+                StaffId=args['StaffId'],
+                Transfer_Type=args['Transfer_Type'],
+                Transfer_Date=args['Transfer_Date'],
+                Reason_for_Transfer=args['Reason_for_Transfer'],
+                Transfer_from_Campus=from_campus_id,
+                Transfer_To_Campus=to_campus_id,
+                DepartmentId=args['DepartmentId'],
+                DesignationId=args['DesignationId'],
+                ReportingOfficerId=args['ReportingOfficerId'],
+                Transfer_initiated_by=args['Transfer_initiated_by'],
+                Transfer_approval=args['Transfer_approval'],
+                Remarks=args['Remarks'],
+                status=True,
+                CampusId=from_campus_id,
+                CreatorId=get_jwt_identity(),
+                CreateDate=datetime.utcnow()
+            )
+
+            # Start a database transaction
+            with db.session.begin_nested():
+                db.session.add(new_transfer)
+                db.session.flush()
+
+                # Update related tables
+                self.update_staff_info(args['StaffId'], to_campus_id, args['ReportingOfficerId'], args['DepartmentId'], args['DesignationId'])
+                self.update_staff_shift(args['StaffId'], to_campus_id)
+                self.update_user_campus(args['StaffId'], to_campus_id, staff.CampusId)
+                self.update_user(args['StaffId'], to_campus_id)
+
+            # Commit the transaction
+            db.session.commit()
+            return {"message": "Staff transfer created and related tables updated successfully"}, 201
+        except SQLAlchemyError as e:
+            # Rollback transaction in case of database error
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            # Rollback transaction in case of any unexpected error
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def update_staff_info(self, staff_id, to_campus_id, reporting_officer_id, department_id, designation_id):
+        """
+        Updates the StaffInfo table with the new transfer details, 
+        including setting the IsAEN flag if transferring to campus 11.
+        """
+        staff = StaffInfo.query.get(staff_id)
+        if to_campus_id == 11:
+            staff.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
+        else:
+            staff.IsAEN = 0  # Unset IsAEN flag for other campuses
+        
+        staff.CampusId = to_campus_id
+        staff.DepartmentId = department_id
+        staff.Designation_ID = designation_id
+        staff.ReportingOfficerId = reporting_officer_id
+        staff.UpdateDate = datetime.utcnow()
+        db.session.add(staff)
+
+    def update_staff_shift(self, staff_id, to_campus_id):
+        """
+        Updates the StaffShift table with the new campus ID and sets the UpdatedOn date.
+        """
+        staff_shift = StaffShift.query.filter_by(StaffId=staff_id).first()
+        
+        if staff_shift:
+            staff_shift.CampusId = to_campus_id
+            staff_shift.UpdatedOn = datetime.utcnow()
+            db.session.add(staff_shift)
+
+    def update_user_campus(self, staff_id, to_campus_id, current_campus_id):
+        """
+        Updates the UserCampus table with the new campus ID.
+        Inserts a new record if necessary.
+        """
+        user_campus = UserCampus.query.filter_by(staffId=staff_id, campusId=current_campus_id).first()
+        
+        if user_campus:
+            user_campus.campusId = to_campus_id
+            user_campus.updateDate = datetime.utcnow()
+            db.session.add(user_campus)
+        else:
+            user_id = UserCampus.query.filter_by(staffId=staff_id).first().userId
+            
+            new_user_campus = UserCampus(
+                userId=user_id,
+                campusId=to_campus_id,
+                staffId=staff_id,
+                date=datetime.utcnow(),
+                status=True
+            )
+            db.session.add(new_user_campus)
+
+    def update_user(self, staff_id, to_campus_id):
+        """
+        Updates the Users table with the new campus ID and sets the IsAEN flag if transferring to campus 11
+        """
+        user_id = UserCampus.query.filter_by(staffId=staff_id).first().userId
+        user = Users.query.get(user_id)
+        
+        if to_campus_id == 11:
+            user.isAEN = 1  # Set IsAEN flag if transferring to campus 11
+        else:
+            user.isAEN = 0  # Unset IsAEN flag for other campuses
+        
+        user.campusId = to_campus_id
+        user.updateDate = datetime.utcnow()
+        db.session.add(user)
+    
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('StaffId', type=int, required=False)
+        parser.add_argument('Transfer_Type', type=str, required=False)
+        parser.add_argument('Transfer_Date', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('Reason_for_Transfer', type=str, required=False)
+        parser.add_argument('Transfer_from_Campus', type=int, required=False)
+        parser.add_argument('Transfer_To_Campus', type=int, required=False)
+        parser.add_argument('DepartmentId', type=int, required=False)
+        parser.add_argument('DesignationId', type=int, required=False)
+        parser.add_argument('ReportingOfficerId', type=int, required=False)
+        parser.add_argument('Transfer_initiated_by', type=int, required=False)
+        parser.add_argument('Transfer_approval', type=int, required=False)
+        parser.add_argument('Remarks', type=str, required=False)
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('UpdaterId', type=int, required=False)
+        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        args = parser.parse_args()
+
+        try:
+            transfer = StaffTransfer.query.get_or_404(id)
+
+            if args['StaffId'] is not None:
+                transfer.StaffId = args['StaffId']
+            if args['Transfer_Type'] is not None:
+                transfer.Transfer_Type = args['Transfer_Type']
+            if args['Transfer_Date'] is not None:
+                transfer.Transfer_Date = args['Transfer_Date']
+            if args['Reason_for_Transfer'] is not None:
+                transfer.Reason_for_Transfer = args['Reason_for_Transfer']
+            if args['Transfer_from_Campus'] is not None:
+                transfer.Transfer_from_Campus = args['Transfer_from_Campus']
+            if args['Transfer_To_Campus'] is not None:
+                transfer.Transfer_To_Campus = args['Transfer_To_Campus']
+            if args['DepartmentId'] is not None:
+                transfer.DepartmentId = args['DepartmentId']
+            if args['DesignationId'] is not None:
+                transfer.DesignationId = args['DesignationId']
+            if args['ReportingOfficerId'] is not None:
+                transfer.ReportingOfficerId = args['ReportingOfficerId']
+            if args['Transfer_initiated_by'] is not None:
+                transfer.Transfer_initiated_by = args['Transfer_initiated_by']
+            if args['Transfer_approval'] is not None:
+                transfer.Transfer_approval = args['Transfer_approval']
+            if args['Remarks'] is not None:
+                transfer.Remarks = args['Remarks']
+            if args['status'] is not None:
+                transfer.status = args['status']
+            if args['CampusId'] is not None:
+                transfer.CampusId = args['CampusId']
+            if args['CreatorId'] is not None:
+                transfer.CreatorId = args['CreatorId']
+            if args['CreateDate'] is not None:
+                transfer.CreateDate = args['CreateDate']
+            if args['UpdaterId'] is not None:
+                transfer.UpdaterId = args['UpdaterId']
+            if args['UpdateDate'] is not None:
+                transfer.UpdateDate = args['UpdateDate']
+
+            db.session.commit()
+            return {"message": "Staff transfer updated successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        try:
+            transfer = StaffTransfer.query.get_or_404(id)
+            db.session.delete(transfer)
+            db.session.commit()
+            return {"message": "Staff transfer deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+class StaffShiftResource(Resource):
+    def get(self, staff_id=None):
+        try:
+            if staff_id:
+                staff_shift = StaffShift.query.get(staff_id)
+                if staff_shift is None:
+                    return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
+                return staff_shift.to_dict(), 200
+            else:
+                staff_shifts = StaffShift.query.all()
+                return [shift.to_dict() for shift in staff_shifts], 200
+        except SQLAlchemyError as e:
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('StaffId', type=int, required=True)
+        parser.add_argument('ShiftId', type=int, required=True)
+        parser.add_argument('CreatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True)
+        parser.add_argument('UpdatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CreatedByUserId', type=int, required=True)
+        parser.add_argument('UpdatedByUserId', type=int, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        args = parser.parse_args()
+
+        try:
+            new_shift = StaffShift(
+                StaffId=args['StaffId'],
+                ShiftId=args['ShiftId'],
+                CreatedOn=args['CreatedOn'],
+                UpdatedOn=args.get('UpdatedOn'),
+                CreatedByUserId=args['CreatedByUserId'],
+                UpdatedByUserId=args.get('UpdatedByUserId'),
+                CampusId=args.get('CampusId')
+            )
+            db.session.add(new_shift)
+            db.session.commit()
+            return {"message": "StaffShift created successfully", "StaffId": new_shift.StaffId}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self, staff_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('ShiftId', type=int, required=False)
+        parser.add_argument('CreatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('UpdatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('CreatedByUserId', type=int, required=False)
+        parser.add_argument('UpdatedByUserId', type=int, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        args = parser.parse_args()
+
+        try:
+            staff_shift = StaffShift.query.get(staff_id)
+            if staff_shift is None:
+                return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
+
+            if args['ShiftId'] is not None:
+                staff_shift.ShiftId = args['ShiftId']
+            if args['CreatedOn'] is not None:
+                staff_shift.CreatedOn = args['CreatedOn']
+            if args['UpdatedOn'] is not None:
+                staff_shift.UpdatedOn = args['UpdatedOn']
+            if args['CreatedByUserId'] is not None:
+                staff_shift.CreatedByUserId = args['CreatedByUserId']
+            if args['UpdatedByUserId'] is not None:
+                staff_shift.UpdatedByUserId = args['UpdatedByUserId']
+            if args['CampusId'] is not None:
+                staff_shift.CampusId = args['CampusId']
+
+            db.session.commit()
+            return {"message": "StaffShift updated successfully", "StaffId": staff_shift.StaffId}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, staff_id):
+        try:
+            staff_shift = StaffShift.query.get(staff_id)
+            if staff_shift is None:
+                return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
+
+            db.session.delete(staff_shift)
+            db.session.commit()
+            return {"message": "StaffShift deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500

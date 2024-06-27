@@ -807,3 +807,69 @@ class StaffDepartment(db.Model):
             'ManagerId': self.ManagerId,
         }
 
+class StaffTransfer(db.Model):
+    __tablename__ = 'StaffTransfer'
+
+    Id = db.Column(db.Integer, primary_key=True)
+    StaffId = db.Column(db.Integer, nullable=False)
+    Transfer_Type = db.Column(db.String(50), nullable=True)
+    Transfer_Date = db.Column(db.DateTime, nullable=True)
+    Reason_for_Transfer = db.Column(db.String(100), nullable=True)
+    Transfer_from_Campus = db.Column(db.Integer, nullable=True)
+    Transfer_To_Campus = db.Column(db.Integer, nullable=True)
+    DepartmentId = db.Column(db.Integer, nullable=True)
+    DesignationId = db.Column(db.Integer, nullable=True)
+    ReportingOfficerId = db.Column(db.Integer, nullable=True)
+    Transfer_initiated_by = db.Column(db.Integer, nullable=True)
+    Transfer_approval = db.Column(db.Integer, nullable=True)
+    Remarks = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'Transfer_Type': self.Transfer_Type,
+            'Transfer_Date': self.Transfer_Date.isoformat() if self.Transfer_Date else None,
+            'Reason_for_Transfer': self.Reason_for_Transfer,
+            'Transfer_from_Campus': self.Transfer_from_Campus,
+            'Transfer_To_Campus': self.Transfer_To_Campus,
+            'DepartmentId': self.DepartmentId,
+            'DesignationId': self.DesignationId,
+            'ReportingOfficerId': self.ReportingOfficerId,
+            'Transfer_initiated_by': self.Transfer_initiated_by,
+            'Transfer_approval': self.Transfer_approval,
+            'Remarks': self.Remarks,
+            'status': self.status,
+            'CampusId': self.CampusId,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'UpdaterId': self.UpdaterId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None
+        }
+
+class StaffShift(db.Model):
+    __tablename__ = 'StaffShifts'
+    StaffId = db.Column(db.Integer, primary_key=True)
+    ShiftId = db.Column(db.Integer, nullable=False)
+    CreatedOn = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedOn = db.Column(db.DateTime)
+    CreatedByUserId = db.Column(db.Integer, nullable=False)
+    UpdatedByUserId = db.Column(db.Integer)
+    CampusId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'StaffId': self.StaffId,
+            'ShiftId': self.ShiftId,
+            'CreatedOn': self.CreatedOn.isoformat() if self.CreatedOn else None,
+            'UpdatedOn': self.UpdatedOn.isoformat() if self.UpdatedOn else None,
+            'CreatedByUserId': self.CreatedByUserId,
+            'UpdatedByUserId': self.UpdatedByUserId,
+            'CampusId': self.CampusId
+        }

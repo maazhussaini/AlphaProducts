@@ -3,13 +3,12 @@ from flask import Blueprint
 from resources.resources import (
     JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
-    EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource
+    EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
+    StaffTransferResource
 )
-from resources.customApi import (CustomApiResource, CallProcedureResource, CallProcedure)
+from resources.customApi import (CustomApiResource, CallProcedureResource)
 from resources.auth import UserLoginResource
-from flask_cors import CORS, cross_origin
 
-@cross_origin()
 def register_routes(app):
     api_bp = Blueprint('api', __name__)
     api = Api(api_bp)
@@ -38,6 +37,7 @@ def register_routes(app):
 
     api.add_resource(StaffInfoResource, '/staffInfo', '/staffInfo/<int:id>')
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
+    api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     
     api.add_resource(CallProcedureResource, '/callProcedure')
     

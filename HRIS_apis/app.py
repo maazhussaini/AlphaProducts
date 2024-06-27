@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv 
 from datetime import datetime, date
 import json
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 
 load_dotenv() 
 
@@ -19,7 +19,7 @@ def create_app():
     
     jwt = JWTManager(app)
     
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app)
     db.init_app(app)
     
     from routes.routes import register_routes
