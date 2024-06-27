@@ -326,97 +326,96 @@ class JobApplicationForm(db.Model):
 class NewJoinerApproval(db.Model):
     __tablename__ = 'NewJoinerApproval'
 
-    newJoinerApproval_Id = db.Column(db.Integer, primary_key=True)
-    newJoinerApproval_StaffId = db.Column(db.Integer, nullable=False)
-    newJoinerApproval_Salary = db.Column(db.Float, nullable=False)
-    newJoinerApproval_HiringApprovedBy = db.Column(db.Integer, nullable=False)
-    newJoinerApproval_Remarks = db.Column(db.String(200))
-    newJoinerApproval_FileVerified = db.Column(db.Boolean, nullable=False)
-    newJoinerApproval_EmpDetailsVerified = db.Column(db.Boolean, nullable=False)
-    newJoinerApproval_AddToPayrollMonth = db.Column(db.String(20), nullable=False)
-    createdDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    createdBy = db.Column(db.Integer, nullable=False)
-    updatedBy = db.Column(db.Integer)
-    updatedDate = db.Column(db.DateTime)
-    inActive = db.Column(db.Boolean, nullable=False, default=False)
+    NewJoinerApproval_Id = db.Column(db.Integer, primary_key=True)
+    NewJoinerApproval_StaffId = db.Column(db.Integer, nullable=False)
+    NewJoinerApproval_Salary = db.Column(db.Float, nullable=False)
+    NewJoinerApproval_HiringApprovedBy = db.Column(db.Integer, nullable=False)
+    NewJoinerApproval_Remarks = db.Column(db.String(200))
+    NewJoinerApproval_FileVerified = db.Column(db.Boolean, nullable=False)
+    NewJoinerApproval_EmpDetailsVerified = db.Column(db.Boolean, nullable=False)
+    NewJoinerApproval_AddToPayrollMonth = db.Column(db.String(20), nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
-        return f'<NewJoinerApproval {self.newJoinerApproval_Id}>'
+        return f'<NewJoinerApproval {self.NewJoinerApproval_Id}>'
     
     def to_dict(self):
         return {
-            "newJoinerApproval_Id": self.newJoinerApproval_Id,
-            "newJoinerApproval_StaffId": self.newJoinerApproval_StaffId,
-            "newJoinerApproval_Salary" : self.newJoinerApproval_Salary,
-            "newJoinerApproval_HiringApprovedBy" : self.newJoinerApproval_HiringApprovedBy,
-            "newJoinerApproval_Remarks" : self.newJoinerApproval_Remarks,
-            "newJoinerApproval_FileVerified" : self.newJoinerApproval_FileVerified,
-            "newJoinerApproval_EmpDetailsVerified" : self.newJoinerApproval_EmpDetailsVerified,
-            "newJoinerApproval_AddToPayrollMonth" : self.newJoinerApproval_AddToPayrollMonth,
-            "createdDate" : self.createdDate.isoformat(),
-            "createdBy" : self.createdBy,
-            "updatedBy" : self.updatedBy,
-            "updatedDate" : self.updatedDate.isoformat() if self.updatedDate else None,
-            "inActive" : self.inActive
+            "NewJoinerApproval_Id": self.NewJoinerApproval_Id,
+            "NewJoinerApproval_StaffId": self.NewJoinerApproval_StaffId,
+            "NewJoinerApproval_Salary" : self.NewJoinerApproval_Salary,
+            "NewJoinerApproval_HiringApprovedBy" : self.NewJoinerApproval_HiringApprovedBy,
+            "NewJoinerApproval_Remarks" : self.NewJoinerApproval_Remarks,
+            "NewJoinerApproval_FileVerified" : self.NewJoinerApproval_FileVerified,
+            "NewJoinerApproval_EmpDetailsVerified" : self.NewJoinerApproval_EmpDetailsVerified,
+            "NewJoinerApproval_AddToPayrollMonth" : self.NewJoinerApproval_AddToPayrollMonth,
+            "CreatedDate" : self.CreatedDate.isoformat(),
+            "CreatedBy" : self.CreatedBy,
+            "UpdatedBy" : self.UpdatedBy,
+            "UpdatedDate" : self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            "InActive" : self.InActive
         }
 
 class InterviewSchedules(db.Model):
     __tablename__ = 'InterviewSchedules'
     
-    id = db.Column(db.Integer, primary_key=True)
-    interviewTypeId = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.DateTime, nullable=True)
-    time = db.Column(db.Time, nullable=True)
-    venue = db.Column(db.String(500), nullable=True)
-    jobApplicationFormId = db.Column(db.Integer, nullable=True)
-    interviewConductorId = db.Column(db.String(300), nullable=True)
-    demoTopic = db.Column(db.String(100), nullable=True)
-    position = db.Column(db.String(250), nullable=True)
-    location = db.Column(db.String(100), nullable=True)
-    createdBy = db.Column(db.Integer, nullable=True)
-    createDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
-    campusId = db.Column(db.Integer, nullable=True)
+    Id = db.Column(db.Integer, primary_key=True)
+    InterviewTypeId = db.Column(db.Integer, nullable=False)
+    Date = db.Column(db.DateTime, nullable=True)
+    Time = db.Column(db.Time, nullable=True)
+    Venue = db.Column(db.String(500), nullable=True)
+    JobApplicationFormId = db.Column(db.Integer, nullable=True)
+    InterviewConductorId = db.Column(db.String(300), nullable=True)
+    DemoTopic = db.Column(db.String(100), nullable=True)
+    Position = db.Column(db.String(250), nullable=True)
+    Location = db.Column(db.String(100), nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
-        return f'<InterviewSchedule {self.id}>'
+        return f'<InterviewSchedule {self.Id}>'
     
     def to_dict(self):
         return {
-            "id": self.id,
-            "interviewTypeId": self.interviewTypeId,
-            "date": self.date.isoformat() if self.date else None,
-            "time": self.time.isoformat() if self.time else None,
-            "venue": self.venue,
-            "jobApplicationFormId": self.jobApplicationFormId,
-            "interviewConductorId": self.interviewConductorId,
-            "demoTopic": self.demoTopic,
-            "position": self.position,
-            "location": self.location,
-            "createdBy": self.createdBy,
-            "createDate": self.createDate.isoformat() if self.createDate else None,
-            "campusId": self.campusId
-            
+            "Id": self.Id,
+            "InterviewTypeId": self.InterviewTypeId,
+            "Date": self.Date.isoformat() if self.Date else None,
+            "Time": self.Time.isoformat() if self.Time else None,
+            "Venue": self.Venue,
+            "JobApplicationFormId": self.JobApplicationFormId,
+            "InterviewConductorId": self.InterviewConductorId,
+            "DemoTopic": self.DemoTopic,
+            "Position": self.Position,
+            "Location": self.Location,
+            "CreatedBy": self.CreatedBy,
+            "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
+            "CampusId": self.CampusId
         }
 
 class DeductionHead(db.Model):
     __tablename__ = 'DeductionHead'
-    deductionHead_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    deductionHead_Name = db.Column(db.String(100), nullable=False)
+    DeductionHead_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    DeductionHead_Name = db.Column(db.String(100), nullable=False)
     
     def __repr__(self):
-        return f'<DeductionHead {self.deductionHead_Id}>'
+        return f'<DeductionHead {self.DeductionHead_Id}>'
     
     def to_dict(self):
         return {
-            "deductionHead_Id": self.deductionHead_Id,
-            "deductionHead_Name": self.deductionHead_Name
+            "DeductionHead_Id": self.DeductionHead_Id,
+            "DeductionHead_Name": self.DeductionHead_Name
         }
 
 class OneTimeDeduction(db.Model):
     __tablename__ = 'OneTimeDeduction'
     oneTimeDeduction_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     oneTimeDeduction_StaffId = db.Column(db.Integer, nullable=False)
-    oneTimeDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.deductionHead_Id'), nullable=False)
+    oneTimeDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
     oneTimeDeduction_Amount = db.Column(db.Float, nullable=False)
     oneTimeDeduction_DeductionMonth = db.Column(db.String(15), nullable=False)
     oneTimeDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
@@ -450,7 +449,7 @@ class ScheduledDeduction(db.Model):
     __tablename__ = 'ScheduledDeduction'
     scheduledDeduction_Id = db.Column(db.Integer, primary_key=True)
     scheduledDeduction_StaffId = db.Column(db.Integer, nullable=False)
-    scheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.deductionHead_Id'), nullable=False)
+    scheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
     scheduledDeduction_AmountPerMonth = db.Column(db.Float, nullable=False)
     scheduledDeduction_StartDate = db.Column(db.DateTime, nullable=False)
     scheduledDeduction_EndDate = db.Column(db.DateTime, nullable=False)

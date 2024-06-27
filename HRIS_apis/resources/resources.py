@@ -337,13 +337,13 @@ class NewJoinerApprovalResource(Resource):
                 return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
             
             columns = [
-            {"fields": "newJoinerApproval_StaffId", "headerName": "Staff ID", "width": width},
-            {"fields": "newJoinerApproval_Salary", "headerName": "Salary", "width": width},
-            {"fields": "newJoinerApproval_HiringApprovedBy", "headerName": "Hiring Approved By", "width": width},
-            {"fields": "newJoinerApproval_Remarks", "headerName": "Remarks", "width": width},
-            {"fields": "newJoinerApproval_FileVerified", "headerName": "File Verified", "width": width},
-            {"fields": "newJoinerApproval_EmpDetailsVerified", "headerName": "Employee Details Verified", "width": width},
-            {"fields": "newJoinerApproval_AddToPayrollMonth", "headerName": "Add to Payroll Month", "width": width},
+            {"fields": "NewJoinerApproval_StaffId", "headerName": "Staff ID", "width": width},
+            {"fields": "NewJoinerApproval_Salary", "headerName": "Salary", "width": width},
+            {"fields": "NewJoinerApproval_HiringApprovedBy", "headerName": "Hiring Approved By", "width": width},
+            {"fields": "NewJoinerApproval_Remarks", "headerName": "Remarks", "width": width},
+            {"fields": "NewJoinerApproval_FileVerified", "headerName": "File Verified", "width": width},
+            {"fields": "NewJoinerApproval_EmpDetailsVerified", "headerName": "Employee Details Verified", "width": width},
+            {"fields": "NewJoinerApproval_AddToPayrollMonth", "headerName": "Add to Payroll Month", "width": width},
         ]
             if id:
                 new_joiner_approval = NewJoinerApproval.query.get_or_404(id)
@@ -356,7 +356,7 @@ class NewJoinerApprovalResource(Resource):
                 }, 200
             else:
                 
-                query = NewJoinerApproval.query.order_by(NewJoinerApproval.newJoinerApproval_Id)
+                query = NewJoinerApproval.query.order_by(NewJoinerApproval.NewJoinerApproval_Id)
                 total = query.count()
 
                 # Apply pagination
@@ -387,27 +387,27 @@ class NewJoinerApprovalResource(Resource):
         Handles the creation of a new joiner approval record.
         """
         parser = reqparse.RequestParser()
-        parser.add_argument('newJoinerApproval_StaffId', type=int, required=True, help='Staff ID is required')
-        parser.add_argument('newJoinerApproval_Salary', type=float, required=True, help='Salary is required')
-        parser.add_argument('newJoinerApproval_HiringApprovedBy', type=int, required=True, help='Hiring approved by is required')
-        parser.add_argument('newJoinerApproval_Remarks', type=str, required=False)
-        parser.add_argument('newJoinerApproval_FileVerified', type=bool, required=True, help='File verified is required')
-        parser.add_argument('newJoinerApproval_EmpDetailsVerified', type=bool, required=True, help='Employee details verified is required')
-        parser.add_argument('newJoinerApproval_AddToPayrollMonth', type=str, required=True, help='Add to payroll month is required')
-        parser.add_argument('createdBy', type=int, required=True, help='Creator ID is required')
+        parser.add_argument('NewJoinerApproval_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('NewJoinerApproval_Salary', type=float, required=True, help='Salary is required')
+        parser.add_argument('NewJoinerApproval_HiringApprovedBy', type=int, required=True, help='Hiring approved by is required')
+        parser.add_argument('NewJoinerApproval_Remarks', type=str, required=False)
+        parser.add_argument('NewJoinerApproval_FileVerified', type=bool, required=True, help='File verified is required')
+        parser.add_argument('NewJoinerApproval_EmpDetailsVerified', type=bool, required=True, help='Employee details verified is required')
+        parser.add_argument('NewJoinerApproval_AddToPayrollMonth', type=str, required=True, help='Add to payroll month is required')
+        parser.add_argument('CreatedBy', type=int, required=True, help='Creator ID is required')
         
         args = parser.parse_args()
 
         try:
             new_joiner_approval = NewJoinerApproval(
-                newJoinerApproval_StaffId=args['newJoinerApproval_StaffId'],
-                newJoinerApproval_Salary=args['newJoinerApproval_Salary'],
-                newJoinerApproval_HiringApprovedBy=args['newJoinerApproval_HiringApprovedBy'],
-                newJoinerApproval_Remarks=args.get('newJoinerApproval_Remarks'),
-                newJoinerApproval_FileVerified=args['newJoinerApproval_FileVerified'],
-                newJoinerApproval_EmpDetailsVerified=args['newJoinerApproval_EmpDetailsVerified'],
-                newJoinerApproval_AddToPayrollMonth=args['newJoinerApproval_AddToPayrollMonth'],
-                createdBy=args['createdBy'],
+                newJoinerApproval_StaffId=args['NewJoinerApproval_StaffId'],
+                newJoinerApproval_Salary=args['NewJoinerApproval_Salary'],
+                newJoinerApproval_HiringApprovedBy=args['NewJoinerApproval_HiringApprovedBy'],
+                newJoinerApproval_Remarks=args.get('NewJoinerApproval_Remarks'),
+                newJoinerApproval_FileVerified=args['NewJoinerApproval_FileVerified'],
+                newJoinerApproval_EmpDetailsVerified=args['NewJoinerApproval_EmpDetailsVerified'],
+                newJoinerApproval_AddToPayrollMonth=args['NewJoinerApproval_AddToPayrollMonth'],
+                createdBy=args['CreatedBy'],
                 createdDate=datetime.utcnow()
             )
 
@@ -431,13 +431,13 @@ class NewJoinerApprovalResource(Resource):
         Handles updating an existing joiner approval record by its ID.
         """
         parser = reqparse.RequestParser()
-        parser.add_argument('newJoinerApproval_Salary', type=float, required=False)
-        parser.add_argument('newJoinerApproval_HiringApprovedBy', type=int, required=False)
-        parser.add_argument('newJoinerApproval_Remarks', type=str, required=False)
-        parser.add_argument('newJoinerApproval_FileVerified', type=bool, required=False)
-        parser.add_argument('newJoinerApproval_EmpDetailsVerified', type=bool, required=False)
-        parser.add_argument('newJoinerApproval_AddToPayrollMonth', type=str, required=False)
-        parser.add_argument('updatedBy', type=int, required=True, help='Updater ID is required')
+        parser.add_argument('NewJoinerApproval_Salary', type=float, required=False)
+        parser.add_argument('NewJoinerApproval_HiringApprovedBy', type=int, required=False)
+        parser.add_argument('NewJoinerApproval_Remarks', type=str, required=False)
+        parser.add_argument('NewJoinerApproval_FileVerified', type=bool, required=False)
+        parser.add_argument('NewJoinerApproval_EmpDetailsVerified', type=bool, required=False)
+        parser.add_argument('NewJoinerApproval_AddToPayrollMonth', type=str, required=False)
+        parser.add_argument('UpdatedBy', type=int, required=True, help='Updater ID is required')
         
         args = parser.parse_args()
 
@@ -450,7 +450,7 @@ class NewJoinerApprovalResource(Resource):
                 if value is not None:
                     setattr(new_joiner_approval, key, value)
 
-            new_joiner_approval.updatedBy = args['updatedBy']
+            new_joiner_approval.updatedBy = args['UpdatedBy']
             new_joiner_approval.updatedDate = datetime.utcnow()
 
             db.session.commit()
@@ -591,23 +591,23 @@ class InterviewSchedulesResource(Resource):
                 raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
             
             columns = [
-                {"field":'interview_type_id', "headerName": "Interview Type ID", "width": width},
-                {"field":'date', "headerName": "Date", "width": width},
-                {"field":'time', "headerName": "Time", "width": width},
-                {"field":'venue', "headerName": "Venue", "width": width},
-                {"field":'job_application_form_id', "headerName": "Job Application Form Id", "width": width},
-                {"field":'interview_conductor_id', "headerName": "Interview Conductor Id", "width": width},
-                {"field":'demo_topic', "headerName": "Demo Topic", "width": width},
-                {"field":'position', "headerName": "Position", "width": width},
-                {"field":'location', "headerName": "Location", "width": width},
-                {"field":'created_by', "headerName": "Created By", "width": width},
-                {"field":'create_date', "headerName": "Created Date", "width": width},
-                {"field":'campus_id', "headerName": "Campus Id", "width": width}
+                {"field":'Interview_type_id', "headerName": "Interview Type ID", "width": width},
+                {"field":'Date', "headerName": "Date", "width": width},
+                {"field":'Time', "headerName": "Time", "width": width},
+                {"field":'Venue', "headerName": "Venue", "width": width},
+                {"field":'Job_application_form_id', "headerName": "Job Application Form Id", "width": width},
+                {"field":'Interview_conductor_id', "headerName": "Interview Conductor Id", "width": width},
+                {"field":'Demo_topic', "headerName": "Demo Topic", "width": width},
+                {"field":'Position', "headerName": "Position", "width": width},
+                {"field":'Location', "headerName": "Location", "width": width},
+                {"field":'Created_by', "headerName": "Created By", "width": width},
+                {"field":'Create_date', "headerName": "Created Date", "width": width},
+                {"field":'Campus_id', "headerName": "Campus Id", "width": width}
             ]
             
             if id is None:
                 
-                query = InterviewSchedules.query.order_by(InterviewSchedules.id)
+                query = InterviewSchedules.query.order_by(InterviewSchedules.Id)
                 total = query.count()
 
                 # Apply pagination
@@ -773,12 +773,12 @@ class DeductionHeadResource(Resource):
             width = args['width']
             
             columns = [
-                {"field": "deductionHead_Id", "headerName": "Deduction Head Id", "width": width},
-                {"field": "deductionHead_Name", "headerName": "Deduction Head Name", "width": width}
+                {"field": "DeductionHead_Id", "headerName": "Deduction Head Id", "width": width},
+                {"field": "DeductionHead_Name", "headerName": "Deduction Head Name", "width": width}
             ]
             
             if id is None:
-                query = DeductionHead.query.order_by(DeductionHead.deductionHead_Id)
+                query = DeductionHead.query.order_by(DeductionHead.DeductionHead_Id)
                 total = query.count()
 
                 # Apply pagination
@@ -821,21 +821,21 @@ class DeductionHeadResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('deductionHead_Name', type=str, required=True, help="Deduction head name is required")
+        parser.add_argument('DeductionHead_Name', type=str, required=True, help="Deduction head name is required")
         args = parser.parse_args()
 
         try:
-            new_head = DeductionHead(deductionHead_Name=args['deductionHead_Name'])
+            new_head = DeductionHead(DeductionHead_Name=args['DeductionHead_Name'])
             db.session.add(new_head)
             db.session.commit()
-            return {"message": "Deduction head created", "id": new_head.deductionHead_Id}, 201
+            return {"message": "Deduction head created", "id": new_head.DeductionHead_Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating deduction head: {str(e)}")
     
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('deductionHead_Name', type=str, required=True, help="Deduction head name is required")
+        parser.add_argument('DeductionHead_Name', type=str, required=True, help="Deduction head name is required")
         args = parser.parse_args()
 
         head = DeductionHead.query.get(id)
@@ -843,9 +843,9 @@ class DeductionHeadResource(Resource):
             abort(404, message=f"DeductionHead {id} doesn't exist")
 
         try:
-            head.deductionHead_Name = args['deductionHead_Name']
+            head.DeductionHead_Name = args['DeductionHead_Name']
             db.session.commit()
-            return {"message": "Deduction head updated", "id": head.deductionHead_Id}, 200
+            return {"message": "Deduction head updated", "id": head.DeductionHead_Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating deduction head: {str(e)}")
