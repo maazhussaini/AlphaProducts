@@ -13,6 +13,15 @@ from sqlalchemy import and_
 import json
 from sqlalchemy.exc import SQLAlchemyError
 
+
+
+class DateTimeEncoder(json.JSONEncoder):
+        #Override the default method
+        def default(self, obj):
+            if isinstance(obj, (date, datetime)):
+                return obj.isoformat()
+
+
 class JobApplicationFormResource(Resource):
     
     def get(self, id=None):
@@ -1181,7 +1190,7 @@ class IARResource(Resource):
                 status_Check=args['status_Check'],
                 remarks=args['remarks'],
                 creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else None
+                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow()
             )
             db.session.add(new_iar)
             db.session.commit()
@@ -1332,7 +1341,7 @@ class IARRemarksResource(Resource):
                 remarks=args['remarks'],
                 status=args['status'],
                 creatorId=args.get('creatorId'),
-                createDate=datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S') if args['createDate'] else None
+                createDate=datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S') if args['createDate'] else datetime.utcnow()
             )
             db.session.add(new_remark)
             db.session.commit()
@@ -1704,7 +1713,7 @@ class EmailStorageSystemResource(Resource):
                 email_Body=args['email_Body'],
                 status=args['status'],
                 creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else None,
+                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow(),
                 updatorId=args.get('updatorId'),
                 updatedDate=datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S') if args['updatedDate'] else None,
                 emailType=args.get('emailType')
@@ -1748,8 +1757,9 @@ class EmailStorageSystemResource(Resource):
                 email.createdDate = datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S')
             if args['updatorId'] is not None:
                 email.updatorId = args['updatorId']
-            if args['updatedDate']:
-                email.updatedDate = datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S')
+            
+            email.updatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
+            
             if args['emailType'] is not None:
                 email.emailType = args['emailType']
             db.session.commit()
@@ -1863,7 +1873,7 @@ class AvailableJobsResource(Resource):
                 job_PostedBy=args.get('job_PostedBy'),
                 job_Status=args.get('job_Status'),
                 creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else None,
+                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow(),
                 updatorId=args.get('updatorId'),
                 updatedDate=datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S') if args['updatedDate'] else None
             )
@@ -1905,8 +1915,8 @@ class AvailableJobsResource(Resource):
                 job.createdDate = datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S')
             if args['updatorId'] is not None:
                 job.updatorId = args['updatorId']
-            if args['updatedDate']:
-                job.updatedDate = datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S')
+            
+            job.updatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
             db.session.commit()
             return {"message": "AvailableJobs updated", "job_Id": job.job_Id}, 200
         except Exception as e:
@@ -1925,12 +1935,6 @@ class AvailableJobsResource(Resource):
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error deleting AvailableJobs: {str(e)}")
-
-class DateTimeEncoder(json.JSONEncoder):
-        #Override the default method
-        def default(self, obj):
-            if isinstance(obj, (date, datetime)):
-                return obj.isoformat()
 
 class StaffInfoResource(Resource):
     def get(self, id=None):
@@ -2102,7 +2106,7 @@ class StaffInfoResource(Resource):
                 CreatorId=args['CreatorId'],
                 CreatorIP=args['CreatorIP'],
                 CreatorTerminal=args['CreatorTerminal'],
-                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d') if args['CreateDate'] else datetime.utcnow(),
+                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow(),
                 PhotoPath=args['PhotoPath'],
                 IsDisable=args['IsDisable'],
                 disableDetail=args['disableDetail'],
@@ -2304,8 +2308,8 @@ class StaffInfoResource(Resource):
                 staff.UpdaterIP = args['UpdaterIP']
             if args['UpdaterTerminal'] is not None:
                 staff.UpdaterTerminal = args['UpdaterTerminal']
-            if args['UpdateDate'] is not None:
-                staff.UpdateDate = datetime.strptime(args['UpdateDate'], '%Y-%m-%d')
+            
+            staff.UpdateDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
             if args['CreatorId'] is not None:
                 staff.CreatorId = args['CreatorId']
             if args['CreatorIP'] is not None:
@@ -2501,7 +2505,7 @@ class StaffDepartmentResource(Resource):
                 CreatorId=args['CreatorId'],
                 CreatorIP=args['CreatorIP'],
                 CreatorTerminal=args['CreatorTerminal'],
-                CreateDate=args['CreateDate'],
+                CreateDate=datetime.utcnow(),
                 CampusId=args['CampusId'],
                 ManagerId=args['ManagerId']
             )
@@ -2542,8 +2546,9 @@ class StaffDepartmentResource(Resource):
                 department.UpdaterIP = args['UpdaterIP']
             if args['UpdaterTerminal']:
                 department.UpdaterTerminal = args['UpdaterTerminal']
-            if args['UpdateDate']:
-                department.UpdateDate = args['UpdateDate']
+            
+            department.UpdateDate = datetime.utcnow()
+            
             if args['CreatorId']:
                 department.CreatorId = args['CreatorId']
             if args['CreatorIP']:
@@ -2586,6 +2591,7 @@ class StaffDepartmentResource(Resource):
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
 class StaffTransferResource(Resource):
+    
     def get(self, id=None):
         try:
             parser = reqparse.RequestParser()
@@ -2667,7 +2673,7 @@ class StaffTransferResource(Resource):
                 Remarks=args['Remarks'],
                 status=True,
                 CampusId=from_campus_id,
-                CreatorId=get_jwt_identity(),
+                # CreatorId=get_jwt_identity(),
                 CreateDate=datetime.utcnow()
             )
 
@@ -2822,7 +2828,7 @@ class StaffTransferResource(Resource):
             if args['UpdaterId'] is not None:
                 transfer.UpdaterId = args['UpdaterId']
             if args['UpdateDate'] is not None:
-                transfer.UpdateDate = args['UpdateDate']
+                transfer.UpdateDate = datetime.utcnow()
 
             db.session.commit()
             return {"message": "Staff transfer updated successfully"}, 200
