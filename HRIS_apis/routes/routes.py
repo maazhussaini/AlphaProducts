@@ -4,7 +4,7 @@ from resources.resources import (
     JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
-    StaffTransferResource
+    StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource
 )
 from resources.customApi import (CustomApiResource, CallProcedureResource)
 from resources.auth import UserLoginResource
@@ -40,4 +40,7 @@ def register_routes(app):
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     
     api.add_resource(CallProcedureResource, '/callProcedure')
+    
+    api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
+    api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')
     

@@ -830,6 +830,9 @@ class StaffTransfer(db.Model):
     UpdaterId = db.Column(db.Integer, nullable=True)
     UpdateDate = db.Column(db.DateTime, nullable=True)
 
+    def __repr__(self):
+        return f'<Id {self.Id}>'
+    
     def to_dict(self):
         return {
             'Id': self.Id,
@@ -863,6 +866,9 @@ class StaffShift(db.Model):
     UpdatedByUserId = db.Column(db.Integer)
     CampusId = db.Column(db.Integer)
 
+    def __repr__(self):
+        return f'<StaffId {self.StaffId}>'
+    
     def to_dict(self):
         return {
             'StaffId': self.StaffId,
@@ -872,4 +878,158 @@ class StaffShift(db.Model):
             'CreatedByUserId': self.CreatedByUserId,
             'UpdatedByUserId': self.UpdatedByUserId,
             'CampusId': self.CampusId
+        }
+
+class Salaries(db.Model):
+    __tablename__ = 'Salaries'
+    Id = db.Column(db.Integer, primary_key=True)
+    BasicAmount = db.Column(db.Float, nullable=False)
+    AllowancesAmount = db.Column(db.Float, nullable=False)
+    TotalAmount = db.Column(db.Float, nullable=False)
+    AnnualLeaves = db.Column(db.Integer, nullable=False)
+    RemainingAnnualLeaves = db.Column(db.Integer, nullable=False)
+    DailyHours = db.Column(db.Integer, nullable=False)
+    PFAmount = db.Column(db.Float, nullable=False)
+    EOBIAmount = db.Column(db.Float, nullable=False)
+    SESSIAmount = db.Column(db.Float, nullable=False)
+    SalaryMode = db.Column(db.Integer, nullable=False)
+    IsProbationPeriod = db.Column(db.Boolean, nullable=False)
+    From = db.Column(db.DateTime, nullable=False)
+    To = db.Column(db.DateTime, nullable=False)
+    EmployeeId = db.Column(db.Integer, nullable=False)
+    CreatedOn = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedOn = db.Column(db.DateTime)
+    InActiveOn = db.Column(db.DateTime)
+    IsActive = db.Column(db.Boolean, nullable=False)
+    CreatedByUserId = db.Column(db.Integer, nullable=False)
+    UpdatedByUserId = db.Column(db.Integer)
+    InActiveByUserId = db.Column(db.Integer)
+    HouseRent = db.Column(db.Float)
+    MedicalAllowance = db.Column(db.Float)
+    UtilityAllowance = db.Column(db.Float)
+    IncomeTax = db.Column(db.Float)
+    Toil = db.Column(db.Float)
+    ConveyanceAllowance = db.Column(db.Float)
+    StaffLunch = db.Column(db.Float)
+    CasualLeaves = db.Column(db.Integer)
+    SickLeaves = db.Column(db.Integer)
+    RemainingCasualLeaves = db.Column(db.Integer, nullable=False)
+    RemainingSickLeaves = db.Column(db.Integer, nullable=False)
+    StudyLeaves = db.Column(db.Integer)
+    RemainingStudyLeaves = db.Column(db.Integer, nullable=False)
+    Loan = db.Column(db.Integer, nullable=False)
+    Arrears = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<id {self.Id}>'
+    
+    def to_dict(self):
+        """
+        Serializes the Salaries object to a dictionary.
+        """
+        return {
+            'Id': self.Id,
+            'BasicAmount': self.BasicAmount,
+            'AllowancesAmount': self.AllowancesAmount,
+            'TotalAmount': self.TotalAmount,
+            'AnnualLeaves': self.AnnualLeaves,
+            'RemainingAnnualLeaves': self.RemainingAnnualLeaves,
+            'DailyHours': self.DailyHours,
+            'PFAmount': self.PFAmount,
+            'EOBIAmount': self.EOBIAmount,
+            'SESSIAmount': self.SESSIAmount,
+            'SalaryMode': self.SalaryMode,
+            'IsProbationPeriod': self.IsProbationPeriod,
+            'From': self.From.isoformat() if self.From else None,
+            'To': self.To.isoformat() if self.To else None,
+            'EmployeeId': self.EmployeeId,
+            'CreatedOn': self.CreatedOn.isoformat() if self.CreatedOn else None,
+            'UpdatedOn': self.UpdatedOn.isoformat() if self.UpdatedOn else None,
+            'InActiveOn': self.InActiveOn.isoformat() if self.InActiveOn else None,
+            'IsActive': self.IsActive,
+            'CreatedByUserId': self.CreatedByUserId,
+            'UpdatedByUserId': self.UpdatedByUserId,
+            'InActiveByUserId': self.InActiveByUserId,
+            'HouseRent': self.HouseRent,
+            'MedicalAllowance': self.MedicalAllowance,
+            'UtilityAllowance': self.UtilityAllowance,
+            'IncomeTax': self.IncomeTax,
+            'Toil': self.Toil,
+            'ConveyanceAllowance': self.ConveyanceAllowance,
+            'StaffLunch': self.StaffLunch,
+            'CasualLeaves': self.CasualLeaves,
+            'SickLeaves': self.SickLeaves,
+            'RemainingCasualLeaves': self.RemainingCasualLeaves,
+            'RemainingSickLeaves': self.RemainingSickLeaves,
+            'StudyLeaves': self.StudyLeaves,
+            'RemainingStudyLeaves': self.RemainingStudyLeaves,
+            'Loan': self.Loan,
+            'Arrears': self.Arrears
+        }
+
+class MarkDayOffDeps(db.Model):
+    __tablename__ = 'MarkDayOffDeps'
+
+    Id = db.Column(db.Integer, primary_key=True)
+    Date = db.Column(db.DateTime, nullable=False)
+    Staff_Id = db.Column(db.Integer, nullable=False)
+    Description = db.Column(db.String(250))
+    CreatorId = db.Column(db.Integer)
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    status = db.Column(db.Boolean)
+    CampusId = db.Column(db.Integer)
+    AcademicYearId = db.Column(db.Integer)
+
+    def __repr__(self):
+        return f'<id {self.Id}>'
+    
+    def to_dict(self):
+        """
+        Serializes the MarkDayOffDeps object to a dictionary.
+        """
+        return {
+            'Id': self.Id,
+            'Date': self.Date.isoformat() if self.Date else None,
+            'Staff_Id': self.Staff_Id,
+            'Description': self.Description,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'status': self.status,
+            'CampusId': self.CampusId,
+            'AcademicYearId': self.AcademicYearId
+        }
+
+class MarkDayOffHRs(db.Model):
+    __tablename__ = 'MarkDayOffHRs'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Date = db.Column(db.DateTime, nullable=False)
+    CampusIds = db.Column(db.Integer, nullable=False)
+    Description = db.Column(db.String(250))
+    CreatorId = db.Column(db.Integer)
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    status = db.Column(db.Boolean)
+    AcademicYearId = db.Column(db.Integer)
+
+    def __repr__(self):
+        return f'<id {self.id}>'
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "Date": self.Date.isoformat() if self.Date else None,
+            "CampusIds": self.CampusIds,
+            "Description": self.Description,
+            "CreatorId": self.CreatorId,
+            "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
+            "UpdatorId": self.UpdatorId,
+            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
+            "status": self.status,
+            "AcademicYearId": self.AcademicYearId
         }

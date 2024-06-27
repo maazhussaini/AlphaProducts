@@ -65,7 +65,7 @@ class CustomApiResource(Resource):
             return {'message': str(e)}, 500
         
 class CallProcedureResource(Resource):
-    def get(self):
+    def post(self):
         data = request.get_json()
         procedure_name = data.get('procedure_name')
         parameters = data.get('parameters', {})

@@ -2,7 +2,8 @@ from flask_restful import Resource, reqparse, abort
 from models.models import (
     JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
     ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
-    StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType
+    StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType, Salaries, MarkDayOffDeps,
+    MarkDayOffHRs
 )
 from datetime import datetime, date
 from app import db
@@ -382,16 +383,19 @@ class NewJoinerApprovalResource(Resource):
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def post(self):
+        """
+        Handles the creation of a new joiner approval record.
+        """
         parser = reqparse.RequestParser()
-        parser.add_argument('newJoinerApproval_StaffId', required=True, type=int)
-        parser.add_argument('newJoinerApproval_Salary', required=True, type=float)
-        parser.add_argument('newJoinerApproval_HiringApprovedBy', required=True, type=int)
-        parser.add_argument('newJoinerApproval_Remarks')
-        parser.add_argument('newJoinerApproval_FileVerified', required=True, type=bool)
-        parser.add_argument('newJoinerApproval_EmpDetailsVerified', required=True, type=bool)
-        parser.add_argument('newJoinerApproval_AddToPayrollMonth', required=True)
-        parser.add_argument('createdBy', required=True, type=int)
-
+        parser.add_argument('newJoinerApproval_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('newJoinerApproval_Salary', type=float, required=True, help='Salary is required')
+        parser.add_argument('newJoinerApproval_HiringApprovedBy', type=int, required=True, help='Hiring approved by is required')
+        parser.add_argument('newJoinerApproval_Remarks', type=str, required=False)
+        parser.add_argument('newJoinerApproval_FileVerified', type=bool, required=True, help='File verified is required')
+        parser.add_argument('newJoinerApproval_EmpDetailsVerified', type=bool, required=True, help='Employee details verified is required')
+        parser.add_argument('newJoinerApproval_AddToPayrollMonth', type=str, required=True, help='Add to payroll month is required')
+        parser.add_argument('createdBy', type=int, required=True, help='Creator ID is required')
+        
         args = parser.parse_args()
 
         try:
@@ -399,37 +403,48 @@ class NewJoinerApprovalResource(Resource):
                 newJoinerApproval_StaffId=args['newJoinerApproval_StaffId'],
                 newJoinerApproval_Salary=args['newJoinerApproval_Salary'],
                 newJoinerApproval_HiringApprovedBy=args['newJoinerApproval_HiringApprovedBy'],
-                newJoinerApproval_Remarks=args['newJoinerApproval_Remarks'],
+                newJoinerApproval_Remarks=args.get('newJoinerApproval_Remarks'),
                 newJoinerApproval_FileVerified=args['newJoinerApproval_FileVerified'],
                 newJoinerApproval_EmpDetailsVerified=args['newJoinerApproval_EmpDetailsVerified'],
                 newJoinerApproval_AddToPayrollMonth=args['newJoinerApproval_AddToPayrollMonth'],
-                createdBy=args['createdBy']
+                createdBy=args['createdBy'],
+                createdDate=datetime.utcnow()
             )
 
             db.session.add(new_joiner_approval)
             db.session.commit()
+            
+            # Create salary record for the new joiner
+            self.create_employee_salary(new_joiner_approval.newJoinerApproval_StaffId, new_joiner_approval.newJoinerApproval_Salary)
 
-            return {'message': 'New joiner approval created successfully'}, 201
+            return {"message": "New joiner approval created successfully", "newJoinerApproval": new_joiner_approval.to_dict()}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': 'Internal Server Error', 'message': str(e)}, 500
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
-    def put(self, id):
+    def put(self, approval_id):
+        
+        """
+        Handles updating an existing joiner approval record by its ID.
+        """
         parser = reqparse.RequestParser()
-        parser.add_argument('newJoinerApproval_StaffId', type=int)
-        parser.add_argument('newJoinerApproval_Salary', type=float)
-        parser.add_argument('newJoinerApproval_HiringApprovedBy', type=int)
-        parser.add_argument('newJoinerApproval_Remarks')
-        parser.add_argument('newJoinerApproval_FileVerified', type=bool)
-        parser.add_argument('newJoinerApproval_EmpDetailsVerified', type=bool)
-        parser.add_argument('newJoinerApproval_AddToPayrollMonth')
-        parser.add_argument('updatedBy', type=int)
-        parser.add_argument('inActive', type=bool)
-
+        parser.add_argument('newJoinerApproval_Salary', type=float, required=False)
+        parser.add_argument('newJoinerApproval_HiringApprovedBy', type=int, required=False)
+        parser.add_argument('newJoinerApproval_Remarks', type=str, required=False)
+        parser.add_argument('newJoinerApproval_FileVerified', type=bool, required=False)
+        parser.add_argument('newJoinerApproval_EmpDetailsVerified', type=bool, required=False)
+        parser.add_argument('newJoinerApproval_AddToPayrollMonth', type=str, required=False)
+        parser.add_argument('updatedBy', type=int, required=True, help='Updater ID is required')
+        
         args = parser.parse_args()
 
         try:
-            new_joiner_approval = NewJoinerApproval.query.get_or_404(id)
+            new_joiner_approval = NewJoinerApproval.query.get(approval_id)
+            if not new_joiner_approval:
+                return {'message': 'New joiner approval record not found'}, 404
 
             for key, value in args.items():
                 if value is not None:
@@ -439,11 +454,107 @@ class NewJoinerApprovalResource(Resource):
             new_joiner_approval.updatedDate = datetime.utcnow()
 
             db.session.commit()
-            return {'message': 'New joiner approval updated successfully'}, 200
+
+            # Update the corresponding salary record
+            self.update_employee_salary(new_joiner_approval.newJoinerApproval_StaffId, new_joiner_approval.newJoinerApproval_Salary)
+
+            return {"message": "New joiner approval updated successfully", "newJoinerApproval": new_joiner_approval.to_dict()}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': 'Internal Server Error', 'message': str(e)}, 500
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
+    def create_employee_salary(self, staff_id, total_salary):
+        """
+        Creates a new salary record for the given staff ID.
+        """
+        try:
+            staff_info = StaffInfo.query.get(staff_id)
+            if not staff_info:
+                return
+
+            is_non_teacher = staff_info.IsNonTeacher
+            basic = total_salary / 2
+
+            new_salary = Salaries(
+                BasicAmount=basic,
+                AllowancesAmount=basic,
+                TotalAmount=total_salary,
+                AnnualLeaves=10,
+                RemainingAnnualLeaves=10,
+                DailyHours=8,
+                PFAmount=basic / 12,
+                EOBIAmount=basic / 12,
+                SESSIAmount=basic / 12,
+                SalaryMode=1,
+                IsProbationPeriod=False,
+                From=datetime.utcnow(),
+                To=datetime.utcnow(),
+                EmployeeId=staff_id,
+                CreatedOn=datetime.utcnow(),
+                IsActive=True,
+                CreatedByUserId=get_jwt_identity(),
+                HouseRent=basic / 2,
+                MedicalAllowance=basic / 10,
+                UtilityAllowance=basic / 5,
+                IncomeTax=0,
+                Toil=0,
+                ConveyanceAllowance=basic / 5,
+                StaffLunch=0,
+                CasualLeaves=12 if is_non_teacher else 10,
+                SickLeaves=7,
+                RemainingCasualLeaves=12 if is_non_teacher else 10,
+                RemainingSickLeaves=7,
+                StudyLeaves=5,
+                RemainingStudyLeaves=5,
+                Loan=0,
+                Arrears=0
+            )
+
+            db.session.add(new_salary)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating employee salary: {str(e)}")
+
+    def update_employee_salary(self, staff_id, total_salary):
+        """
+        Updates the existing active salary record for the given staff ID.
+        """
+        try:
+            salary = Salaries.query.filter_by(EmployeeId=staff_id, IsActive=True).first()
+            if not salary:
+                return
+
+            staff_info = StaffInfo.query.get(staff_id)
+            if not staff_info:
+                return
+
+            is_non_teacher = staff_info.IsNonTeacher
+            basic = total_salary / 2
+
+            salary.BasicAmount = basic
+            salary.AllowancesAmount = basic
+            salary.TotalAmount = total_salary
+            salary.PFAmount = basic / 12
+            salary.EOBIAmount = basic / 12
+            salary.SESSIAmount = basic / 12
+            salary.From = datetime.utcnow()
+            salary.To = datetime.utcnow()
+            salary.HouseRent = basic / 2
+            salary.MedicalAllowance = basic / 10
+            salary.UtilityAllowance = basic / 5
+            salary.ConveyanceAllowance = basic / 5
+            salary.UpdatedOn = datetime.utcnow()
+            salary.UpdatedByUserId = get_jwt_identity()
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error updating employee salary: {str(e)}")
+    
     def delete(self, id):
         try:
             new_joiner_approval = NewJoinerApproval.query.get_or_404(id)
@@ -2945,3 +3056,387 @@ class StaffShiftResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+class SalaryResource(Resource):
+    
+    def get(self, salary_id):
+        """
+        Handles the retrieval of a salary record by its ID.
+        """
+        try:
+            salary = Salaries.query.get(salary_id)
+            if salary:
+                return salary.to_dict(), 200
+            else:
+                return {'message': 'Salary record not found'}, 404
+        except SQLAlchemyError as e:
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def post(self):
+        """
+        Handles the creation of a new salary record.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('BasicAmount', type=float, required=True, help='BasicAmount is required')
+        parser.add_argument('AllowancesAmount', type=float, required=True, help='AllowancesAmount is required')
+        parser.add_argument('TotalAmount', type=float, required=True, help='TotalAmount is required')
+        parser.add_argument('AnnualLeaves', type=int, required=True, help='AnnualLeaves is required')
+        parser.add_argument('RemainingAnnualLeaves', type=int, required=True, help='RemainingAnnualLeaves is required')
+        parser.add_argument('DailyHours', type=int, required=True, help='DailyHours is required')
+        parser.add_argument('PFAmount', type=float, required=True, help='PFAmount is required')
+        parser.add_argument('EOBIAmount', type=float, required=True, help='EOBIAmount is required')
+        parser.add_argument('SESSIAmount', type=float, required=True, help='SESSIAmount is required')
+        parser.add_argument('SalaryMode', type=int, required=True, help='SalaryMode is required')
+        parser.add_argument('IsProbationPeriod', type=bool, required=True, help='IsProbationPeriod is required')
+        parser.add_argument('From', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help='From date is required')
+        parser.add_argument('To', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help='To date is required')
+        parser.add_argument('EmployeeId', type=int, required=True, help='EmployeeId is required')
+        parser.add_argument('CreatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help='CreatedOn date is required')
+        parser.add_argument('UpdatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), help='UpdatedOn date is optional')
+        parser.add_argument('InActiveOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), help='InActiveOn date is optional')
+        parser.add_argument('IsActive', type=bool, required=True, help='IsActive is required')
+        parser.add_argument('CreatedByUserId', type=int, required=True, help='CreatedByUserId is required')
+        parser.add_argument('UpdatedByUserId', type=int, help='UpdatedByUserId is optional')
+        parser.add_argument('InActiveByUserId', type=int, help='InActiveByUserId is optional')
+        parser.add_argument('HouseRent', type=float, help='HouseRent is optional')
+        parser.add_argument('MedicalAllowance', type=float, help='MedicalAllowance is optional')
+        parser.add_argument('UtilityAllowance', type=float, help='UtilityAllowance is optional')
+        parser.add_argument('IncomeTax', type=float, help='IncomeTax is optional')
+        parser.add_argument('Toil', type=float, help='Toil is optional')
+        parser.add_argument('ConveyanceAllowance', type=float, help='ConveyanceAllowance is optional')
+        parser.add_argument('StaffLunch', type=float, help='StaffLunch is optional')
+        parser.add_argument('CasualLeaves', type=int, help='CasualLeaves is optional')
+        parser.add_argument('SickLeaves', type=int, help='SickLeaves is optional')
+        parser.add_argument('RemainingCasualLeaves', type=int, required=True, help='RemainingCasualLeaves is required')
+        parser.add_argument('RemainingSickLeaves', type=int, required=True, help='RemainingSickLeaves is required')
+        parser.add_argument('StudyLeaves', type=int, help='StudyLeaves is optional')
+        parser.add_argument('RemainingStudyLeaves', type=int, required=True, help='RemainingStudyLeaves is required')
+        parser.add_argument('Loan', type=int, required=True, help='Loan is required')
+        parser.add_argument('Arrears', type=int, required=True, help='Arrears is required')
+
+        args = parser.parse_args()
+
+        try:
+            new_salary = Salaries(
+                BasicAmount=args['BasicAmount'],
+                AllowancesAmount=args['AllowancesAmount'],
+                TotalAmount=args['TotalAmount'],
+                AnnualLeaves=args['AnnualLeaves'],
+                RemainingAnnualLeaves=args['RemainingAnnualLeaves'],
+                DailyHours=args['DailyHours'],
+                PFAmount=args['PFAmount'],
+                EOBIAmount=args['EOBIAmount'],
+                SESSIAmount=args['SESSIAmount'],
+                SalaryMode=args['SalaryMode'],
+                IsProbationPeriod=args['IsProbationPeriod'],
+                From=args['From'],
+                To=args['To'],
+                EmployeeId=args['EmployeeId'],
+                CreatedOn=args['CreatedOn'],
+                UpdatedOn=args.get('UpdatedOn'),
+                InActiveOn=args.get('InActiveOn'),
+                IsActive=args['IsActive'],
+                CreatedByUserId=args['CreatedByUserId'],
+                UpdatedByUserId=args.get('UpdatedByUserId'),
+                InActiveByUserId=args.get('InActiveByUserId'),
+                HouseRent=args.get('HouseRent'),
+                MedicalAllowance=args.get('MedicalAllowance'),
+                UtilityAllowance=args.get('UtilityAllowance'),
+                IncomeTax=args.get('IncomeTax'),
+                Toil=args.get('Toil'),
+                ConveyanceAllowance=args.get('ConveyanceAllowance'),
+                StaffLunch=args.get('StaffLunch'),
+                CasualLeaves=args.get('CasualLeaves'),
+                SickLeaves=args.get('SickLeaves'),
+                RemainingCasualLeaves=args['RemainingCasualLeaves'],
+                RemainingSickLeaves=args['RemainingSickLeaves'],
+                StudyLeaves=args.get('StudyLeaves'),
+                RemainingStudyLeaves=args['RemainingStudyLeaves'],
+                Loan=args['Loan'],
+                Arrears=args['Arrears']
+            )
+
+            db.session.add(new_salary)
+            db.session.commit()
+            return {"message": "Salary record created successfully", "salary": new_salary.to_dict()}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+
+            salary.UpdatedOn = datetime.utcnow()
+
+            db.session.commit()
+            return {"message": "Salary record updated successfully", "salary": salary.to_dict()}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, salary_id):
+        """
+        Handles deleting a salary record by its ID.
+        """
+        try:
+            salary = Salaries.query.get(salary_id)
+            if not salary:
+                return {'message': 'Salary record not found'}, 404
+
+            db.session.delete(salary)
+            db.session.commit()
+            return {"message": "Salary record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class MarkDayOffDepsResource(Resource):
+    
+    def get(self, id=None):
+        """
+        Retrieve a single MarkDayOffDeps record by ID or all records if no ID is provided.
+        """
+        if id:
+            mark_day_off = MarkDayOffDeps.query.get(id)
+            if mark_day_off:
+                return mark_day_off.to_dict(), 200
+            return {'message': 'MarkDayOffDeps record not found'}, 404
+        else:
+            mark_days_off = MarkDayOffDeps.query.all()
+            return [mark_day_off.to_dict() for mark_day_off in mark_days_off], 200
+
+    def post(self):
+        """
+        Create a new MarkDayOffDeps record.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('Date', type=str, required=True, help='Date is required')
+        parser.add_argument('Staff_Id', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('Description', type=str, required=False)
+        parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        parser.add_argument('AcademicYearId', type=int, required=False)
+        
+        args = parser.parse_args()
+
+        try:
+            mark_day_off = MarkDayOffDeps(
+                Date=datetime.fromisoformat(args['Date']),
+                Staff_Id=args['Staff_Id'],
+                Description=args.get('Description'),
+                CreatorId=args['CreatorId'],
+                CreateDate=datetime.utcnow(),
+                status=args.get('status'),
+                CampusId=args.get('CampusId'),
+                AcademicYearId=args.get('AcademicYearId')
+            )
+
+            db.session.add(mark_day_off)
+            db.session.commit()
+
+            return {"message": "MarkDayOffDeps record created successfully"}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self):
+        """
+        Update existing MarkDayOffDeps records for multiple staff members.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('Date', type=str, required=False)
+        parser.add_argument('Staff_Ids', type=int, action='append', required=True, help='Staff IDs are required')
+        parser.add_argument('Description', type=str, required=False)
+        parser.add_argument('UpdatorId', type=int, required=True, help='Updator ID is required')
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
+        parser.add_argument('AcademicYearId', type=int, required=False)
+        
+        args = parser.parse_args()
+
+        try:
+            
+            updated_records = []
+            for staff_id in args['Staff_Ids']:
+                
+                mark_day_off = MarkDayOffDeps.query.filter_by(Staff_Id=staff_id).first()
+                
+                if not mark_day_off:
+                    continue  # Skip if the record does not exist
+
+                if args['Date']:
+                    mark_day_off.Date = datetime.fromisoformat(args['Date'])
+                if args['Description']:
+                    mark_day_off.Description = args['Description']
+                if args['status'] is not None:
+                    mark_day_off.status = args['status']
+                if args['CampusId']:
+                    mark_day_off.CampusId = args['CampusId']
+                if args['AcademicYearId']:
+                    mark_day_off.AcademicYearId = args['AcademicYearId']
+
+                mark_day_off.UpdatorId = args['UpdatorId']
+                mark_day_off.UpdateDate = datetime.utcnow()
+
+                updated_records.append(mark_day_off.to_dict())
+            
+            db.session.commit()
+
+            return {"message": "MarkDayOffDeps records updated successfully", "MarkDayOffDeps": updated_records}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        """
+        Delete a MarkDayOffDeps record by ID.
+        """
+        try:
+            mark_day_off = MarkDayOffDeps.query.get(id)
+            if not mark_day_off:
+                return {'message': 'MarkDayOffDeps record not found'}, 404
+
+            db.session.delete(mark_day_off)
+            db.session.commit()
+
+            return {"message": "MarkDayOffDeps record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class MarkDayOffHRsResource(Resource):
+    def get(self, id=None):
+        """
+        Retrieve a single MarkDayOffHRs record by ID or all records if no ID is provided.
+        """
+        if id:
+            mark_day_off = MarkDayOffHRs.query.get(id)
+            if mark_day_off:
+                return mark_day_off.to_dict(), 200
+            return {'message': 'MarkDayOffHRs record not found'}, 404
+        else:
+            mark_days_off = MarkDayOffHRs.query.all()
+            return [mark_day_off.to_dict() for mark_day_off in mark_days_off], 200
+
+    def post(self):
+        """
+        Create new MarkDayOffHRs records for multiple campuses.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('Date', type=str, required=True, help='Date is required')
+        parser.add_argument('CampusIds', type=int, action='append', required=True, help='Campus IDs are required')
+        parser.add_argument('Description', type=str, required=False)
+        parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('AcademicYearId', type=int, required=False)
+        
+        args = parser.parse_args()
+
+        try:
+            created_records = []
+            for campus_id in args['CampusIds']:
+                mark_day_off = MarkDayOffHRs(
+                    Date=datetime.fromisoformat(args['Date']),
+                    CampusIds=campus_id,
+                    Description=args.get('Description'),
+                    CreatorId=args['CreatorId'],
+                    CreateDate=datetime.utcnow(),
+                    status=args.get('status'),
+                    AcademicYearId=args.get('AcademicYearId')
+                )
+                db.session.add(mark_day_off)
+                created_records.append(mark_day_off.to_dict())
+            
+            db.session.commit()
+
+            return {"message": "MarkDayOffHRs records created successfully"}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self):
+        """
+        Update existing MarkDayOffHRs records for multiple campuses.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('Date', type=str, required=False)
+        parser.add_argument('CampusIds', type=int, action='append', required=True, help='Campus IDs are required')
+        parser.add_argument('Description', type=str, required=False)
+        parser.add_argument('UpdatorId', type=int, required=True, help='Updator ID is required')
+        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('AcademicYearId', type=int, required=False)
+        
+        args = parser.parse_args()
+
+        try:
+            updated_records = []
+            for campus_id in args['CampusIds']:
+                mark_day_off = MarkDayOffHRs.query.filter_by(CampusIds=campus_id).first()
+                if not mark_day_off:
+                    continue  # Skip if the record does not exist
+
+                if args['Date']:
+                    mark_day_off.Date = datetime.fromisoformat(args['Date'])
+                if args['Description']:
+                    mark_day_off.Description = args['Description']
+                if args['status'] is not None:
+                    mark_day_off.status = args['status']
+                if args['AcademicYearId']:
+                    mark_day_off.AcademicYearId = args['AcademicYearId']
+
+                mark_day_off.UpdatorId = args['UpdatorId']
+                mark_day_off.UpdateDate = datetime.utcnow()
+
+                updated_records.append(mark_day_off.to_dict())
+            
+            db.session.commit()
+
+            return {"message": "MarkDayOffHRs records updated successfully", "MarkDayOffHRs": updated_records}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        """
+        Delete a MarkDayOffHRs record by ID.
+        """
+        try:
+            mark_day_off = MarkDayOffHRs.query.get(id)
+            if not mark_day_off:
+                return {'message': 'MarkDayOffHRs record not found'}, 404
+
+            db.session.delete(mark_day_off)
+            db.session.commit()
+
+            return {"message": "MarkDayOffHRs record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
