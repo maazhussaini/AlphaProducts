@@ -5,7 +5,7 @@ from resources.resources import (
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource
 )
-from resources.customApi import CustomApiResource
+from resources.customApi import (CustomApiResource, CallProcedureResource, CallProcedure)
 from resources.auth import UserLoginResource
 
 def register_routes(app):
@@ -34,7 +34,8 @@ def register_routes(app):
     
     api.add_resource(CustomApiResource, '/customApiResource', '/customApiResource/<int:id>')
 
-    # Add the resources to the API
     api.add_resource(StaffInfoResource, '/staffInfo', '/staffInfo/<int:id>')
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
+    
+    api.add_resource(CallProcedureResource, '/callProcedure')
     

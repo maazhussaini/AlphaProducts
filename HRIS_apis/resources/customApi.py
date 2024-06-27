@@ -5,6 +5,7 @@ from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
 from models.models import *
+import pyodbc
 
 class CustomApiResource(Resource):
     def get(self, id=None):
@@ -64,7 +65,53 @@ class CustomApiResource(Resource):
             return {'message': str(e)}, 500
         
 class CallProcedureResource(Resource):
-    
+    def get(self):
+        data = request.get_json()
+        procedure_name = data.get('procedure_name')
+        parameters = data.get('parameters', {})
+
+        if not procedure_name:
+            return {'error': 'Procedure name is required'}, 400
+
+        # Validate that parameters are either absent or a dictionary
+        if parameters and not isinstance(parameters, dict):
+            return {'error': 'Parameters should be a dictionary if provided'}, 400
+
+        # Prepare the parameters if they exist
+        
+        custom_paramters = [f'@{key} = {value}' for key, value in parameters.items()]
+        param_placeholders = ', '.join(custom_paramters)
+
+        # Connect to the database
+        connection = db.engine.raw_connection()
+        try:
+            cursor = connection.cursor()
+            if param_placeholders:
+                call_procedure_query = f"EXEC {procedure_name} {param_placeholders}"
+                print(call_procedure_query)
+                cursor.execute(call_procedure_query)
+            else:
+                call_procedure_query = f"exec {procedure_name};"
+                cursor.execute(call_procedure_query)
+
+            columns = [column[0] for column in cursor.description]
+            results = cursor.fetchall()
+            cursor.close()
+            connection.commit()
+            
+            # Convert results to a list of dictionaries for JSON response
+            result_list = [dict(zip(columns, row)) for row in results]
+
+            return jsonify(result_list)
+
+            # return jsonify(result_list)
+        except Exception as e:
+            connection.rollback()
+            return {'error': str(e)}, 500
+        finally:
+            connection.close()
+
+class CallProcedure(Resource):
     def get(self):
         data = request.get_json()
         procedure_name = data.get('procedure_name')
@@ -73,34 +120,30 @@ class CallProcedureResource(Resource):
         if not procedure_name:
             return jsonify({'error': 'Procedure name is required'}), 400
 
-        # Validate that parameters are either absent or a dictionary
         if parameters and not isinstance(parameters, dict):
             return jsonify({'error': 'Parameters should be a dictionary if provided'}), 400
 
-        # Prepare the parameters if they exist
-        param_values = []
-        if parameters:
-            param_keys = sorted(parameters.keys())
-            param_values = [parameters[key] for key in param_keys]
+        # Construct the SQL call statement with named parameters
+        param_str = ', '.join([f"@{key} = ?" for key in parameters])
+        sql_call = f"EXEC {procedure_name} {param_str}" if param_str else f"EXEC {procedure_name}"
+
+        param_values = list(parameters.values())
 
         # Connect to the database
         connection = db.engine.raw_connection()
         try:
             cursor = connection.cursor()
-
-            if param_values:
-                cursor.callproc(procedure_name, param_values)
-            else:
-                cursor.callproc(procedure_name)
-
+            cursor.execute(sql_call, param_values)
+            
+            columns = [column[0] for column in cursor.description]
             results = cursor.fetchall()
             cursor.close()
             connection.commit()
+            print(results)
 
             # Convert results to a list of dictionaries for JSON response
-            result_list = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in results]
-
-            return jsonify(result_list)
+            result_list = [dict(zip(columns, row)) for row in results]
+            return {"data": result_list}
         except Exception as e:
             connection.rollback()
             return jsonify({'error': str(e)}), 500
