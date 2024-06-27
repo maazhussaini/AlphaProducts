@@ -7,7 +7,9 @@ from resources.resources import (
 )
 from resources.customApi import (CustomApiResource, CallProcedureResource, CallProcedure)
 from resources.auth import UserLoginResource
+from flask_cors import CORS, cross_origin
 
+@cross_origin()
 def register_routes(app):
     api_bp = Blueprint('api', __name__)
     api = Api(api_bp)
