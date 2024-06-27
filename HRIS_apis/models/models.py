@@ -413,36 +413,36 @@ class DeductionHead(db.Model):
 
 class OneTimeDeduction(db.Model):
     __tablename__ = 'OneTimeDeduction'
-    oneTimeDeduction_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    oneTimeDeduction_StaffId = db.Column(db.Integer, nullable=False)
-    oneTimeDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
-    oneTimeDeduction_Amount = db.Column(db.Float, nullable=False)
-    oneTimeDeduction_DeductionMonth = db.Column(db.String(15), nullable=False)
-    oneTimeDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
-    creatorId = db.Column(db.Integer, nullable=False)
-    createDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updatorId = db.Column(db.Integer, nullable=True)
-    updateDate = db.Column(db.DateTime, nullable=True)
-    inActive = db.Column(db.Boolean, nullable=False)
+    OneTimeDeduction_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    OneTimeDeduction_StaffId = db.Column(db.Integer, nullable=False)
+    OneTimeDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
+    OneTimeDeduction_Amount = db.Column(db.Float, nullable=False)
+    OneTimeDeduction_DeductionMonth = db.Column(db.String(15), nullable=False)
+    OneTimeDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
 
     deduction_head = db.relationship('DeductionHead', backref=db.backref('oneTimeDeduction', lazy=True))
     
     def __repr__(self):
-        return f'<DeductionHead {self.oneTimeDeduction_Id}>'
+        return f'<DeductionHead {self.OneTimeDeduction_Id}>'
     
     def to_dict(self):
         return {
-            "oneTimeDeduction_Id": self.oneTimeDeduction_Id,
-            "oneTimeDeduction_StaffId": self.oneTimeDeduction_StaffId,
-            "oneTimeDeduction_DeductionHeadId": self.oneTimeDeduction_DeductionHeadId,
-            "oneTimeDeduction_Amount": self.oneTimeDeduction_Amount,
-            "oneTimeDeduction_DeductionMonth": self.oneTimeDeduction_DeductionMonth,
-            "oneTimeDeduction_ApprovedBy": self.oneTimeDeduction_ApprovedBy,
-            "creatorId": self.creatorId,
-            "createDate": self.createDate.isoformat(),
-            "updatorId": self.updatorId,
-            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
-            "inActive": self.inActive
+            "OneTimeDeduction_Id": self.OneTimeDeduction_Id,
+            "OneTimeDeduction_StaffId": self.OneTimeDeduction_StaffId,
+            "OneTimeDeduction_DeductionHeadId": self.OneTimeDeduction_DeductionHeadId,
+            "OneTimeDeduction_Amount": self.OneTimeDeduction_Amount,
+            "OneTimeDeduction_DeductionMonth": self.OneTimeDeduction_DeductionMonth,
+            "OneTimeDeduction_ApprovedBy": self.OneTimeDeduction_ApprovedBy,
+            "CreatorId": self.CreatorId,
+            "CreateDate": self.CreateDate.isoformat(),
+            "UpdatorId": self.UpdatorId,
+            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
+            "InActive": self.InActive
         }
 
 class ScheduledDeduction(db.Model):
@@ -452,13 +452,13 @@ class ScheduledDeduction(db.Model):
     scheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
     scheduledDeduction_AmountPerMonth = db.Column(db.Float, nullable=False)
     scheduledDeduction_StartDate = db.Column(db.DateTime, nullable=False)
-    scheduledDeduction_EndDate = db.Column(db.DateTime, nullable=False)
-    scheduledDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
-    creatorId = db.Column(db.Integer, nullable=False)
-    createDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updatorId = db.Column(db.Integer)
-    updateDate = db.Column(db.DateTime)
-    inActive = db.Column(db.Boolean, nullable=False)
+    ScheduledDeduction_EndDate = db.Column(db.DateTime, nullable=False)
+    ScheduledDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
     
     deduction_head = db.relationship('DeductionHead', backref=db.backref('scheduledDeduction', lazy=True))
     
@@ -467,18 +467,18 @@ class ScheduledDeduction(db.Model):
     
     def to_dict(self):
         return {
-            "scheduledDeduction_Id": self.scheduledDeduction_Id,
-            "scheduledDeduction_StaffId": self.scheduledDeduction_StaffId,
-            "scheduledDeduction_DeductionHeadId": self.scheduledDeduction_DeductionHeadId,
-            "scheduledDeduction_AmountPerMonth": self.scheduledDeduction_AmountPerMonth,
-            "scheduledDeduction_StartDate": self.scheduledDeduction_StartDate.isoformat(),
-            "scheduledDeduction_EndDate": self.scheduledDeduction_EndDate.isoformat(),
-            "scheduledDeduction_ApprovedBy": self.scheduledDeduction_ApprovedBy,
-            "creatorId": self.creatorId,
-            "createDate": self.createDate.isoformat(),
-            "updatorId": self.updatorId,
-            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
-            "inActive": self.inActive
+            "ScheduledDeduction_Id": self.ScheduledDeduction_Id,
+            "ScheduledDeduction_StaffId": self.ScheduledDeduction_StaffId,
+            "ScheduledDeduction_DeductionHeadId": self.ScheduledDeduction_DeductionHeadId,
+            "ScheduledDeduction_AmountPerMonth": self.ScheduledDeduction_AmountPerMonth,
+            "ScheduledDeduction_StartDate": self.ScheduledDeduction_StartDate.isoformat(),
+            "ScheduledDeduction_EndDate": self.ScheduledDeduction_EndDate.isoformat(),
+            "ScheduledDeduction_ApprovedBy": self.ScheduledDeduction_ApprovedBy,
+            "CreatorId": self.CreatorId,
+            "CreateDate": self.CreateDate.isoformat(),
+            "UpdatorId": self.UpdatorId,
+            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
+            "InActive": self.InActive
         }
 
 class IAR(db.Model):

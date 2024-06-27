@@ -400,22 +400,22 @@ class NewJoinerApprovalResource(Resource):
 
         try:
             new_joiner_approval = NewJoinerApproval(
-                newJoinerApproval_StaffId=args['NewJoinerApproval_StaffId'],
-                newJoinerApproval_Salary=args['NewJoinerApproval_Salary'],
-                newJoinerApproval_HiringApprovedBy=args['NewJoinerApproval_HiringApprovedBy'],
-                newJoinerApproval_Remarks=args.get('NewJoinerApproval_Remarks'),
-                newJoinerApproval_FileVerified=args['NewJoinerApproval_FileVerified'],
-                newJoinerApproval_EmpDetailsVerified=args['NewJoinerApproval_EmpDetailsVerified'],
-                newJoinerApproval_AddToPayrollMonth=args['NewJoinerApproval_AddToPayrollMonth'],
-                createdBy=args['CreatedBy'],
-                createdDate=datetime.utcnow()
+                NewJoinerApproval_StaffId=args['NewJoinerApproval_StaffId'],
+                NewJoinerApproval_Salary=args['NewJoinerApproval_Salary'],
+                NewJoinerApproval_HiringApprovedBy=args['NewJoinerApproval_HiringApprovedBy'],
+                NewJoinerApproval_Remarks=args.get('NewJoinerApproval_Remarks'),
+                NewJoinerApproval_FileVerified=args['NewJoinerApproval_FileVerified'],
+                NewJoinerApproval_EmpDetailsVerified=args['NewJoinerApproval_EmpDetailsVerified'],
+                NewJoinerApproval_AddToPayrollMonth=args['NewJoinerApproval_AddToPayrollMonth'],
+                CreatedBy=args['CreatedBy'],
+                CreatedDate=datetime.utcnow()
             )
 
             db.session.add(new_joiner_approval)
             db.session.commit()
             
             # Create salary record for the new joiner
-            self.create_employee_salary(new_joiner_approval.newJoinerApproval_StaffId, new_joiner_approval.newJoinerApproval_Salary)
+            self.create_employee_salary(new_joiner_approval.NewJoinerApproval_StaffId, new_joiner_approval.NewJoinerApproval_Salary)
 
             return {"message": "New joiner approval created successfully", "newJoinerApproval": new_joiner_approval.to_dict()}, 201
         except SQLAlchemyError as e:
@@ -456,7 +456,7 @@ class NewJoinerApprovalResource(Resource):
             db.session.commit()
 
             # Update the corresponding salary record
-            self.update_employee_salary(new_joiner_approval.newJoinerApproval_StaffId, new_joiner_approval.newJoinerApproval_Salary)
+            self.update_employee_salary(new_joiner_approval.NewJoinerApproval_StaffId, new_joiner_approval.NewJoinerApproval_Salary)
 
             return {"message": "New joiner approval updated successfully", "newJoinerApproval": new_joiner_approval.to_dict()}, 200
         except SQLAlchemyError as e:
@@ -886,22 +886,22 @@ class OneTimeDeductionResource(Resource):
             width = args['width']
         
             columns = [
-                {"field":"oneTimeDeduction_Id", "headername": "Id", "width": width},
-                {"field":"oneTimeDeduction_StaffId", "headername": "Staff Id", "width": width},
-                {"field":"oneTimeDeduction_DeductionHeadId", "headername": "Deduction Head Id", "width": width},
-                {"field":"oneTimeDeduction_Amount", "headername": "Amount", "width": width},
-                {"field":"oneTimeDeduction_DeductionMonth", "headername": "Deduction Month", "width": width},
-                {"field":"oneTimeDeduction_ApprovedBy", "headername": "Approved By", "width": width},
-                {"field":"creatorId", "headername": "Creator Id", "width": width},
-                {"field":"createDate", "headername": "Created Date", "width": width},
-                {"field":"updatorId", "headername": "Updator Id", "width": width},
-                {"field":"updateDate", "headername": "Updated Date", "width": width},
-                {"field":"inActive", "headername": "In active", "width": width}
+                {"field":"OneTimeDeduction_Id", "headername": "Id", "width": width},
+                {"field":"OneTimeDeduction_StaffId", "headername": "Staff Id", "width": width},
+                {"field":"OneTimeDeduction_DeductionHeadId", "headername": "Deduction Head Id", "width": width},
+                {"field":"OneTimeDeduction_Amount", "headername": "Amount", "width": width},
+                {"field":"OneTimeDeduction_DeductionMonth", "headername": "Deduction Month", "width": width},
+                {"field":"OneTimeDeduction_ApprovedBy", "headername": "Approved By", "width": width},
+                {"field":"CreatorId", "headername": "Creator Id", "width": width},
+                {"field":"CeateDate", "headername": "Created Date", "width": width},
+                {"field":"UdatorId", "headername": "Updator Id", "width": width},
+                {"field":"UpdateDate", "headername": "Updated Date", "width": width},
+                {"field":"InActive", "headername": "In active", "width": width}
             ]
 
             if id is None:
                 
-                query = OneTimeDeduction.query.order_by(OneTimeDeduction.id)
+                query = OneTimeDeduction.query.order_by(OneTimeDeduction.OneTimeDeduction_Id)
                 total = query.count()
 
                 # Apply pagination
@@ -942,50 +942,50 @@ class OneTimeDeductionResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('oneTimeDeduction_StaffId', type=int, required=True, help="Staff ID is required")
-        parser.add_argument('oneTimeDeduction_DeductionHeadId', type=int, required=True, help="Deduction head ID is required")
-        parser.add_argument('oneTimeDeduction_Amount', type=float, required=True, help="Amount is required")
-        parser.add_argument('oneTimeDeduction_DeductionMonth', type=str, required=True, help="Deduction month is required")
-        parser.add_argument('oneTimeDeduction_ApprovedBy', type=int, required=True, help="Approved by is required")
-        parser.add_argument('creatorId', type=int, required=True, help="Creator ID is required")
-        parser.add_argument('createDate', type=str, required=True, help="Create date is required")
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updateDate', type=str, required=False)
-        parser.add_argument('inActive', type=bool, required=True, help="Inactive status is required")
+        parser.add_argument('OneTimeDeduction_StaffId', type=int, required=True, help="Staff ID is required")
+        parser.add_argument('OneTimeDeduction_DeductionHeadId', type=int, required=True, help="Deduction head ID is required")
+        parser.add_argument('OneTimeDeduction_Amount', type=float, required=True, help="Amount is required")
+        parser.add_argument('OneTimeDeduction_DeductionMonth', type=str, required=True, help="Deduction month is required")
+        parser.add_argument('OneTimeDeduction_ApprovedBy', type=int, required=True, help="Approved by is required")
+        parser.add_argument('CreatorId', type=int, required=True, help="Creator ID is required")
+        parser.add_argument('UreateDate', type=str, required=True, help="Create date is required")
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdateDate', type=str, required=False)
+        parser.add_argument('InActive', type=bool, required=True, help="Inactive status is required")
         args = parser.parse_args()
 
         try:
             new_deduction = OneTimeDeduction(
-                oneTimeDeduction_StaffId=args['oneTimeDeduction_StaffId'],
-                oneTimeDeduction_DeductionHeadId=args['oneTimeDeduction_DeductionHeadId'],
-                oneTimeDeduction_Amount=args['oneTimeDeduction_Amount'],
-                oneTimeDeduction_DeductionMonth=args['oneTimeDeduction_DeductionMonth'],
-                oneTimeDeduction_ApprovedBy=args['oneTimeDeduction_ApprovedBy'],
-                creatorId=args['creatorId'],
-                createDate=datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S'),
-                updatorId=args.get('updatorId'),
-                updateDate=datetime.strptime(args['updateDate'], '%Y-%m-%d %H:%M:%S') if args['updateDate'] else None,
-                inActive=args['inActive']
+                OneTimeDeduction_StaffId=args['OneTimeDeduction_StaffId'],
+                OneTimeDeduction_DeductionHeadId=args['OneTimeDeduction_DeductionHeadId'],
+                OneTimeDeduction_Amount=args['OneTimeDeduction_Amount'],
+                OneTimeDeduction_DeductionMonth=args['OneTimeDeduction_DeductionMonth'],
+                OneTimeDeduction_ApprovedBy=args['OneTimeDeduction_ApprovedBy'],
+                CreatorId=args['CreatorId'],
+                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S'),
+                UpdatorId=args.get('UpdatorId'),
+                UpdateDate=datetime.strptime(args['UpdateDate'], '%Y-%m-%d %H:%M:%S') if args['UpdateDate'] else None,
+                InActive=args['InActive']
             )
             db.session.add(new_deduction)
             db.session.commit()
-            return {"message": "One-time deduction created", "id": new_deduction.oneTimeDeduction_Id}, 201
+            return {"message": "One-time deduction created", "id": new_deduction.OneTimeDeduction_Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating one-time deduction: {str(e)}")
     
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('oneTimeDeduction_StaffId', type=int, required=False)
-        parser.add_argument('oneTimeDeduction_DeductionHeadId', type=int, required=False)
-        parser.add_argument('oneTimeDeduction_Amount', type=float, required=False)
-        parser.add_argument('oneTimeDeduction_DeductionMonth', type=str, required=False)
-        parser.add_argument('oneTimeDeduction_ApprovedBy', type=int, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createDate', type=str, required=False)
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updateDate', type=str, required=False)
-        parser.add_argument('inActive', type=bool, required=False)
+        parser.add_argument('OneTimeDeduction_Id', type=int, required=False)
+        parser.add_argument('OneTimeDeduction_DeductionHeadId', type=int, required=False)
+        parser.add_argument('OneTimeDeduction_Amount', type=float, required=False)
+        parser.add_argument('OneTimeDeduction_DeductionMonth', type=str, required=False)
+        parser.add_argument('OneTimeDeduction_ApprovedBy', type=int, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreateDate', type=str, required=False)
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdateDate', type=str, required=False)
+        parser.add_argument('InActive', type=bool, required=False)
         args = parser.parse_args()
 
         deduction = OneTimeDeduction.query.get(id)
@@ -993,29 +993,29 @@ class OneTimeDeductionResource(Resource):
             abort(404, message=f"OneTimeDeduction {id} doesn't exist")
 
         try:
-            if args['oneTimeDeduction_StaffId'] is not None:
-                deduction.oneTimeDeduction_StaffId = args['oneTimeDeduction_StaffId']
-            if args['oneTimeDeduction_DeductionHeadId'] is not None:
-                deduction.oneTimeDeduction_DeductionHeadId = args['oneTimeDeduction_DeductionHeadId']
-            if args['oneTimeDeduction_Amount'] is not None:
-                deduction.oneTimeDeduction_Amount = args['oneTimeDeduction_Amount']
-            if args['oneTimeDeduction_DeductionMonth']:
-                deduction.oneTimeDeduction_DeductionMonth = args['oneTimeDeduction_DeductionMonth']
-            if args['oneTimeDeduction_ApprovedBy'] is not None:
-                deduction.oneTimeDeduction_ApprovedBy = args['oneTimeDeduction_ApprovedBy']
-            if args['creatorId'] is not None:
-                deduction.creatorId = args['creatorId']
-            if args['createDate']:
-                deduction.createDate = datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S')
-            if args['updatorId'] is not None:
-                deduction.updatorId = args['updatorId']
-            if args['updateDate']:
-                deduction.updateDate = datetime.strptime(args['updateDate'], '%Y-%m-%d %H:%M:%S')
-            if args['inActive'] is not None:
-                deduction.inActive = args['inActive']
+            if args['OneTimeDeduction_StaffId'] is not None:
+                deduction.OneTimeDeduction_StaffId = args['OneTimeDeduction_StaffId']
+            if args['OneTimeDeduction_DeductionHeadId'] is not None:
+                deduction.OneTimeDeduction_DeductionHeadId = args['OneTimeDeduction_DeductionHeadId']
+            if args['OneTimeDeduction_Amount'] is not None:
+                deduction.OneTimeDeduction_Amount = args['OneTimeDeduction_Amount']
+            if args['OneTimeDeduction_DeductionMonth']:
+                deduction.OneTimeDeduction_DeductionMonth = args['OneTimeDeduction_DeductionMonth']
+            if args['OneTimeDeduction_ApprovedBy'] is not None:
+                deduction.OneTimeDeduction_ApprovedBy = args['OneTimeDeduction_ApprovedBy']
+            if args['CreatorId'] is not None:
+                deduction.CreatorId = args['CreatorId']
+            if args['CreateDate']:
+                deduction.CreateDate = datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S')
+            if args['UpdatorId'] is not None:
+                deduction.UpdatorId = args['UpdatorId']
+            if args['UpdateDate']:
+                deduction.UpdateDate = datetime.strptime(args['UpdateDate'], '%Y-%m-%d %H:%M:%S')
+            if args['InActive'] is not None:
+                deduction.InActive = args['InActive']
 
             db.session.commit()
-            return {"message": "One-time deduction updated", "id": deduction.oneTimeDeduction_Id}, 200
+            return {"message": "One-time deduction updated", "id": deduction.OneTimeDeduction_Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating one-time deduction: {str(e)}")
