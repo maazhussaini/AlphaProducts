@@ -64,13 +64,13 @@ class CustomApiResource(Resource):
             
         except Exception as e:
             return {'message': str(e)}, 500
-        
+
 class CallProcedureResource(Resource):
     def post(self):
         data = request.get_json()
         procedure_name = data.get('procedure_name')
         parameters = data.get('parameters', {})
-        page = data.get('page', 1)
+        page = data.get('pageNo', 1)
         per_page = data.get('per_page', 10)
 
         if not procedure_name:
