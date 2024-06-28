@@ -4,7 +4,8 @@ from resources.resources import (
     JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
-    StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource
+    StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
+    ScheduledAllowanceResource
 )
 from resources.customApi import (CustomApiResource, CallProcedureResource)
 from resources.auth import UserLoginResource
@@ -44,3 +45,6 @@ def register_routes(app):
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
     api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')
     
+    api.add_resource(AllowanceHeadResource, '/allowanceHead', '/allowanceHead/<int:id>')
+    api.add_resource(OneTimeAllowanceResource, '/oneTimeAllowance', '/oneTimeAllowance/<int:id>')
+    api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')

@@ -7,36 +7,36 @@ import json
 class Users(db.Model):
     __tablename__ = 'USERS'
 
-    user_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(100), nullable=True)
-    lastModified = db.Column(db.DateTime, nullable=True)
-    inactive = db.Column(db.Boolean, nullable=False)
-    firstname = db.Column(db.String(50), nullable=True)
-    lastname = db.Column(db.String(50), nullable=True)
-    title = db.Column(db.String(30), nullable=True)
-    initial = db.Column(db.String(3), nullable=True)
-    email = db.Column(db.String(250), nullable=True)
-    password = db.Column(db.String(50), nullable=True)
-    status = db.Column(db.Boolean, nullable=False)
-    userType_id = db.Column(db.Integer, nullable=True)
-    mobileNo = db.Column(db.String(15), nullable=True)
-    teacher_id = db.Column(db.Integer, nullable=True)
-    updaterId = db.Column(db.BigInteger, nullable=True)
-    updaterIP = db.Column(db.String(20), nullable=True)
-    updaterTerminal = db.Column(db.String(255), nullable=True)
-    updateDate = db.Column(db.DateTime, nullable=True)
-    creatorId = db.Column(db.BigInteger, nullable=True)
-    creatorIP = db.Column(db.String(20), nullable=True)
-    creatorTerminal = db.Column(db.String(255), nullable=True)
-    createDate = db.Column(db.DateTime, nullable=True)
-    guardianCNIC = db.Column(db.String(15), nullable=True)
-    campusId = db.Column(db.Integer, nullable=True)
-    isClassAccess = db.Column(db.Boolean, nullable=True)
-    groupId = db.Column(db.Integer, nullable=True)
-    userToken = db.Column(db.String(200), nullable=True)
-    notificationToken = db.Column(db.String(200), nullable=True)
-    ispasswordchanged = db.Column(db.Boolean, nullable=False)
-    isAEN = db.Column(db.Integer, nullable=True)
+    User_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Username = db.Column(db.String(100), nullable=True)
+    LastModified = db.Column(db.DateTime, nullable=True)
+    Inactive = db.Column(db.Boolean, nullable=False)
+    Firstname = db.Column(db.String(50), nullable=True)
+    Lastname = db.Column(db.String(50), nullable=True)
+    Title = db.Column(db.String(30), nullable=True)
+    Initial = db.Column(db.String(3), nullable=True)
+    Email = db.Column(db.String(250), nullable=True)
+    Password = db.Column(db.String(50), nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    UserType_id = db.Column(db.Integer, nullable=True)
+    MobileNo = db.Column(db.String(15), nullable=True)
+    Teacher_id = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    GuardianCNIC = db.Column(db.String(15), nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    IsClassAccess = db.Column(db.Boolean, nullable=True)
+    GroupId = db.Column(db.Integer, nullable=True)
+    UserToken = db.Column(db.String(200), nullable=True)
+    NotificationToken = db.Column(db.String(200), nullable=True)
+    Ispasswordchanged = db.Column(db.Boolean, nullable=False)
+    IsAEN = db.Column(db.Integer, nullable=True)
 
     # user_campus = db.relationship('UserCampus', back_populates='user')
     
@@ -45,36 +45,36 @@ class Users(db.Model):
 
     def to_dict(self):
         return {
-            "user_Id": self.user_Id,
-            "username": self.username,
-            "lastModified": self.lastModified,
-            "inactive": self.inactive,
-            "firstname": self.firstname,
-            "lastname": self.lastname,
-            "title": self.title,
-            "initial": self.initial,
-            "email": self.email,
-            "password": self.password,
-            "status": self.status,
-            "userType_id": self.userType_id,
-            "mobileNo": self.mobileNo,
-            "teacher_id": self.teacher_id,
-            "updaterId": self.updaterId,
-            "updaterIP": self.updaterIP,
-            "updaterTerminal": self.updaterTerminal,
-            "updateDate": self.updateDate,
-            "creatorId": self.creatorId,
-            "creatorIP": self.creatorIP,
-            "creatorTerminal": self.creatorTerminal,
-            "createDate": self.createDate,
-            "guardianCNIC": self.guardianCNIC,
-            "campusId": self.campusId,
-            "isClassAccess": self.isClassAccess,
-            "groupId": self.groupId,
-            "userToken": self.userToken,
-            "notificationToken": self.notificationToken,
-            "ispasswordchanged": self.ispasswordchanged,
-            "isAEN": self.isAEN
+            "User_Id": self.User_Id,
+            "Username": self.Username,
+            "LastModified": self.LastModified,
+            "Inactive": self.Inactive,
+            "Firstname": self.Firstname,
+            "Lastname": self.Lastname,
+            "Title": self.Title,
+            "Initial": self.Initial,
+            "Email": self.Email,
+            "Password": self.Password,
+            "Status": self.Status,
+            "UserType_id": self.UserType_id,
+            "MobileNo": self.MobileNo,
+            "Teacher_id": self.Teacher_id,
+            "UpdaterId": self.UpdaterId,
+            "UpdaterIP": self.UpdaterIP,
+            "UpdaterTerminal": self.UpdaterTerminal,
+            "UpdateDate": self.UpdateDate,
+            "CreatorId": self.CreatorId,
+            "CreatorIP": self.CreatorIP,
+            "CreatorTerminal": self.CreatorTerminal,
+            "CreateDate": self.CreateDate,
+            "GuardianCNIC": self.GuardianCNIC,
+            "CampusId": self.CampusId,
+            "IsClassAccess": self.IsClassAccess,
+            "GroupId": self.GroupId,
+            "UserToken": self.UserToken,
+            "NotificationToken": self.NotificationToken,
+            "Ispasswordchanged": self.Ispasswordchanged,
+            "IsAEN": self.IsAEN
         }
 
 class UserType(db.Model):
@@ -213,99 +213,99 @@ class Role(db.Model):
 class JobApplicationForm(db.Model):
     __tablename__ = 'JobApplicationForms'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    initial_id = db.Column(db.String(80), nullable=False)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Initial_id = db.Column(db.String(80), nullable=False)
 
     # Personal Information
-    first_name = db.Column(db.String(80), nullable=False)
-    last_name = db.Column(db.String(80), nullable=False)
-    father_name = db.Column(db.String(80), nullable=False)
-    cnic = db.Column(db.String(13), nullable=False)
-    passport_number = db.Column(db.String(13), nullable=True)
-    dob = db.Column(db.Date, nullable=False)
-    age = db.Column(db.Integer, nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    cell_phone = db.Column(db.String(11), nullable=False)
-    alternate_number = db.Column(db.String(11), nullable=True)
-    email = db.Column(db.String(120), nullable=False)
-    residence = db.Column(db.String(200), nullable=False)
+    First_name = db.Column(db.String(80), nullable=False)
+    Last_name = db.Column(db.String(80), nullable=False)
+    Father_name = db.Column(db.String(80), nullable=False)
+    Cnic = db.Column(db.String(13), nullable=False)
+    Passport_number = db.Column(db.String(13), nullable=True)
+    Dob = db.Column(db.Date, nullable=False)
+    Age = db.Column(db.Integer, nullable=False)
+    Gender = db.Column(db.String(10), nullable=False)
+    Cell_phone = db.Column(db.String(11), nullable=False)
+    Alternate_number = db.Column(db.String(11), nullable=True)
+    Email = db.Column(db.String(120), nullable=False)
+    Residence = db.Column(db.String(200), nullable=False)
 
     # Qualification and Experience
-    education_level = db.Column(db.String(80), nullable=True)
-    education_level_others = db.Column(db.String(80))
-    degree = db.Column(db.String(80), nullable=False)
-    specialization = db.Column(db.String(80), nullable=False)
-    institute = db.Column(db.String(80), nullable=False)
+    Education_level = db.Column(db.String(80), nullable=True)
+    Education_level_others = db.Column(db.String(80))
+    Degree = db.Column(db.String(80), nullable=False)
+    Specialization = db.Column(db.String(80), nullable=False)
+    Institute = db.Column(db.String(80), nullable=False)
 
     # Employment History
-    fresh = db.Column(db.Boolean)
-    experienced = db.Column(db.Boolean)
-    total_years_of_experience = db.Column(db.String(50), nullable=True)
-    name_of_last_employer = db.Column(db.String(80), nullable=True)
-    employment_duration_from = db.Column(db.Date, nullable=True)
-    employment_duration_to = db.Column(db.Date, nullable=True)
-    designation = db.Column(db.String(80), nullable=True)
-    reason_for_leaving = db.Column(db.String(200), nullable=True)
-    last_drawn_gross_salary = db.Column(db.String(50), nullable=True)
-    benefits_if_any = db.Column(db.String(200), nullable=True)
+    Fresh = db.Column(db.Boolean)
+    Experienced = db.Column(db.Boolean)
+    Total_years_of_experience = db.Column(db.String(50), nullable=True)
+    Name_of_last_employer = db.Column(db.String(80), nullable=True)
+    Employment_duration_from = db.Column(db.Date, nullable=True)
+    Employment_duration_to = db.Column(db.Date, nullable=True)
+    Designation = db.Column(db.String(80), nullable=True)
+    Reason_for_leaving = db.Column(db.String(200), nullable=True)
+    Last_drawn_gross_salary = db.Column(db.String(50), nullable=True)
+    Benefits_if_any = db.Column(db.String(200), nullable=True)
 
     # Preference
-    preferred_campus = db.Column(db.String(80), nullable=True)
-    preferred_location = db.Column(db.String(80), nullable=True)
-    preferred_job_type = db.Column(db.String(80), nullable=True)
-    section = db.Column(db.String(80), nullable=True)
-    subject = db.Column(db.String(80), nullable=True)
-    expected_salary = db.Column(db.String(50))
-    cv_path = db.Column(db.String(100))
-    coverLetter_Path = db.Column(db.String(100), nullable=True)
+    Preferred_campus = db.Column(db.String(80), nullable=True)
+    Preferred_location = db.Column(db.String(80), nullable=True)
+    Preferred_job_type = db.Column(db.String(80), nullable=True)
+    Section = db.Column(db.String(80), nullable=True)
+    Subject = db.Column(db.String(80), nullable=True)
+    Expected_salary = db.Column(db.String(50))
+    Cv_path = db.Column(db.String(100))
+    CoverLetter_Path = db.Column(db.String(100), nullable=True)
 
-    createDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    status = db.Column(db.Boolean, default=True)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    Status = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
         return f'<JobApplicationForm {self.first_name} {self.last_name}>'
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'initial_id': self.initial_id,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'father_name': self.father_name,
-            'cnic': self.cnic,
-            'passport_number': self.passport_number,
-            'dob': self.dob.isoformat() if self.dob else None,
-            'age': self.age,
-            'gender': self.gender,
-            'cell_phone': self.cell_phone,
-            'alternate_number': self.alternate_number,
-            'email': self.email,
-            'residence': self.residence,
-            'education_level': self.education_level,
-            'education_level_others': self.education_level_others,
-            'degree': self.degree,
-            'specialization': self.specialization,
-            'institute': self.institute,
-            'fresh': self.fresh,
-            'experienced': self.experienced,
-            'total_years_of_experience': self.total_years_of_experience,
-            'name_of_last_employer': self.name_of_last_employer,
-            'employment_duration_from': self.employment_duration_from.isoformat() if self.employment_duration_from else None,
-            'employment_duration_to': self.employment_duration_to.isoformat() if self.employment_duration_to else None,
-            'designation': self.designation,
-            'reason_for_leaving': self.reason_for_leaving,
-            'last_drawn_gross_salary': self.last_drawn_gross_salary,
-            'benefits_if_any': self.benefits_if_any,
-            'preferred_campus': self.preferred_campus,
-            'preferred_location': self.preferred_location,
-            'preferred_job_type': self.preferred_job_type,
-            'section': self.section,
-            'subject': self.subject,
-            'expected_salary': self.expected_salary,
-            'cv_path': self.cv_path,
-            'coverLetter_Path': self.coverLetter_Path,
-            'createDate': self.createDate.isoformat(),
-            'status': self.status,
+            'Id': self.Id,
+            'Initial_id': self.Initial_id,
+            'First_name': self.First_name,
+            'Last_name': self.Last_name,
+            'Father_name': self.Father_name,
+            'Cnic': self.Cnic,
+            'Passport_number': self.Passport_number,
+            'Dob': self.Dob.isoformat() if self.Dob else None,
+            'Age': self.Age,
+            'Gender': self.Gender,
+            'Cell_phone': self.Cell_phone,
+            'Alternate_number': self.Alternate_number,
+            'Email': self.Email,
+            'Residence': self.Residence,
+            'Education_level': self.Education_level,
+            'Education_level_others': self.Education_level_others,
+            'Degree': self.Degree,
+            'Specialization': self.Specialization,
+            'Institute': self.Institute,
+            'Fresh': self.Fresh,
+            'Experienced': self.Experienced,
+            'Total_years_of_experience': self.Total_years_of_experience,
+            'Name_of_last_employer': self.Name_of_last_employer,
+            'Employment_duration_from': self.Employment_duration_from.isoformat() if self.Employment_duration_from else None,
+            'Employment_duration_to': self.Employment_duration_to.isoformat() if self.Employment_duration_to else None,
+            'Designation': self.Designation,
+            'Reason_for_leaving': self.Reason_for_leaving,
+            'Last_drawn_gross_salary': self.Last_drawn_gross_salary,
+            'Benefits_if_any': self.Benefits_if_any,
+            'Preferred_campus': self.Preferred_campus,
+            'Preferred_location': self.Preferred_location,
+            'Preferred_job_type': self.Preferred_job_type,
+            'Section': self.Section,
+            'Subject': self.Subject,
+            'Expected_salary': self.Expected_salary,
+            'Cv_path': self.Cv_path,
+            'CoverLetter_Path': self.CoverLetter_Path,
+            'CreateDate': self.CreateDate.isoformat(),
+            'Status': self.Status,
         }
     
     @staticmethod
@@ -447,11 +447,11 @@ class OneTimeDeduction(db.Model):
 
 class ScheduledDeduction(db.Model):
     __tablename__ = 'ScheduledDeduction'
-    scheduledDeduction_Id = db.Column(db.Integer, primary_key=True)
-    scheduledDeduction_StaffId = db.Column(db.Integer, nullable=False)
-    scheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
-    scheduledDeduction_AmountPerMonth = db.Column(db.Float, nullable=False)
-    scheduledDeduction_StartDate = db.Column(db.DateTime, nullable=False)
+    ScheduledDeduction_Id = db.Column(db.Integer, primary_key=True)
+    ScheduledDeduction_StaffId = db.Column(db.Integer, nullable=False)
+    ScheduledDeduction_DeductionHeadId = db.Column(db.Integer, db.ForeignKey('DeductionHead.DeductionHead_Id'), nullable=False)
+    ScheduledDeduction_AmountPerMonth = db.Column(db.Float, nullable=False)
+    ScheduledDeduction_StartDate = db.Column(db.DateTime, nullable=False)
     ScheduledDeduction_EndDate = db.Column(db.DateTime, nullable=False)
     ScheduledDeduction_ApprovedBy = db.Column(db.Integer, nullable=False)
     CreatorId = db.Column(db.Integer, nullable=False)
@@ -483,122 +483,122 @@ class ScheduledDeduction(db.Model):
 
 class IAR(db.Model):
     __tablename__ = 'IAR'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    form_Id = db.Column(db.Integer, nullable=False)
-    IAR_Type_Id = db.Column(db.Integer, db.ForeignKey('IAR_Types.id'), nullable=False)
-    status_Check = db.Column(db.Boolean, nullable=False)
-    remarks = db.Column(db.String(150), nullable=False)
-    creatorId = db.Column(db.Integer, nullable=True)
-    createdDate = db.Column(db.DateTime, nullable=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Form_Id = db.Column(db.Integer, nullable=False)
+    IAR_Type_Id = db.Column(db.Integer, db.ForeignKey('IAR_Types.Id'), nullable=False)
+    Status_Check = db.Column(db.Boolean, nullable=False)
+    Remarks = db.Column(db.String(150), nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True)
 
     iar_type = db.relationship('IAR_Types', backref=db.backref('iars', lazy=True))
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'form_Id': self.form_Id,
+            'Id': self.Id,
+            'Form_Id': self.Form_Id,
             'IAR_Type_Id': self.IAR_Type_Id,
-            'status_Check': self.status_Check,
-            'remarks': self.remarks,
-            'creatorId': self.creatorId,
-            'createdDate': self.createdDate.isoformat() if self.createdDate else None
+            'Status_Check': self.Status_Check,
+            'Remarks': self.Remarks,
+            'CreatorId': self.CreatorId,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None
         }
 
 class IAR_Remarks(db.Model):
     __tablename__ = 'IAR_Remarks'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    IAR_Id = db.Column(db.Integer, db.ForeignKey('IAR.id'), nullable=False)
-    remarks = db.Column(db.String(150), nullable=True)
-    status = db.Column(db.Boolean, nullable=True)
-    creatorId = db.Column(db.Integer, nullable=True)
-    createDate = db.Column(db.DateTime, nullable=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    IAR_Id = db.Column(db.Integer, db.ForeignKey('IAR.Id'), nullable=False)
+    Remarks = db.Column(db.String(150), nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
 
     iar = db.relationship('IAR', backref=db.backref('IAR_Id', lazy=True))
 
     def to_dict(self):
         return {
-            'id': self.id,
+            'Id': self.Id,
             'IAR_Id': self.IAR_Id,
-            'remarks': self.remarks,
-            'status': self.status,
-            'creatorId': self.creatorId,
-            'createDate': self.createDate.isoformat() if self.createDate else None
+            'Remarks': self.Remarks,
+            'Status': self.Status,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None
         }
 
 class IAR_Types(db.Model):
     __tablename__ = 'IAR_Types'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Name = db.Column(db.String(50), nullable=True)
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'name': self.name
+            'Id': self.id,
+            'Name': self.name
         }
 
 class EmailTypes(db.Model):
     __tablename__ = 'EmailTypes'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), nullable=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Name = db.Column(db.String(100), nullable=True)
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'name': self.name
+            'Id': self.Id,
+            'Name': self.Name
         }
 
 class EmailStorageSystem(db.Model):
     __tablename__ = 'EmailStorageSystem'
-    email_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email_Title = db.Column(db.String(100), nullable=True)
-    email_Subject = db.Column(db.String(250), nullable=True)
-    email_Body = db.Column(db.Text, nullable=True)
-    status = db.Column(db.Boolean, nullable=True)
-    creatorId = db.Column(db.Integer, nullable=True)
-    createdDate = db.Column(db.DateTime, nullable=True)
-    updatorId = db.Column(db.Integer, nullable=True)
-    updatedDate = db.Column(db.DateTime, nullable=True)
-    emailType = db.Column(db.Integer, db.ForeignKey('EmailTypes.id'), nullable=True)
+    Email_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Email_Title = db.Column(db.String(100), nullable=True)
+    Email_Subject = db.Column(db.String(250), nullable=True)
+    Email_Body = db.Column(db.Text, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    EmailType = db.Column(db.Integer, db.ForeignKey('EmailTypes.Id'), nullable=True)
 
     email_type = db.relationship('EmailTypes', backref=db.backref('emails', lazy=True))
 
     def to_dict(self):
         return {
-            'email_Id': self.email_Id,
-            'email_Title': self.email_Title,
-            'email_Subject': self.email_Subject,
-            'email_Body': self.email_Body,
-            'status': self.status,
-            'creatorId': self.creatorId,
-            'createdDate': self.createdDate.isoformat() if self.createdDate else None,
-            'updatorId': self.updatorId,
-            'updatedDate': self.updatedDate.isoformat() if self.updatedDate else None,
-            'emailType': self.emailType
+            'Email_Id': self.Email_Id,
+            'Email_Title': self.Email_Title,
+            'Email_Subject': self.Email_Subject,
+            'Email_Body': self.Email_Body,
+            'Status': self.Status,
+            'CreatorId': self.CreatorId,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatorId': self.UpdatorId,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'EmailType': self.EmailType
         }
 
 class AvailableJobs(db.Model):
     __tablename__ = 'AvailableJobs'
-    job_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    job_Title = db.Column(db.String(100), nullable=False)
-    job_Level = db.Column(db.String(100), nullable=False)
-    job_PostedBy = db.Column(db.Integer, nullable=True)
-    job_Status = db.Column(db.Boolean, nullable=True)
-    creatorId = db.Column(db.Integer, nullable=True)
-    createdDate = db.Column(db.DateTime, nullable=True)
-    updatorId = db.Column(db.Integer, nullable=True)
-    updatedDate = db.Column(db.DateTime, nullable=True)
+    Job_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Job_Title = db.Column(db.String(100), nullable=False)
+    Job_Level = db.Column(db.String(100), nullable=False)
+    Job_PostedBy = db.Column(db.Integer, nullable=True)
+    Job_Status = db.Column(db.Boolean, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
         return {
-            'job_Id': self.job_Id,
-            'job_Title': self.job_Title,
-            'job_Level': self.job_Level,
-            'job_PostedBy': self.job_PostedBy,
-            'job_Status': self.job_Status,
-            'creatorId': self.creatorId,
-            'createdDate': self.createdDate.isoformat() if self.createdDate else None,
-            'updatorId': self.updatorId,
-            'updatedDate': self.updatedDate.isoformat() if self.updatedDate else None
+            'Job_Id': self.Job_Id,
+            'Job_Title': self.Job_Title,
+            'Job_Level': self.Job_Level,
+            'Job_PostedBy': self.Job_PostedBy,
+            'Job_Status': self.Job_Status,
+            'CreatorId': self.CreatorId,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatorId': self.UpdatorId,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None
         }
 
 class StaffInfo(db.Model):
@@ -1005,7 +1005,7 @@ class MarkDayOffDeps(db.Model):
 class MarkDayOffHRs(db.Model):
     __tablename__ = 'MarkDayOffHRs'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Date = db.Column(db.DateTime, nullable=False)
     CampusIds = db.Column(db.Integer, nullable=False)
     Description = db.Column(db.String(250))
@@ -1013,15 +1013,15 @@ class MarkDayOffHRs(db.Model):
     CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
     UpdatorId = db.Column(db.Integer)
     UpdateDate = db.Column(db.DateTime)
-    status = db.Column(db.Boolean)
+    Status = db.Column(db.Boolean)
     AcademicYearId = db.Column(db.Integer)
 
     def __repr__(self):
-        return f'<id {self.id}>'
+        return f'<id {self.Id}>'
     
     def to_dict(self):
         return {
-            "id": self.id,
+            "Id": self.Id,
             "Date": self.Date.isoformat() if self.Date else None,
             "CampusIds": self.CampusIds,
             "Description": self.Description,
@@ -1029,6 +1029,86 @@ class MarkDayOffHRs(db.Model):
             "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
             "UpdatorId": self.UpdatorId,
             "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
-            "status": self.status,
+            "Status": self.Status,
             "AcademicYearId": self.AcademicYearId
         }
+
+class AllowanceHead(db.Model):
+    __tablename__ = 'AllowanceHead'
+    AllowanceHead_Id = db.Column(db.Integer, primary_key=True)
+    AllowanceHead_Name = db.Column(db.String(100), nullable=False)
+
+    def to_dict(self):
+        return {
+            "AllowanceHead_Id": self.AllowanceHead_Id,
+            "AllowanceHead_Name": self.AllowanceHead_Name
+        }
+
+class OneTimeAllowance(db.Model):
+    __tablename__ = 'OneTimeAllowance'
+    OneTimeAllowance_Id = db.Column(db.Integer, primary_key=True)
+    OneTimeAllowance_StaffId = db.Column(db.Integer, nullable=False)
+    OneTimeAllowance_AllowanceHeadId = db.Column(db.Integer, db.ForeignKey('AllowanceHead.AllowanceHead_Id'), nullable=True)
+    OneTimeAllowance_Amount = db.Column(db.Float, nullable=False)
+    OneTimeAllowance_PamentMonth = db.Column(db.String(15), nullable=False)
+    OneTimeAllowance_ApprovedBy = db.Column(db.Integer, nullable=False)
+    OneTimeAllowance_Taxable = db.Column(db.Boolean, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatorId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+    
+    oneTimeAllowance_AllowanceHeadId = db.relationship('AllowanceHead', backref=db.backref('allowanceHead_Id', lazy=True))
+
+    def to_dict(self):
+        return {
+            "OneTimeAllowance_Id": self.OneTimeAllowance_Id,
+            "OneTimeAllowance_StaffId": self.OneTimeAllowance_StaffId,
+            "OneTimeAllowance_AllowanceHeadId": self.OneTimeAllowance_AllowanceHeadId,
+            "OneTimeAllowance_Amount": self.OneTimeAllowance_Amount,
+            "OneTimeAllowance_PamentMonth": self.OneTimeAllowance_PamentMonth,
+            "OneTimeAllowance_ApprovedBy": self.OneTimeAllowance_ApprovedBy,
+            "OneTimeAllowance_Taxable": self.OneTimeAllowance_Taxable,
+            "CreatorId": self.CreatorId,
+            "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
+            "UpdatorId": self.UpdatorId,
+            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
+            "InActive": self.InActive
+        }
+
+class ScheduledAllowance(db.Model):
+    __tablename__ = 'ScheduledAllowance'
+    ScheduledAllowance_Id = db.Column(db.Integer, primary_key=True)
+    ScheduledAllowance_StaffId = db.Column(db.Integer, nullable=False)
+    ScheduledAllowance_AllowanceHeadId = db.Column(db.Integer, db.ForeignKey('AllowanceHead.AllowanceHead_Id'), nullable=False)
+    ScheduledAllowance_AmountPerMonth = db.Column(db.Float, nullable=False)
+    ScheduledAllowance_StartDate = db.Column(db.DateTime, nullable=False)
+    ScheduledAllowance_EndDate = db.Column(db.DateTime, nullable=False)
+    ScheduledAllowance_ApprovedBy = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatorId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+    ScheduledAllowance_Taxable = db.Column(db.Boolean, nullable=False)
+    
+    scheduledAllowance_AllowanceHeadId = db.relationship('AllowanceHead', backref=db.backref('scheduledAllowance_allowanceHead_Id', lazy=True))
+
+    def to_dict(self):
+        return {
+            "ScheduledAllowance_Id": self.ScheduledAllowance_Id,
+            "ScheduledAllowance_StaffId": self.ScheduledAllowance_StaffId,
+            "ScheduledAllowance_AllowanceHeadId": self.ScheduledAllowance_AllowanceHeadId,
+            "ScheduledAllowance_AmountPerMonth": self.ScheduledAllowance_AmountPerMonth,
+            "ScheduledAllowance_StartDate": self.ScheduledAllowance_StartDate.isoformat() if self.ScheduledAllowance_StartDate else None,
+            "ScheduledAllowance_EndDate": self.ScheduledAllowance_EndDate.isoformat() if self.ScheduledAllowance_EndDate else None,
+            "ScheduledAllowance_ApprovedBy": self.ScheduledAllowance_ApprovedBy,
+            "CreatorId": self.CreatorId,
+            "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
+            "UpdatorId": self.UpdatorId,
+            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
+            "InActive": self.InActive,
+            "ScheduledAllowance_Taxable": self.ScheduledAllowance_Taxable
+        }
+

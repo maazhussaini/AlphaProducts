@@ -69,6 +69,8 @@ class CallProcedureResource(Resource):
         data = request.get_json()
         procedure_name = data.get('procedure_name')
         parameters = data.get('parameters', {})
+        page = data.get('page', 1)
+        per_page = data.get('per_page', 10)
 
         if not procedure_name:
             return {'error': 'Procedure name is required'}, 400
@@ -78,7 +80,6 @@ class CallProcedureResource(Resource):
             return {'error': 'Parameters should be a dictionary if provided'}, 400
 
         # Prepare the parameters if they exist
-        
         custom_paramters = [f'@{key} = {value}' for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_paramters)
 
@@ -88,7 +89,6 @@ class CallProcedureResource(Resource):
             cursor = connection.cursor()
             if param_placeholders:
                 call_procedure_query = f"EXEC {procedure_name} {param_placeholders}"
-                print(call_procedure_query)
                 cursor.execute(call_procedure_query)
             else:
                 call_procedure_query = f"exec {procedure_name};"
@@ -101,51 +101,25 @@ class CallProcedureResource(Resource):
             
             # Convert results to a list of dictionaries for JSON response
             result_list = [dict(zip(columns, row)) for row in results]
+            
+            # Apply pagination
+            total = len(result_list)
+            start = (page - 1) * per_page
+            end = start + per_page
+            paginated_results = result_list[start:end]
 
-            return jsonify(result_list)
+            return jsonify({
+                'data': paginated_results,
+                'page': page,
+                'per_page': per_page,
+                'total': total
+            })
 
-            # return jsonify(result_list)
+        except SQLAlchemyError as e:
+            connection.rollback()
+            return {'error': str(e)}, 500
         except Exception as e:
             connection.rollback()
             return {'error': str(e)}, 500
-        finally:
-            connection.close()
-
-class CallProcedure(Resource):
-    def get(self):
-        data = request.get_json()
-        procedure_name = data.get('procedure_name')
-        parameters = data.get('parameters', {})
-
-        if not procedure_name:
-            return jsonify({'error': 'Procedure name is required'}), 400
-
-        if parameters and not isinstance(parameters, dict):
-            return jsonify({'error': 'Parameters should be a dictionary if provided'}), 400
-
-        # Construct the SQL call statement with named parameters
-        param_str = ', '.join([f"@{key} = ?" for key in parameters])
-        sql_call = f"EXEC {procedure_name} {param_str}" if param_str else f"EXEC {procedure_name}"
-
-        param_values = list(parameters.values())
-
-        # Connect to the database
-        connection = db.engine.raw_connection()
-        try:
-            cursor = connection.cursor()
-            cursor.execute(sql_call, param_values)
-            
-            columns = [column[0] for column in cursor.description]
-            results = cursor.fetchall()
-            cursor.close()
-            connection.commit()
-            print(results)
-
-            # Convert results to a list of dictionaries for JSON response
-            result_list = [dict(zip(columns, row)) for row in results]
-            return {"data": result_list}
-        except Exception as e:
-            connection.rollback()
-            return jsonify({'error': str(e)}), 500
         finally:
             connection.close()

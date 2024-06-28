@@ -3,7 +3,7 @@ from models.models import (
     JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
     ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
     StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType, Salaries, MarkDayOffDeps,
-    MarkDayOffHRs
+    MarkDayOffHRs, AllowanceHead, OneTimeAllowance, ScheduledAllowance
 )
 from datetime import datetime, date
 from app import db
@@ -126,98 +126,98 @@ class JobApplicationFormResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('initial_id', required=True)
-        parser.add_argument('first_name', required=True)
-        parser.add_argument('last_name', required=True)
-        parser.add_argument('father_name', required=True)
-        parser.add_argument('cnic', required=True)
-        parser.add_argument('passport_number')
-        parser.add_argument('dob', required=True)
-        parser.add_argument('age', required=True, type=int)
-        parser.add_argument('gender', required=True)
-        parser.add_argument('cell_phone', required=True)
-        parser.add_argument('alternate_number')
-        parser.add_argument('email', required=True)
-        parser.add_argument('residence', required=True)
-        parser.add_argument('education_level', required=True)
-        parser.add_argument('education_level_others')
-        parser.add_argument('degree', required=True)
-        parser.add_argument('specialization', required=True)
-        parser.add_argument('institute', required=True)
-        parser.add_argument('fresh', type=bool)
-        parser.add_argument('experienced', type=bool)
-        parser.add_argument('total_years_of_experience')
-        parser.add_argument('name_of_last_employer')
-        parser.add_argument('employment_duration_from')
-        parser.add_argument('employment_duration_to')
-        parser.add_argument('designation')
-        parser.add_argument('reason_for_leaving')
-        parser.add_argument('last_drawn_gross_salary')
-        parser.add_argument('benefits_if_any')
-        parser.add_argument('preferred_campus')
-        parser.add_argument('preferred_location')
-        parser.add_argument('preferred_job_type')
-        parser.add_argument('section')
-        parser.add_argument('subject')
-        parser.add_argument('expected_salary', required=True)
-        parser.add_argument('cv_path', required=True)
-        parser.add_argument('coverLetter_Path')
-        parser.add_argument('status', type=bool)
+        parser.add_argument('Initial_id', required=True)
+        parser.add_argument('First_name', required=True)
+        parser.add_argument('Last_name', required=True)
+        parser.add_argument('Father_name', required=True)
+        parser.add_argument('Cnic', required=True)
+        parser.add_argument('Passport_number')
+        parser.add_argument('Dob', required=True)
+        parser.add_argument('Age', required=True, type=int)
+        parser.add_argument('Gender', required=True)
+        parser.add_argument('Cell_phone', required=True)
+        parser.add_argument('Alternate_number')
+        parser.add_argument('Email', required=True)
+        parser.add_argument('Residence', required=True)
+        parser.add_argument('Education_level', required=True)
+        parser.add_argument('Education_level_others')
+        parser.add_argument('Degree', required=True)
+        parser.add_argument('Specialization', required=True)
+        parser.add_argument('Institute', required=True)
+        parser.add_argument('Fresh', type=bool)
+        parser.add_argument('Experienced', type=bool)
+        parser.add_argument('Total_years_of_experience')
+        parser.add_argument('Name_of_last_employer')
+        parser.add_argument('Employment_duration_from')
+        parser.add_argument('Employment_duration_to')
+        parser.add_argument('Designation')
+        parser.add_argument('Reason_for_leaving')
+        parser.add_argument('Last_drawn_gross_salary')
+        parser.add_argument('Benefits_if_any')
+        parser.add_argument('Preferred_campus')
+        parser.add_argument('Preferred_location')
+        parser.add_argument('Preferred_job_type')
+        parser.add_argument('Section')
+        parser.add_argument('Subject')
+        parser.add_argument('Expected_salary', required=True)
+        parser.add_argument('Cv_path', required=True)
+        parser.add_argument('CoverLetter_Path')
+        parser.add_argument('Status', type=bool)
 
         args = parser.parse_args()
 
         try:
             # Validate inputs
-            if JobApplicationForm.validate_phone_number(args['cell_phone']):
+            if JobApplicationForm.validate_phone_number(args['Cell_phone']):
                 raise ValueError("Invalid phone number format.")
-            if JobApplicationForm.validate_cnic(args['cnic']):
+            if JobApplicationForm.validate_cnic(args['Cnic']):
                 raise ValueError("Invalid CNIC format.")
-            if args['email'] and JobApplicationForm.validate_email(args['email']):
+            if args['Email'] and JobApplicationForm.validate_email(args['Email']):
                 raise ValueError("Invalid email format.")
-            if args['passport_number'] and not JobApplicationForm.validate_passport_number(args['passport_number']):
+            if args['Passport_number'] and not JobApplicationForm.validate_passport_number(args['Passport_number']):
                 raise ValueError("Invalid passport number format.")
 
-            employment_duration_from = datetime.strptime(args['employment_duration_from'], '%Y-%m-%d') if args['employment_duration_from'] else None
-            employment_duration_to = datetime.strptime(args['employment_duration_to'], '%Y-%m-%d') if args['employment_duration_to'] else None
+            employment_duration_from = datetime.strptime(args['Employment_duration_from'], '%Y-%m-%d') if args['Employment_duration_from'] else None
+            employment_duration_to = datetime.strptime(args['Employment_duration_to'], '%Y-%m-%d') if args['Employment_duration_to'] else None
 
             job_application_form = JobApplicationForm(
-                initial_id=args['initial_id'],
-                first_name=args['first_name'],
-                last_name=args['last_name'],
-                father_name=args['father_name'],
-                cnic=args['cnic'],
-                passport_number=args['passport_number'],
-                dob=datetime.strptime(args['dob'], '%Y-%m-%d'),
-                age=args['age'],
-                gender=args['gender'],
-                cell_phone=args['cell_phone'],
-                alternate_number=args['alternate_number'],
-                email=args['email'],
-                residence=args['residence'],
-                education_level=args['education_level'],
-                education_level_others=args['education_level_others'],
-                degree=args['degree'],
-                specialization=args['specialization'],
-                institute=args['institute'],
-                fresh=args['fresh'],
-                experienced=args['experienced'],
-                total_years_of_experience=args['total_years_of_experience'],
-                name_of_last_employer=args['name_of_last_employer'],
-                employment_duration_from=employment_duration_from,
-                employment_duration_to=employment_duration_to,
-                designation=args['designation'],
-                reason_for_leaving=args['reason_for_leaving'],
-                last_drawn_gross_salary=args['last_drawn_gross_salary'],
-                benefits_if_any=args['benefits_if_any'],
-                preferred_campus=args['preferred_campus'],
-                preferred_location=args['preferred_location'],
-                preferred_job_type=args['preferred_job_type'],
-                section=args['section'],
-                subject=args['subject'],
-                expected_salary=args['expected_salary'],
-                cv_path=args['cv_path'],
-                coverLetter_Path=args['coverLetter_Path'],
-                status=args['status']
+                Initial_id=args['Initial_id'],
+                First_name=args['First_name'],
+                Last_name=args['Last_name'],
+                Father_name=args['Father_name'],
+                Cnic=args['Cnic'],
+                Passport_number=args['Passport_number'],
+                Dob=datetime.strptime(args['Dob'], '%Y-%m-%d'),
+                Age=args['Age'],
+                Gender=args['Gender'],
+                Cell_phone=args['Cell_phone'],
+                Alternate_number=args['Alternate_number'],
+                Email=args['Email'],
+                Residence=args['Residence'],
+                Education_level=args['Education_level'],
+                Education_level_others=args['Education_level_others'],
+                Degree=args['Degree'],
+                Specialization=args['Specialization'],
+                Institute=args['Institute'],
+                Fresh=args['Fresh'],
+                Experienced=args['Experienced'],
+                Total_years_of_experience=args['Total_years_of_experience'],
+                Name_of_last_employer=args['Name_of_last_employer'],
+                Employment_duration_from=employment_duration_from,
+                Employment_duration_to=employment_duration_to,
+                Designation=args['designation'],
+                Reason_for_leaving=args['reason_for_leaving'],
+                Last_drawn_gross_salary=args['last_drawn_gross_salary'],
+                Benefits_if_any=args['benefits_if_any'],
+                Preferred_campus=args['preferred_campus'],
+                Preferred_location=args['preferred_location'],
+                Preferred_job_type=args['preferred_job_type'],
+                Section=args['section'],
+                Subject=args['subject'],
+                Expected_salary=args['expected_salary'],
+                Cv_path=args['cv_path'],
+                CoverLetter_Path=args['coverLetter_Path'],
+                Status=args['status']
             )
 
             db.session.add(job_application_form)
@@ -232,60 +232,60 @@ class JobApplicationFormResource(Resource):
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('initial_id')
-        parser.add_argument('first_name')
-        parser.add_argument('last_name')
-        parser.add_argument('father_name')
-        parser.add_argument('cnic')
-        parser.add_argument('passport_number')
-        parser.add_argument('dob')
-        parser.add_argument('age', type=int)
-        parser.add_argument('gender')
-        parser.add_argument('cell_phone')
-        parser.add_argument('alternate_number')
-        parser.add_argument('email')
-        parser.add_argument('residence')
-        parser.add_argument('education_level')
-        parser.add_argument('education_level_others')
-        parser.add_argument('degree')
-        parser.add_argument('specialization')
-        parser.add_argument('institute')
-        parser.add_argument('fresh', type=bool)
-        parser.add_argument('experienced', type=bool)
-        parser.add_argument('total_years_of_experience')
-        parser.add_argument('name_of_last_employer')
-        parser.add_argument('employment_duration_from')
-        parser.add_argument('employment_duration_to')
-        parser.add_argument('designation')
-        parser.add_argument('reason_for_leaving')
-        parser.add_argument('last_drawn_gross_salary')
-        parser.add_argument('benefits_if_any')
-        parser.add_argument('preferred_campus')
-        parser.add_argument('preferred_location')
-        parser.add_argument('preferred_job_type')
-        parser.add_argument('section')
-        parser.add_argument('subject')
-        parser.add_argument('expected_salary')
-        parser.add_argument('cv_path')
-        parser.add_argument('coverLetter_Path')
-        parser.add_argument('status', type=bool)
+        parser.add_argument('Initial_id')
+        parser.add_argument('First_name')
+        parser.add_argument('Last_name')
+        parser.add_argument('Father_name')
+        parser.add_argument('Cnic')
+        parser.add_argument('Passport_number')
+        parser.add_argument('Dob')
+        parser.add_argument('Age', type=int)
+        parser.add_argument('Gender')
+        parser.add_argument('Cell_phone')
+        parser.add_argument('Alternate_number')
+        parser.add_argument('Email')
+        parser.add_argument('Residence')
+        parser.add_argument('Education_level')
+        parser.add_argument('Education_level_others')
+        parser.add_argument('Degree')
+        parser.add_argument('Specialization')
+        parser.add_argument('Institute')
+        parser.add_argument('Fresh', type=bool)
+        parser.add_argument('Experienced', type=bool)
+        parser.add_argument('Total_years_of_experience')
+        parser.add_argument('Name_of_last_employer')
+        parser.add_argument('Employment_duration_from')
+        parser.add_argument('Employment_duration_to')
+        parser.add_argument('Designation')
+        parser.add_argument('Reason_for_leaving')
+        parser.add_argument('Last_drawn_gross_salary')
+        parser.add_argument('Benefits_if_any')
+        parser.add_argument('Preferred_campus')
+        parser.add_argument('Preferred_location')
+        parser.add_argument('Preferred_job_type')
+        parser.add_argument('Section')
+        parser.add_argument('Subject')
+        parser.add_argument('Expected_salary')
+        parser.add_argument('Cv_path')
+        parser.add_argument('CoverLetter_Path')
+        parser.add_argument('Status', type=bool)
 
         args = parser.parse_args()
 
         try:
             job_application_form = JobApplicationForm.query.get_or_404(id)
 
-            if args['cell_phone'] and not JobApplicationForm.validate_phone_number(args['cell_phone']):
+            if args['Cell_phone'] and not JobApplicationForm.validate_phone_number(args['Cell_phone']):
                 raise ValueError("Invalid phone number format.")
-            if args['cnic'] and not JobApplicationForm.validate_cnic(args['cnic']):
+            if args['Cnic'] and not JobApplicationForm.validate_cnic(args['Cnic']):
                 raise ValueError("Invalid CNIC format.")
-            if args['email'] and not JobApplicationForm.validate_email(args['email']):
+            if args['Email'] and not JobApplicationForm.validate_email(args['Email']):
                 raise ValueError("Invalid email format.")
-            if args['passport_number'] and not JobApplicationForm.validate_passport_number(args['passport_number']):
+            if args['Passport_number'] and not JobApplicationForm.validate_passport_number(args['Passport_number']):
                 raise ValueError("Invalid passport number format.")
 
-            employment_duration_from = datetime.strptime(args['employment_duration_from'], '%Y-%m-%d') if args['employment_duration_from'] else None
-            employment_duration_to = datetime.strptime(args['employment_duration_to'], '%Y-%m-%d') if args['employment_duration_to'] else None
+            employment_duration_from = datetime.strptime(args['Employment_duration_from'], '%Y-%m-%d') if args['Employment_duration_from'] else None
+            employment_duration_to = datetime.strptime(args['Employment_duration_to'], '%Y-%m-%d') if args['Employment_duration_to'] else None
 
             for key, value in args.items():
                 if value is not None:
@@ -649,34 +649,34 @@ class InterviewSchedulesResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('interviewTypeId', type=int, required=True, help="Interview type ID is required")
-        parser.add_argument('date', type=str, required=False)
-        parser.add_argument('time', type=str, required=False)
-        parser.add_argument('venue', type=str, required=False)
-        parser.add_argument('jobApplicationFormId', type=int, required=False)
-        parser.add_argument('interviewConductorId', type=str, required=False)
-        parser.add_argument('demoTopic', type=str, required=False)
-        parser.add_argument('position', type=str, required=False)
-        parser.add_argument('location', type=str, required=False)
-        parser.add_argument('createdBy', type=int, required=False)
-        parser.add_argument('createDate', type=str, required=False)
-        parser.add_argument('campusId', type=int, required=False)
+        parser.add_argument('InterviewTypeId', type=int, required=True, help="Interview type ID is required")
+        parser.add_argument('Date', type=str, required=False)
+        parser.add_argument('Time', type=str, required=False)
+        parser.add_argument('Venue', type=str, required=False)
+        parser.add_argument('JobApplicationFormId', type=int, required=False)
+        parser.add_argument('InterviewConductorId', type=str, required=False)
+        parser.add_argument('DemoTopic', type=str, required=False)
+        parser.add_argument('Position', type=str, required=False)
+        parser.add_argument('Location', type=str, required=False)
+        parser.add_argument('CreatedBy', type=int, required=False)
+        parser.add_argument('CreateDate', type=str, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
         args = parser.parse_args()
 
         try:
             new_schedule = InterviewSchedules(
-                interviewTypeId=args['interviewTypeId'],
-                date=datetime.strptime(args['date'], '%Y-%m-%d') if args['date'] else None,
-                time=datetime.strptime(args['time'], '%H:%M:%S').time() if args['time'] else None,
-                venue=args['venue'],
-                jobApplicationFormId=args['jobApplicationFormId'],
-                interviewConductorId=args['interviewConductorId'],
-                demoTopic=args['demoTopic'],
-                position=args['position'],
-                location=args['location'],
-                createdBy=args['createdBy'],
-                createDate=datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S') if args['createDate'] else datetime.utcnow(),
-                campusId=args['campusId']
+                interviewTypeId=args['InterviewTypeId'],
+                date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
+                time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
+                venue=args['Venue'],
+                jobApplicationFormId=args['JobApplicationFormId'],
+                interviewConductorId=args['InterviewConductorId'],
+                demoTopic=args['DemoTopic'],
+                position=args['Position'],
+                location=args['Location'],
+                createdBy=args['CreatedBy'],
+                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow(),
+                campusId=args['CampusId']
             )
             db.session.add(new_schedule)
             db.session.commit()
@@ -687,18 +687,18 @@ class InterviewSchedulesResource(Resource):
     
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('interviewTypeId', type=int, required=False)
-        parser.add_argument('date', type=str, required=False)
-        parser.add_argument('time', type=str, required=False)
-        parser.add_argument('venue', type=str, required=False)
-        parser.add_argument('jobApplicationFormId', type=int, required=False)
-        parser.add_argument('interviewConductorId', type=str, required=False)
-        parser.add_argument('demoTopic', type=str, required=False)
-        parser.add_argument('position', type=str, required=False)
-        parser.add_argument('location', type=str, required=False)
-        parser.add_argument('createdBy', type=int, required=False)
-        parser.add_argument('createDate', type=str, required=False)
-        parser.add_argument('campusId', type=int, required=False)
+        parser.add_argument('InterviewTypeId', type=int, required=False)
+        parser.add_argument('Date', type=str, required=False)
+        parser.add_argument('Time', type=str, required=False)
+        parser.add_argument('Venue', type=str, required=False)
+        parser.add_argument('JobApplicationFormId', type=int, required=False)
+        parser.add_argument('InterviewConductorId', type=str, required=False)
+        parser.add_argument('DemoTopic', type=str, required=False)
+        parser.add_argument('Position', type=str, required=False)
+        parser.add_argument('Location', type=str, required=False)
+        parser.add_argument('CreatedBy', type=int, required=False)
+        parser.add_argument('CreateDate', type=str, required=False)
+        parser.add_argument('CampusId', type=int, required=False)
         args = parser.parse_args()
 
         schedule = InterviewSchedules.query.get(id)
@@ -706,30 +706,30 @@ class InterviewSchedulesResource(Resource):
             abort(404, message=f"Interview schedule {id} doesn't exist")
 
         try:
-            if args['interviewTypeId'] is not None:
-                schedule.interviewTypeId = args['interviewTypeId']
-            if args['date']:
-                schedule.date = datetime.strptime(args['date'], '%Y-%m-%d')
-            if args['time']:
-                schedule.time = datetime.strptime(args['time'], '%H:%M:%S').time()
-            if args['venue']:
-                schedule.venue = args['venue']
-            if args['jobApplicationFormId'] is not None:
-                schedule.jobApplicationFormId = args['jobApplicationFormId']
-            if args['interviewConductorId']:
-                schedule.interviewConductorId = args['interviewConductorId']
-            if args['demoTopic']:
-                schedule.demoTopic = args['demoTopic']
-            if args['position']:
-                schedule.position = args['position']
-            if args['location']:
-                schedule.location = args['location']
-            if args['createdBy'] is not None:
-                schedule.createdBy = args['createdBy']
-            if args['createDate']:
-                schedule.createDate = datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S')
-            if args['campusId'] is not None:
-                schedule.campusId = args['campusId']
+            if args['InterviewTypeId'] is not None:
+                schedule.InterviewTypeId = args['InterviewTypeId']
+            if args['Date']:
+                schedule.Date = datetime.strptime(args['Date'], '%Y-%m-%d')
+            if args['Time']:
+                schedule.Time = datetime.strptime(args['Time'], '%H:%M:%S').time()
+            if args['Venue']:
+                schedule.Venue = args['Venue']
+            if args['JobApplicationFormId'] is not None:
+                schedule.JobApplicationFormId = args['JobApplicationFormId']
+            if args['InterviewConductorId']:
+                schedule.InterviewConductorId = args['InterviewConductorId']
+            if args['DemoTopic']:
+                schedule.DemoTopic = args['DemoTopic']
+            if args['Position']:
+                schedule.Position = args['Position']
+            if args['Location']:
+                schedule.Location = args['Location']
+            if args['CreatedBy'] is not None:
+                schedule.CreatedBy = args['CreatedBy']
+            if args['CreateDate']:
+                schedule.CreateDate = datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S')
+            if args['CampusId'] is not None:
+                schedule.CampusId = args['CampusId']
             
             db.session.commit()
             return {"message": "Interview schedule updated", "id": schedule.id}, 200
@@ -791,8 +791,7 @@ class DeductionHeadResource(Resource):
                     "pageSize": page_size,
                     "columns": columns
                 }, 200
-                deductionHeads = DeductionHead.query.all()
-                
+
             else:
                 deductionHeads = DeductionHead.query.get(id)
                 if deductionHeads is None:
@@ -1057,18 +1056,18 @@ class ScheduledDeductionResource(Resource):
             width = args['width']
             
             columns = [
-                {"field":"scheduledDeduction_Id", "headerName": "Id", "width": width},
-                {"field":"scheduledDeduction_StaffId", "headerName": "Staff Id", "width": width},
-                {"field":"scheduledDeduction_DeductionHeadId", "headerName": "Deduction head Id", "width": width},
-                {"field":"scheduledDeduction_AmountPerMonth", "headerName": "Amount Per Month", "width": width},
-                {"field":"scheduledDeduction_StartDate", "headerName": "Start Date", "width": width},
-                {"field":"scheduledDeduction_EndDate", "headerName": "End Date", "width": width},
-                {"field":"scheduledDeduction_ApprovedBy", "headerName": "Approved By", "width": width},
-                {"field":"creatorId", "headerName": "Creator Id", "width": width},
-                {"field":"createDate", "headerName": "Created Date", "width": width},
-                {"field":"updatorId", "headerName": "Updator Id", "width": width},
-                {"field":"updateDate", "headerName": "Updated Date", "width": width},
-                {"field":"inActive", "headerName": "In Active", "width": width}
+                {"field":"ScheduledDeduction_Id", "headerName": "Id", "width": width},
+                {"field":"ScheduledDeduction_StaffId", "headerName": "Staff Id", "width": width},
+                {"field":"ScheduledDeduction_DeductionHeadId", "headerName": "Deduction head Id", "width": width},
+                {"field":"ScheduledDeduction_AmountPerMonth", "headerName": "Amount Per Month", "width": width},
+                {"field":"ScheduledDeduction_StartDate", "headerName": "Start Date", "width": width},
+                {"field":"ScheduledDeduction_EndDate", "headerName": "End Date", "width": width},
+                {"field":"ScheduledDeduction_ApprovedBy", "headerName": "Approved By", "width": width},
+                {"field":"CreatorId", "headerName": "Creator Id", "width": width},
+                {"field":"CreateDate", "headerName": "Created Date", "width": width},
+                {"field":"UpdatorId", "headerName": "Updator Id", "width": width},
+                {"field":"UpdateDate", "headerName": "Updated Date", "width": width},
+                {"field":"InActive", "headerName": "In Active", "width": width}
             ]
             
             # if id is None:
@@ -1088,7 +1087,7 @@ class ScheduledDeductionResource(Resource):
                 
             else:
 
-                query = ScheduledDeduction.query.order_by(ScheduledDeduction.scheduledDeduction_Id)
+                query = ScheduledDeduction.query.order_by(ScheduledDeduction.ScheduledDeduction_Id)
                 total = query.count()
 
                 # Apply pagination
@@ -1116,51 +1115,51 @@ class ScheduledDeductionResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('scheduledDeduction_StaffId', type=int, required=True, help="Staff ID is required")
-        parser.add_argument('scheduledDeduction_DeductionHeadId', type=int, required=True, help="Deduction Head ID is required")
-        parser.add_argument('scheduledDeduction_AmountPerMonth', type=float, required=True, help="Amount Per Month is required")
-        parser.add_argument('scheduledDeduction_StartDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help="Start Date is required and must be in ISO format")
-        parser.add_argument('scheduledDeduction_EndDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help="End Date is required and must be in ISO format")
-        parser.add_argument('scheduledDeduction_ApprovedBy', type=int, required=True, help="Approved By is required")
-        parser.add_argument('creatorId', type=int, required=True, help="Creator ID is required")
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('inActive', type=bool, required=True, help="Inactive status is required")
+        parser.add_argument('ScheduledDeduction_StaffId', type=int, required=True, help="Staff ID is required")
+        parser.add_argument('ScheduledDeduction_DeductionHeadId', type=int, required=True, help="Deduction Head ID is required")
+        parser.add_argument('ScheduledDeduction_AmountPerMonth', type=float, required=True, help="Amount Per Month is required")
+        parser.add_argument('ScheduledDeduction_StartDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help="Start Date is required and must be in ISO format")
+        parser.add_argument('ScheduledDeduction_EndDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help="End Date is required and must be in ISO format")
+        parser.add_argument('ScheduledDeduction_ApprovedBy', type=int, required=True, help="Approved By is required")
+        parser.add_argument('CreatorId', type=int, required=True, help="Creator ID is required")
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('InActive', type=bool, required=True, help="Inactive status is required")
         args = parser.parse_args()
 
         new_deduction = ScheduledDeduction(
-            scheduledDeduction_StaffId=args['scheduledDeduction_StaffId'],
-            scheduledDeduction_DeductionHeadId=args['scheduledDeduction_DeductionHeadId'],
-            scheduledDeduction_AmountPerMonth=args['scheduledDeduction_AmountPerMonth'],
-            scheduledDeduction_StartDate=args['scheduledDeduction_StartDate'],
-            scheduledDeduction_EndDate=args['scheduledDeduction_EndDate'],
-            scheduledDeduction_ApprovedBy=args['scheduledDeduction_ApprovedBy'],
-            creatorId=args['creatorId'],
-            updatorId=args.get('updatorId'),
-            updateDate=args.get('updateDate'),
-            inActive=args['inActive']
+            ScheduledDeduction_StaffId=args['ScheduledDeduction_StaffId'],
+            ScheduledDeduction_DeductionHeadId=args['ScheduledDeduction_DeductionHeadId'],
+            ScheduledDeduction_AmountPerMonth=args['ScheduledDeduction_AmountPerMonth'],
+            ScheduledDeduction_StartDate=args['ScheduledDeduction_StartDate'],
+            ScheduledDeduction_EndDate=args['ScheduledDeduction_EndDate'],
+            ScheduledDeduction_ApprovedBy=args['ScheduledDeduction_ApprovedBy'],
+            CreatorId=args['CreatorId'],
+            UpdatorId=args.get('UpdatorId'),
+            UpdateDate=args.get('UpdateDate'),
+            InActive=args['InActive']
         )
 
         try:
             db.session.add(new_deduction)
             db.session.commit()
-            return {"message": "Scheduled deduction created", "id": new_deduction.scheduledDeduction_Id}, 201
+            return {"message": "Scheduled deduction created", "id": new_deduction.ScheduledDeduction_Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating scheduled deduction: {str(e)}")
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('scheduledDeduction_StaffId', type=int, required=False)
-        parser.add_argument('scheduledDeduction_DeductionHeadId', type=int, required=False)
-        parser.add_argument('scheduledDeduction_AmountPerMonth', type=float, required=False)
-        parser.add_argument('scheduledDeduction_StartDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('scheduledDeduction_EndDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('scheduledDeduction_ApprovedBy', type=int, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('inActive', type=bool, required=False)
+        parser.add_argument('ScheduledDeduction_StaffId', type=int, required=False)
+        parser.add_argument('ScheduledDeduction_DeductionHeadId', type=int, required=False)
+        parser.add_argument('ScheduledDeduction_AmountPerMonth', type=float, required=False)
+        parser.add_argument('ScheduledDeduction_StartDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('ScheduledDeduction_EndDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('ScheduledDeduction_ApprovedBy', type=int, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('InActive', type=bool, required=False)
         args = parser.parse_args()
 
         deduction = ScheduledDeduction.query.get(id)
@@ -1168,29 +1167,29 @@ class ScheduledDeductionResource(Resource):
             abort(404, message=f"Scheduled Deduction {id} does not exist")
 
         try:
-            if args.get('scheduledDeduction_StaffId') is not None:
-                deduction.scheduledDeduction_StaffId = args['scheduledDeduction_StaffId']
-            if args.get('scheduledDeduction_DeductionHeadId') is not None:
-                deduction.scheduledDeduction_DeductionHeadId = args['scheduledDeduction_DeductionHeadId']
-            if args.get('scheduledDeduction_AmountPerMonth') is not None:
-                deduction.scheduledDeduction_AmountPerMonth = args['scheduledDeduction_AmountPerMonth']
-            if args.get('scheduledDeduction_StartDate') is not None:
-                deduction.scheduledDeduction_StartDate = args['scheduledDeduction_StartDate']
-            if args.get('scheduledDeduction_EndDate') is not None:
-                deduction.scheduledDeduction_EndDate = args['scheduledDeduction_EndDate']
-            if args.get('scheduledDeduction_ApprovedBy') is not None:
-                deduction.scheduledDeduction_ApprovedBy = args['scheduledDeduction_ApprovedBy']
-            if args.get('creatorId') is not None:
-                deduction.creatorId = args['creatorId']
-            if args.get('updatorId') is not None:
-                deduction.updatorId = args['updatorId']
-            if args.get('updateDate') is not None:
-                deduction.updateDate = args['updateDate']
-            if args.get('inActive') is not None:
-                deduction.inActive = args['inActive']
+            if args.get('ScheduledDeduction_StaffId') is not None:
+                deduction.ScheduledDeduction_StaffId = args['ScheduledDeduction_StaffId']
+            if args.get('ScheduledDeduction_DeductionHeadId') is not None:
+                deduction.ScheduledDeduction_DeductionHeadId = args['ScheduledDeduction_DeductionHeadId']
+            if args.get('ScheduledDeduction_AmountPerMonth') is not None:
+                deduction.ScheduledDeduction_AmountPerMonth = args['ScheduledDeduction_AmountPerMonth']
+            if args.get('ScheduledDeduction_StartDate') is not None:
+                deduction.ScheduledDeduction_StartDate = args['ScheduledDeduction_StartDate']
+            if args.get('ScheduledDeduction_EndDate') is not None:
+                deduction.ScheduledDeduction_EndDate = args['ScheduledDeduction_EndDate']
+            if args.get('ScheduledDeduction_ApprovedBy') is not None:
+                deduction.ScheduledDeduction_ApprovedBy = args['ScheduledDeduction_ApprovedBy']
+            if args.get('CreatorId') is not None:
+                deduction.CreatorId = args['CreatorId']
+            if args.get('UpdatorId') is not None:
+                deduction.UpdatorId = args['UpdatorId']
+            
+            deduction.UpdateDate = datetime.utcnow()
+            if args.get('InActive') is not None:
+                deduction.InActive = args['InActive']
 
             db.session.commit()
-            return {"message": "Scheduled deduction updated", "id": deduction.scheduledDeduction_Id}, 200
+            return {"message": "Scheduled deduction updated", "id": deduction.ScheduledDeduction_Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating scheduled deduction: {str(e)}")
@@ -1258,7 +1257,7 @@ class IARResource(Resource):
                     "columns": columns
                 }, 200
             else:
-                query = IAR.query.order_by(IAR.id)
+                query = IAR.query.order_by(IAR.Id)
                 total = query.count()
 
                 # Apply pagination
@@ -1286,26 +1285,26 @@ class IARResource(Resource):
                 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('form_Id', type=int, required=True, help="Form ID is required")
+        parser.add_argument('Form_Id', type=int, required=True, help="Form ID is required")
         parser.add_argument('IAR_Type_Id', type=int, required=True, help="IAR Type ID is required")
-        parser.add_argument('status_Check', type=bool, required=True, help="Status Check is required")
-        parser.add_argument('remarks', type=str, required=True, help="Remarks are required")
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createdDate', type=str, required=False)
+        parser.add_argument('Status_Check', type=bool, required=True, help="Status Check is required")
+        parser.add_argument('Remarks', type=str, required=True, help="Remarks are required")
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatedDate', type=str, required=False)
         args = parser.parse_args()
 
         try:
             new_iar = IAR(
-                form_Id=args['form_Id'],
+                Form_Id=args['Form_Id'],
                 IAR_Type_Id=args['IAR_Type_Id'],
-                status_Check=args['status_Check'],
-                remarks=args['remarks'],
-                creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow()
+                Status_Check=args['Status_Check'],
+                Remarks=args['Remarks'],
+                CreatorId=args.get('CreatorId'),
+                CreatedDate=datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S') if args['CreatedDate'] else datetime.utcnow()
             )
             db.session.add(new_iar)
             db.session.commit()
-            return {"message": "IAR created", "id": new_iar.id}, 200
+            return {"message": "IAR created", "id": new_iar.Id}, 200
         except ValueError as ve:
             db.session.rollback()
             return {"error": f"Value error: {str(ve)}"}, 400
@@ -1318,12 +1317,12 @@ class IARResource(Resource):
         
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('form_Id', type=int, required=False)
+        parser.add_argument('Form_Id', type=int, required=False)
         parser.add_argument('IAR_Type_Id', type=int, required=False)
-        parser.add_argument('status_Check', type=bool, required=False)
-        parser.add_argument('remarks', type=str, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createdDate', type=str, required=False)
+        parser.add_argument('Status_Check', type=bool, required=False)
+        parser.add_argument('Remarks', type=str, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatedDate', type=str, required=False)
         args = parser.parse_args()
 
         iar = IAR.query.get(id)
@@ -1331,21 +1330,21 @@ class IARResource(Resource):
             abort(404, message=f"IAR {id} doesn't exist")
 
         try:
-            if args['form_Id'] is not None:
+            if args['Form_Id'] is not None:
                 iar.form_Id = args['form_Id']
             if args['IAR_Type_Id'] is not None:
                 iar.IAR_Type_Id = args['IAR_Type_Id']
-            if args['status_Check'] is not None:
-                iar.status_Check = args['status_Check']
-            if args['remarks'] is not None:
-                iar.remarks = args['remarks']
-            if args['creatorId'] is not None:
-                iar.creatorId = args['creatorId']
-            if args['createdDate']:
-                iar.createdDate = datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S')
+            if args['Status_Check'] is not None:
+                iar.Status_Check = args['Status_Check']
+            if args['Remarks'] is not None:
+                iar.Remarks = args['Remarks']
+            if args['CreatorId'] is not None:
+                iar.CreatorId = args['CreatorId']
+            if args['CreatedDate']:
+                iar.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
 
             db.session.commit()
-            return {"message": "IAR updated", "id": iar.id}, 200
+            return {"message": "IAR updated", "id": iar.Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating IAR: {str(e)}")
@@ -1440,19 +1439,19 @@ class IARRemarksResource(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('IAR_Id', type=int, required=True, help="IAR ID is required")
-        parser.add_argument('remarks', type=str, required=False)
-        parser.add_argument('status', type=bool, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createDate', type=str, required=False)
+        parser.add_argument('Remarks', type=str, required=False)
+        parser.add_argument('Status', type=bool, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreateDate', type=str, required=False)
         args = parser.parse_args()
 
         try:
             new_remark = IAR_Remarks(
                 IAR_Id=args['IAR_Id'],
-                remarks=args['remarks'],
-                status=args['status'],
-                creatorId=args.get('creatorId'),
-                createDate=datetime.strptime(args['createDate'], '%Y-%m-%d %H:%M:%S') if args['createDate'] else datetime.utcnow()
+                remarks=args['Remarks'],
+                status=args['Status'],
+                creatorId=args.get('CreatorId'),
+                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow()
             )
             db.session.add(new_remark)
             db.session.commit()
@@ -1464,10 +1463,10 @@ class IARRemarksResource(Resource):
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('IAR_Id', type=int, required=False)
-        parser.add_argument('remarks', type=str, required=False)
-        parser.add_argument('status', type=bool, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createDate', type=str, required=False)
+        parser.add_argument('Remarks', type=str, required=False)
+        parser.add_argument('Status', type=bool, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreateDate', type=str, required=False)
         args = parser.parse_args()
 
         remark = IAR_Remarks.query.get(id)
@@ -1476,15 +1475,15 @@ class IARRemarksResource(Resource):
 
         try:
             if args['IAR_Id'] is not None:
-                remark.iar_id = args['iar_id']
-            if args['remarks'] is not None:
-                remark.remarks = args['remarks']
-            if args['status'] is not None:
-                remark.status = args['status']
-            if args['creatorId'] is not None:
-                remark.creator_id = args['creator_id']
-            if args['createDate']:
-                remark.create_date = datetime.strptime(args['create_date'], '%Y-%m-%d %H:%M:%S')
+                remark.IAR_Id = args['IAR_Id']
+            if args['Remarks'] is not None:
+                remark.Remarks = args['Remarks']
+            if args['Status'] is not None:
+                remark.Status = args['Status']
+            if args['CreatorId'] is not None:
+                remark.CreatorId = args['CreatorId']
+            if args['CreateDate']:
+                remark.CreateDate = datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S')
 
             db.session.commit()
             return {"message": "IAR_Remarks updated", "id": remark.id}, 200
@@ -1546,7 +1545,7 @@ class IARTypesResource(Resource):
                     "columns": columns
                 }, 200
             else:
-                query = IAR_Types.query.order_by(IAR_Types.id)
+                query = IAR_Types.query.order_by(IAR_Types.Id)
                 total = query.count()
 
                 # Apply pagination
@@ -1574,21 +1573,21 @@ class IARTypesResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, required=True, help="Name is required")
+        parser.add_argument('Name', type=str, required=True, help="Name is required")
         args = parser.parse_args()
 
         try:
-            new_type = IAR_Types(name=args['name'])
+            new_type = IAR_Types(name=args['Name'])
             db.session.add(new_type)
             db.session.commit()
-            return jsonify({"message": "IAR_Types created", "id": new_type.id}), 201
+            return jsonify({"message": "IAR_Types created", "id": new_type.Id}), 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating IAR_Types: {str(e)}")
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, required=False)
+        parser.add_argument('Name', type=str, required=False)
         args = parser.parse_args()
 
         iar_type = IAR_Types.query.get(id)
@@ -1596,11 +1595,11 @@ class IARTypesResource(Resource):
             abort(404, message=f"IAR_Types {id} doesn't exist")
 
         try:
-            if args['name'] is not None:
-                iar_type.name = args['name']
+            if args['Name'] is not None:
+                iar_type.name = args['Name']
 
             db.session.commit()
-            return jsonify({"message": "IAR_Types updated", "id": iar_type.id}), 200
+            return jsonify({"message": "IAR_Types updated", "id": iar_type.Id}), 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating IAR_Types: {str(e)}")
@@ -1688,21 +1687,21 @@ class EmailTypesResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, required=False)
+        parser.add_argument('Name', type=str, required=False)
         args = parser.parse_args()
 
         try:
-            new_email_type = EmailTypes(name=args['name'])
+            new_email_type = EmailTypes(name=args['Name'])
             db.session.add(new_email_type)
             db.session.commit()
-            return {"message": "EmailTypes created", "id": new_email_type.id}, 201
+            return {"message": "EmailTypes created", "id": new_email_type.Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating EmailTypes: {str(e)}")
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, required=False)
+        parser.add_argument('Name', type=str, required=False)
         args = parser.parse_args()
 
         email_type = EmailTypes.query.get(id)
@@ -1710,10 +1709,10 @@ class EmailTypesResource(Resource):
             abort(404, message=f"EmailTypes {id} doesn't exist")
 
         try:
-            if args['name'] is not None:
-                email_type.name = args['name']
+            if args['Name'] is not None:
+                email_type.Name = args['Name']
             db.session.commit()
-            return {"message": "EmailTypes updated", "id": email_type.id}, 200
+            return {"message": "EmailTypes updated", "id": email_type.Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating EmailTypes: {str(e)}")
@@ -1806,28 +1805,28 @@ class EmailStorageSystemResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('email_Title', type=str, required=False)
-        parser.add_argument('email_Subject', type=str, required=False)
-        parser.add_argument('email_Body', type=str, required=False)
-        parser.add_argument('status', type=bool, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createdDate', type=str, required=False)
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updatedDate', type=str, required=False)
-        parser.add_argument('emailType', type=int, required=False)
+        parser.add_argument('Email_Title', type=str, required=False)
+        parser.add_argument('Email_Subject', type=str, required=False)
+        parser.add_argument('Email_Body', type=str, required=False)
+        parser.add_argument('Status', type=bool, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatedDate', type=str, required=False)
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdatedDate', type=str, required=False)
+        parser.add_argument('EmailType', type=int, required=False)
         args = parser.parse_args()
 
         try:
             new_email = EmailStorageSystem(
-                email_Title=args['email_Title'],
-                email_Subject=args['email_Subject'],
-                email_Body=args['email_Body'],
-                status=args['status'],
-                creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow(),
-                updatorId=args.get('updatorId'),
-                updatedDate=datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S') if args['updatedDate'] else None,
-                emailType=args.get('emailType')
+                Email_Title=args['Email_Title'],
+                Email_Subject=args['Email_Subject'],
+                Email_Body=args['Email_Body'],
+                Status=args['Status'],
+                CreatorId=args.get('CreatorId'),
+                CreatedDate=datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S') if args['CreatedDate'] else datetime.utcnow(),
+                UpdatorId=args.get('UpdatorId'),
+                UpdatedDate=datetime.strptime(args['UpdatedDate'], '%Y-%m-%d %H:%M:%S') if args['UpdatedDate'] else None,
+                EmailType=args.get('EmailType')
             )
             db.session.add(new_email)
             db.session.commit()
@@ -1838,15 +1837,15 @@ class EmailStorageSystemResource(Resource):
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('email_Title', type=str, required=False)
-        parser.add_argument('email_Subject', type=str, required=False)
-        parser.add_argument('email_Body', type=str, required=False)
-        parser.add_argument('status', type=bool, required=False)
-        parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createdDate', type=str, required=False)
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updatedDate', type=str, required=False)
-        parser.add_argument('emailType', type=int, required=False)
+        parser.add_argument('Email_Title', type=str, required=False)
+        parser.add_argument('Email_Subject', type=str, required=False)
+        parser.add_argument('Email_Body', type=str, required=False)
+        parser.add_argument('Status', type=bool, required=False)
+        parser.add_argument('CreatorId', type=int, required=False)
+        parser.add_argument('CreatedDate', type=str, required=False)
+        parser.add_argument('UpdatorId', type=int, required=False)
+        parser.add_argument('UpdatedDate', type=str, required=False)
+        parser.add_argument('EmailType', type=int, required=False)
         args = parser.parse_args()
 
         email = EmailStorageSystem.query.get(id)
@@ -1854,27 +1853,27 @@ class EmailStorageSystemResource(Resource):
             abort(404, message=f"EmailStorageSystem {id} doesn't exist")
 
         try:
-            if args['email_Title'] is not None:
-                email.email_Title = args['email_Title']
-            if args['email_Subject'] is not None:
-                email.email_Subject = args['email_Subject']
-            if args['email_Body'] is not None:
-                email.email_Body = args['email_Body']
-            if args['status'] is not None:
-                email.status = args['status']
-            if args['creatorId'] is not None:
-                email.creatorId = args['creatorId']
-            if args['createdDate']:
-                email.createdDate = datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S')
-            if args['updatorId'] is not None:
-                email.updatorId = args['updatorId']
+            if args['Email_Title'] is not None:
+                email.Email_Title = args['Email_Title']
+            if args['Email_Subject'] is not None:
+                email.Email_Subject = args['Email_Subject']
+            if args['Email_Body'] is not None:
+                email.Email_Body = args['Email_Body']
+            if args['Status'] is not None:
+                email.Status = args['Status']
+            if args['CZeatorId'] is not None:
+                email.CreatorId = args['CreatorId']
+            if args['CreatedDate']:
+                email.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
+            if args['UpdatorId'] is not None:
+                email.UpdatorId = args['UpdatorId']
             
-            email.updatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
+            email.UpdatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
             
-            if args['emailType'] is not None:
-                email.emailType = args['emailType']
+            if args['EmailType'] is not None:
+                email.EmailType = args['EmailType']
             db.session.commit()
-            return {"message": "EmailStorageSystem updated", "Email_Id": email.email_Id}, 200
+            return {"message": "EmailStorageSystem updated", "Email_Id": email.Email_Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating EmailStorageSystem: {str(e)}")
@@ -2871,9 +2870,9 @@ class StaffTransferResource(Resource):
         user = Users.query.get(user_id)
         
         if to_campus_id == 11:
-            user.isAEN = 1  # Set IsAEN flag if transferring to campus 11
+            user.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
         else:
-            user.isAEN = 0  # Unset IsAEN flag for other campuses
+            user.IsAEN = 0  # Unset IsAEN flag for other campuses
         
         user.campusId = to_campus_id
         user.updateDate = datetime.utcnow()
@@ -3346,7 +3345,7 @@ class MarkDayOffHRsResource(Resource):
         parser.add_argument('CampusIds', type=int, action='append', required=True, help='Campus IDs are required')
         parser.add_argument('Description', type=str, required=False)
         parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
-        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('Status', type=bool, required=False)
         parser.add_argument('AcademicYearId', type=int, required=False)
         
         args = parser.parse_args()
@@ -3360,7 +3359,7 @@ class MarkDayOffHRsResource(Resource):
                     Description=args.get('Description'),
                     CreatorId=args['CreatorId'],
                     CreateDate=datetime.utcnow(),
-                    status=args.get('status'),
+                    Status=args.get('Status'),
                     AcademicYearId=args.get('AcademicYearId')
                 )
                 db.session.add(mark_day_off)
@@ -3385,7 +3384,7 @@ class MarkDayOffHRsResource(Resource):
         parser.add_argument('CampusIds', type=int, action='append', required=True, help='Campus IDs are required')
         parser.add_argument('Description', type=str, required=False)
         parser.add_argument('UpdatorId', type=int, required=True, help='Updator ID is required')
-        parser.add_argument('status', type=bool, required=False)
+        parser.add_argument('Status', type=bool, required=False)
         parser.add_argument('AcademicYearId', type=int, required=False)
         
         args = parser.parse_args()
@@ -3401,7 +3400,7 @@ class MarkDayOffHRsResource(Resource):
                     mark_day_off.Date = datetime.fromisoformat(args['Date'])
                 if args['Description']:
                     mark_day_off.Description = args['Description']
-                if args['status'] is not None:
+                if args['Status'] is not None:
                     mark_day_off.status = args['status']
                 if args['AcademicYearId']:
                     mark_day_off.AcademicYearId = args['AcademicYearId']
@@ -3434,6 +3433,311 @@ class MarkDayOffHRsResource(Resource):
             db.session.commit()
 
             return {"message": "MarkDayOffHRs record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class AllowanceHeadResource(Resource):
+    def get(self, id=None):
+        """
+        Retrieve a single AllowanceHead record by ID or all records if no ID is provided.
+        """
+        if id:
+            allowance_head = AllowanceHead.query.get(id)
+            if allowance_head:
+                return allowance_head.to_dict(), 200
+            return {'message': 'AllowanceHead record not found'}, 404
+        else:
+            allowance_heads = AllowanceHead.query.all()
+            return [allowance_head.to_dict() for allowance_head in allowance_heads], 200
+
+    def post(self):
+        """
+        Create a new AllowanceHead record.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('AllowanceHead_Name', type=str, required=True, help='AllowanceHead Name is required')
+        args = parser.parse_args()
+
+        try:
+            allowance_head = AllowanceHead(
+                AllowanceHead_Name=args['AllowanceHead_Name']
+            )
+            db.session.add(allowance_head)
+            db.session.commit()
+
+            return {"message": "AllowanceHead record created successfully", "AllowanceHead_Id": allowance_head.AllowanceHead_Id}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self, id):
+        """
+        Update an existing AllowanceHead record by ID.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('AllowanceHead_Name', type=str, required=True, help='AllowanceHead Name is required')
+        args = parser.parse_args()
+
+        try:
+            allowance_head = AllowanceHead.query.get(id)
+            if not allowance_head:
+                return {'message': 'AllowanceHead record not found'}, 404
+
+            allowance_head.AllowanceHead_Name = args['AllowanceHead_Name']
+            db.session.commit()
+
+            return {"message": "AllowanceHead record updated successfully", "AllowanceHead": allowance_head.to_dict()}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        """
+        Delete an AllowanceHead record by ID.
+        """
+        try:
+            allowance_head = AllowanceHead.query.get(id)
+            if not allowance_head:
+                return {'message': 'AllowanceHead record not found'}, 404
+
+            db.session.delete(allowance_head)
+            db.session.commit()
+
+            return {"message": "AllowanceHead record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class OneTimeAllowanceResource(Resource):
+
+    def get(self, id=None):
+        """
+        Retrieve a single OneTimeAllowance record by ID or all records if no ID is provided.
+        """
+        if id:
+            one_time_allowance = OneTimeAllowance.query.get(id)
+            if one_time_allowance:
+                return one_time_allowance.to_dict(), 200
+            return {'message': 'OneTimeAllowance record not found'}, 404
+        else:
+            one_time_allowances = OneTimeAllowance.query.all()
+            return [one_time_allowance.to_dict() for one_time_allowance in one_time_allowances], 200
+
+    def post(self):
+        """
+        Create a new OneTimeAllowance record.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('OneTimeAllowance_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('OneTimeAllowance_AllowanceHeadId', type=int, required=True, help='Allowance Head ID is required')
+        parser.add_argument('OneTimeAllowance_Amount', type=float, required=True, help='Amount is required')
+        parser.add_argument('OneTimeAllowance_PamentMonth', type=str, required=True, help='Payment Month is required')
+        parser.add_argument('OneTimeAllowance_ApprovedBy', type=int, required=True, help='Approved By is required')
+        parser.add_argument('OneTimeAllowance_Taxable', type=bool, required=True, help='Taxable is required')
+        parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
+        parser.add_argument('InActive', type=bool, required=True, help='InActive is required')
+        args = parser.parse_args()
+
+        try:
+            one_time_allowance = OneTimeAllowance(
+                OneTimeAllowance_StaffId=args['OneTimeAllowance_StaffId'],
+                OneTimeAllowance_AllowanceHeadId=args['OneTimeAllowance_AllowanceHeadId'],
+                OneTimeAllowance_Amount=args['OneTimeAllowance_Amount'],
+                OneTimeAllowance_PamentMonth=args['OneTimeAllowance_PamentMonth'],
+                OneTimeAllowance_ApprovedBy=args['OneTimeAllowance_ApprovedBy'],
+                OneTimeAllowance_Taxable=args['OneTimeAllowance_Taxable'],
+                CreatorId=args['CreatorId'],
+                CreateDate=datetime.utcnow(),
+                InActive = args['InActive']
+            )
+            db.session.add(one_time_allowance)
+            db.session.commit()
+
+            return {"message": "OneTimeAllowance record created successfully", "OneTimeAllowance": one_time_allowance.to_dict()}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self, id):
+        """
+        Update an existing OneTimeAllowance record by ID.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('OneTimeAllowance_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('OneTimeAllowance_AllowanceHeadId', type=int, required=True, help='Allowance Head ID is required')
+        parser.add_argument('OneTimeAllowance_Amount', type=float, required=True, help='Amount is required')
+        parser.add_argument('OneTimeAllowance_PamentMonth', type=str, required=True, help='Payment Month is required')
+        parser.add_argument('OneTimeAllowance_ApprovedBy', type=int, required=True, help='Approved By is required')
+        parser.add_argument('OneTimeAllowance_Taxable', type=bool, required=True, help='Taxable is required')
+        parser.add_argument('UpdatorId', type=int, required=True, help='Updator ID is required')
+        args = parser.parse_args()
+
+        try:
+            one_time_allowance = OneTimeAllowance.query.get(id)
+            if not one_time_allowance:
+                return {'message': 'OneTimeAllowance record not found'}, 404
+
+            one_time_allowance.OneTimeAllowance_StaffId = args['OneTimeAllowance_StaffId']
+            one_time_allowance.OneTimeAllowance_AllowanceHeadId = args['OneTimeAllowance_AllowanceHeadId']
+            one_time_allowance.OneTimeAllowance_Amount = args['OneTimeAllowance_Amount']
+            one_time_allowance.OneTimeAllowance_PamentMonth = args['OneTimeAllowance_PamentMonth']
+            one_time_allowance.OneTimeAllowance_ApprovedBy = args['OneTimeAllowance_ApprovedBy']
+            one_time_allowance.OneTimeAllowance_Taxable = args['OneTimeAllowance_Taxable']
+            one_time_allowance.UpdatorId = args['UpdatorId']
+            one_time_allowance.UpdateDate = datetime.utcnow()
+
+            db.session.commit()
+
+            return {"message": "OneTimeAllowance record updated successfully", "OneTimeAllowance": one_time_allowance.to_dict()}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        """
+        Delete a OneTimeAllowance record by ID.
+        """
+        try:
+            one_time_allowance = OneTimeAllowance.query.get(id)
+            if not one_time_allowance:
+                return {'message': 'OneTimeAllowance record not found'}, 404
+
+            db.session.delete(one_time_allowance)
+            db.session.commit()
+
+            return {"message": "OneTimeAllowance record deleted successfully"}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class ScheduledAllowanceResource(Resource):
+
+    def get(self, id=None):
+        """
+        Retrieve a single ScheduledAllowance record by ID or all records if no ID is provided.
+        """
+        if id:
+            scheduled_allowance = ScheduledAllowance.query.get(id)
+            if scheduled_allowance:
+                return scheduled_allowance.to_dict(), 200
+            return {'message': 'ScheduledAllowance record not found'}, 404
+        else:
+            scheduled_allowances = ScheduledAllowance.query.all()
+            return [scheduled_allowance.to_dict() for scheduled_allowance in scheduled_allowances], 200
+
+    def post(self):
+        """
+        Create a new ScheduledAllowance record.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('ScheduledAllowance_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('ScheduledAllowance_AllowanceHeadId', type=int, required=True, help='Allowance Head ID is required')
+        parser.add_argument('ScheduledAllowance_AmountPerMonth', type=float, required=True, help='Amount Per Month is required')
+        parser.add_argument('ScheduledAllowance_StartDate', type=str, required=True, help='Start Date is required')
+        parser.add_argument('ScheduledAllowance_EndDate', type=str, required=True, help='End Date is required')
+        parser.add_argument('ScheduledAllowance_ApprovedBy', type=int, required=True, help='Approved By is required')
+        parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
+        parser.add_argument('ScheduledAllowance_Taxable', type=bool, required=True, help='Taxable is required')
+        args = parser.parse_args()
+
+        try:
+            scheduled_allowance = ScheduledAllowance(
+                ScheduledAllowance_StaffId=args['ScheduledAllowance_StaffId'],
+                ScheduledAllowance_AllowanceHeadId=args['ScheduledAllowance_AllowanceHeadId'],
+                ScheduledAllowance_AmountPerMonth=args['ScheduledAllowance_AmountPerMonth'],
+                ScheduledAllowance_StartDate=datetime.fromisoformat(args['ScheduledAllowance_StartDate']),
+                ScheduledAllowance_EndDate=datetime.fromisoformat(args['ScheduledAllowance_EndDate']),
+                ScheduledAllowance_ApprovedBy=args['ScheduledAllowance_ApprovedBy'],
+                CreatorId=args['CreatorId'],
+                CreateDate=datetime.utcnow(),
+                ScheduledAllowance_Taxable=args['ScheduledAllowance_Taxable']
+            )
+            db.session.add(scheduled_allowance)
+            db.session.commit()
+
+            return {"message": "ScheduledAllowance record created successfully", "ScheduledAllowance": scheduled_allowance.to_dict()}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self, id):
+        """
+        Update an existing ScheduledAllowance record by ID.
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('ScheduledAllowance_StaffId', type=int, required=True, help='Staff ID is required')
+        parser.add_argument('ScheduledAllowance_AllowanceHeadId', type=int, required=True, help='Allowance Head ID is required')
+        parser.add_argument('ScheduledAllowance_AmountPerMonth', type=float, required=True, help='Amount Per Month is required')
+        parser.add_argument('ScheduledAllowance_StartDate', type=str, required=True, help='Start Date is required')
+        parser.add_argument('ScheduledAllowance_EndDate', type=str, required=True, help='End Date is required')
+        parser.add_argument('ScheduledAllowance_ApprovedBy', type=int, required=True, help='Approved By is required')
+        parser.add_argument('UpdatorId', type=int, required=True, help='Updator ID is required')
+        parser.add_argument('ScheduledAllowance_Taxable', type=bool, required=True, help='Taxable is required')
+        args = parser.parse_args()
+
+        try:
+            scheduled_allowance = ScheduledAllowance.query.get(id)
+            if not scheduled_allowance:
+                return {'message': 'ScheduledAllowance record not found'}, 404
+
+            scheduled_allowance.ScheduledAllowance_StaffId = args['ScheduledAllowance_StaffId']
+            scheduled_allowance.ScheduledAllowance_AllowanceHeadId = args['ScheduledAllowance_AllowanceHeadId']
+            scheduled_allowance.ScheduledAllowance_AmountPerMonth = args['ScheduledAllowance_AmountPerMonth']
+            scheduled_allowance.ScheduledAllowance_StartDate = datetime.fromisoformat(args['ScheduledAllowance_StartDate'])
+            scheduled_allowance.ScheduledAllowance_EndDate = datetime.fromisoformat(args['ScheduledAllowance_EndDate'])
+            scheduled_allowance.ScheduledAllowance_ApprovedBy = args['ScheduledAllowance_ApprovedBy']
+            scheduled_allowance.UpdatorId = args['UpdatorId']
+            scheduled_allowance.UpdateDate = datetime.utcnow()
+            scheduled_allowance.ScheduledAllowance_Taxable = args['ScheduledAllowance_Taxable']
+
+            db.session.commit()
+
+            return {"message": "ScheduledAllowance record updated successfully", "ScheduledAllowance": scheduled_allowance.to_dict()}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+    def delete(self, id):
+        """
+        Delete a ScheduledAllowance record by ID.
+        """
+        try:
+            scheduled_allowance = ScheduledAllowance.query.get(id)
+            if not scheduled_allowance:
+                return {'message': 'ScheduledAllowance record not found'}, 404
+
+            db.session.delete(scheduled_allowance)
+            db.session.commit()
+
+            return {"message": "ScheduledAllowance record deleted successfully"}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': f"Database error occurred: {str(e)}"}, 500
