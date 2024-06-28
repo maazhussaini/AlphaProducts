@@ -944,7 +944,6 @@ class OneTimeDeductionResource(Resource):
         parser.add_argument('OneTimeDeduction_DeductionMonth', type=str, required=True, help="Deduction month is required")
         parser.add_argument('OneTimeDeduction_ApprovedBy', type=int, required=True, help="Approved by is required")
         parser.add_argument('CreatorId', type=int, required=True, help="Creator ID is required")
-        parser.add_argument('InActive', type=bool, required=True, help="Inactive status is required")
         args = parser.parse_args()
 
         try:
@@ -955,8 +954,7 @@ class OneTimeDeductionResource(Resource):
                 OneTimeDeduction_DeductionMonth=args['OneTimeDeduction_DeductionMonth'],
                 OneTimeDeduction_ApprovedBy=args['OneTimeDeduction_ApprovedBy'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow() + timedelta(hours=5),
-                InActive=args['InActive']
+                CreateDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_deduction)
             db.session.commit()
