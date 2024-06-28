@@ -953,7 +953,8 @@ class OneTimeDeductionResource(Resource):
                 OneTimeDeduction_DeductionMonth=args['OneTimeDeduction_DeductionMonth'],
                 OneTimeDeduction_ApprovedBy=args['OneTimeDeduction_ApprovedBy'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow() + timedelta(hours=5)
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
+                InActive = 0
             )
             db.session.add(new_deduction)
             db.session.commit()
@@ -1122,7 +1123,8 @@ class ScheduledDeductionResource(Resource):
             ScheduledDeduction_EndDate=args['ScheduledDeduction_EndDate'],
             ScheduledDeduction_ApprovedBy=args['ScheduledDeduction_ApprovedBy'],
             CreatorId=args['CreatorId'],
-            CreateDate = datetime.utcnow() + timedelta(hours=5)
+            CreateDate = datetime.utcnow() + timedelta(hours=5),
+            InActive = 0
         )
 
         try:
