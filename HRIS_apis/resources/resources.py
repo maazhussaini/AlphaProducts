@@ -5,7 +5,7 @@ from models.models import (
     StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType, Salaries, MarkDayOffDeps,
     MarkDayOffHRs, AllowanceHead, OneTimeAllowance, ScheduledAllowance
 )
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from app import db
 from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
@@ -14,14 +14,11 @@ from sqlalchemy import and_
 import json
 from sqlalchemy.exc import SQLAlchemyError
 
-
-
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
         def default(self, obj):
             if isinstance(obj, (date, datetime)):
                 return obj.isoformat()
-
 
 class JobApplicationFormResource(Resource):
     
@@ -947,9 +944,6 @@ class OneTimeDeductionResource(Resource):
         parser.add_argument('OneTimeDeduction_DeductionMonth', type=str, required=True, help="Deduction month is required")
         parser.add_argument('OneTimeDeduction_ApprovedBy', type=int, required=True, help="Approved by is required")
         parser.add_argument('CreatorId', type=int, required=True, help="Creator ID is required")
-        parser.add_argument('UreateDate', type=str, required=True, help="Create date is required")
-        parser.add_argument('UpdatorId', type=int, required=False)
-        parser.add_argument('UpdateDate', type=str, required=False)
         parser.add_argument('InActive', type=bool, required=True, help="Inactive status is required")
         args = parser.parse_args()
 
@@ -961,9 +955,7 @@ class OneTimeDeductionResource(Resource):
                 OneTimeDeduction_DeductionMonth=args['OneTimeDeduction_DeductionMonth'],
                 OneTimeDeduction_ApprovedBy=args['OneTimeDeduction_ApprovedBy'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S'),
-                UpdatorId=args.get('UpdatorId'),
-                UpdateDate=datetime.strptime(args['UpdateDate'], '%Y-%m-%d %H:%M:%S') if args['UpdateDate'] else None,
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
                 InActive=args['InActive']
             )
             db.session.add(new_deduction)
@@ -1451,7 +1443,7 @@ class IARRemarksResource(Resource):
                 remarks=args['Remarks'],
                 status=args['Status'],
                 creatorId=args.get('CreatorId'),
-                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow()
+                createDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_remark)
             db.session.commit()
@@ -3560,7 +3552,7 @@ class OneTimeAllowanceResource(Resource):
                 OneTimeAllowance_ApprovedBy=args['OneTimeAllowance_ApprovedBy'],
                 OneTimeAllowance_Taxable=args['OneTimeAllowance_Taxable'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow(),
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
                 InActive = args['InActive']
             )
             db.session.add(one_time_allowance)

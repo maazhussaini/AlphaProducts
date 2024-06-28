@@ -7,7 +7,10 @@ from resources.resources import (
     StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
     ScheduledAllowanceResource
 )
-from resources.customApi import (CustomApiResource, CallProcedureResource)
+from resources.customApi import (
+    DynamicGetResource, CallProcedureResource, DynamicPostResource,
+    DynamicUpdateResource, DynamicInsertOrUpdateResource
+)
 from resources.auth import UserLoginResource
 
 def register_routes(app):
@@ -33,14 +36,10 @@ def register_routes(app):
     api.add_resource(EmailTypesResource, '/emailTypes', '/emailTypes/<int:id>')
     
     api.add_resource(AvailableJobsResource, '/availableJobs', '/availableJobs/<int:id>')
-    
-    api.add_resource(CustomApiResource, '/customApiResource', '/customApiResource/<int:id>')
 
     api.add_resource(StaffInfoResource, '/staffInfo', '/staffInfo/<int:id>')
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
-    
-    api.add_resource(CallProcedureResource, '/callProcedure')
     
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
     api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')
@@ -48,3 +47,11 @@ def register_routes(app):
     api.add_resource(AllowanceHeadResource, '/allowanceHead', '/allowanceHead/<int:id>')
     api.add_resource(OneTimeAllowanceResource, '/oneTimeAllowance', '/oneTimeAllowance/<int:id>')
     api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')
+    
+    ## Dynamic APIs
+    api.add_resource(CallProcedureResource, '/callProcedure')
+    api.add_resource(DynamicGetResource, '/dynamicGet', '/dynamicGet/<int:id>')
+    api.add_resource(DynamicPostResource, '/dynamicPost')
+    api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
+    api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
+    

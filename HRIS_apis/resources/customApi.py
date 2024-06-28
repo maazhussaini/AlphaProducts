@@ -8,7 +8,10 @@ from models.models import *
 import pyodbc
 from sqlalchemy.exc import SQLAlchemyError
 
-class CustomApiResource(Resource):
+def get_model_by_tablename(table_name):
+    return globals().get(table_name)
+
+class DynamicGetResource(Resource):
     def get(self, id=None):
         try:
             # Parse and validate pagination parameters
@@ -61,7 +64,6 @@ class CustomApiResource(Resource):
                 return {
                     "data": [data.to_dict()]
                 }
-            
         except Exception as e:
             return {'message': str(e)}, 500
 
@@ -124,3 +126,137 @@ class CallProcedureResource(Resource):
             return {'error': str(e)}, 500
         finally:
             connection.close()
+
+class DynamicPostResource(Resource):
+    def post(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        insert_data = data.get('Data')
+
+        if not table_name or not insert_data:
+            return {'error': 'Table_Name and Data are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'error': f'Table {table_name} does not exist'}, 400
+
+        # Validate that insert_data is a list of dictionaries
+        if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
+            return {'error': 'Data should be a list of dictionaries'}, 400
+
+        # Insert records
+        try:
+            records = [model_class(**item) for item in insert_data]
+            print(records)
+            db.session.bulk_save_objects(records)
+            db.session.commit()
+            return {'message': f'{len(records)} records inserted into {table_name} successfully'}, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+class DynamicUpdateResource(Resource):
+    def put(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        record_id = data.get('id')  # Assuming the primary key field is 'id'
+        update_data = data.get('Data')
+
+        if not table_name or not record_id or not update_data:
+            return {'error': 'Table_Name, id, and Data are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = globals().get(table_name)
+
+        if not model_class:
+            return {'error': f'Table {table_name} does not exist'}, 400
+
+        # Find the record by id and update it with the provided data
+        try:
+            record = db.session.query(model_class).get(record_id)
+            if not record:
+                return {'error': f'Record with id {record_id} not found in {table_name}'}, 404
+
+            for key, value in update_data.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+
+            db.session.commit()
+            return {'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+class DynamicInsertOrUpdateResource(Resource):
+    def post(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        insert_data = data.get('Data')
+        conditions = data.get('Conditions')
+
+        if not table_name or not insert_data or not conditions:
+            return {'error': 'Table_Name, Data, and Conditions are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'error': f'Table {table_name} does not exist'}, 400
+
+        # Validate that insert_data is a list of dictionaries
+        if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
+            return {'error': 'Data should be a list of dictionaries'}, 400
+
+        # Validate that conditions is a dictionary
+        if not isinstance(conditions, dict):
+            return {'error': 'Conditions should be a dictionary'}, 400
+
+        updated_records = []
+        inserted_records = []
+
+        try:
+            for item in insert_data:
+                # Build the filter conditions dynamically
+                query_conditions = []
+                for field, value in conditions.items():
+                    if hasattr(model_class, field):
+                        query_conditions.append(getattr(model_class, field) == value)
+
+                existing_record = model_class.query.filter(*query_conditions).first()
+
+                if existing_record:
+                    # Update the existing record
+                    for key, value in item.items():
+                        if hasattr(existing_record, key):
+                            setattr(existing_record, key, value)
+                    existing_record.UpdateDate = datetime.utcnow()
+                    existing_record.UpdatorId = item.get('CreatorId')
+                    updated_records.append(existing_record)
+                else:
+                    # Insert a new record
+                    new_record = model_class(**item)
+                    new_record.CreateDate = datetime.utcnow()
+                    inserted_records.append(new_record)
+
+            if updated_records:
+                db.session.bulk_save_objects(updated_records)
+            if inserted_records:
+                db.session.bulk_save_objects(inserted_records)
+            
+            db.session.commit()
+
+            return {
+                'message': f'{len(inserted_records)} records inserted, {len(updated_records)} records updated in {table_name} successfully'
+            }, 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
