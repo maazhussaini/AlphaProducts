@@ -217,21 +217,37 @@ class DynamicInsertOrUpdateResource(Resource):
         if not isinstance(conditions, dict):
             return {'error': 'Conditions should be a dictionary'}, 400
 
+        """
+        # Define max lengths for string fields in OneTimeDeduction
+        string_fields_max_length = {
+            'OneTimeDeduction_DeductionMonth': 15,
+            # Add other fields with their max lengths if needed
+        }
+
+        # Validate string lengths
+        for item in insert_data:
+            for field, max_length in string_fields_max_length.items():
+                if field in item and len(item[field]) > max_length:
+                    return {'error': f'{field} exceeds maximum length of {max_length}'}, 400
+        """
         updated_records = []
         inserted_records = []
 
         try:
             for item in insert_data:
-                # Build the filter conditions dynamically
+                # Build the filter conditions dynamically for each item
                 query_conditions = []
                 for field, value in conditions.items():
                     if hasattr(model_class, field):
-                        query_conditions.append(getattr(model_class, field) == value)
+                        if isinstance(value, list):
+                            query_conditions.append(getattr(model_class, field).in_(value))
+                        else:
+                            query_conditions.append(getattr(model_class, field) == item.get(field, value))
 
-                existing_record = model_class.query.filter(*query_conditions).first()
+                existing_record = model_class.query.filter(and_(*query_conditions)).first()
 
                 if existing_record:
-                    # Update the existing record
+                    # Update the existing record with new data from the item
                     for key, value in item.items():
                         if hasattr(existing_record, key):
                             setattr(existing_record, key, value)
@@ -260,3 +276,4 @@ class DynamicInsertOrUpdateResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'error': str(e)}, 500
+
