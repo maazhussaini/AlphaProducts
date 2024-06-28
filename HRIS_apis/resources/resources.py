@@ -405,7 +405,7 @@ class NewJoinerApprovalResource(Resource):
                 NewJoinerApproval_EmpDetailsVerified=args['NewJoinerApproval_EmpDetailsVerified'],
                 NewJoinerApproval_AddToPayrollMonth=args['NewJoinerApproval_AddToPayrollMonth'],
                 CreatedBy=args['CreatedBy'],
-                CreatedDate=datetime.utcnow()
+                CreatedDate=datetime.utcnow() + timedelta(hours=5)
             )
 
             db.session.add(new_joiner_approval)
@@ -448,7 +448,7 @@ class NewJoinerApprovalResource(Resource):
                     setattr(new_joiner_approval, key, value)
 
             new_joiner_approval.updatedBy = args['UpdatedBy']
-            new_joiner_approval.updatedDate = datetime.utcnow()
+            new_joiner_approval.updatedDate = datetime.utcnow() + timedelta(hours=5)
 
             db.session.commit()
 
@@ -487,10 +487,10 @@ class NewJoinerApprovalResource(Resource):
                 SESSIAmount=basic / 12,
                 SalaryMode=1,
                 IsProbationPeriod=False,
-                From=datetime.utcnow(),
-                To=datetime.utcnow(),
+                From=datetime.utcnow() + timedelta(hours=5),
+                To=datetime.utcnow() + timedelta(hours=5),
                 EmployeeId=staff_id,
-                CreatedOn=datetime.utcnow(),
+                CreatedOn=datetime.utcnow() + timedelta(hours=5),
                 CreatedByUserId=get_jwt_identity(),
                 HouseRent=basic / 2,
                 MedicalAllowance=basic / 10,
@@ -537,13 +537,13 @@ class NewJoinerApprovalResource(Resource):
             salary.PFAmount = basic / 12
             salary.EOBIAmount = basic / 12
             salary.SESSIAmount = basic / 12
-            salary.From = datetime.utcnow()
-            salary.To = datetime.utcnow()
+            salary.From = datetime.utcnow() + timedelta(hours=5)
+            salary.To = datetime.utcnow() + timedelta(hours=5)
             salary.HouseRent = basic / 2
             salary.MedicalAllowance = basic / 10
             salary.UtilityAllowance = basic / 5
             salary.ConveyanceAllowance = basic / 5
-            salary.UpdatedOn = datetime.utcnow()
+            salary.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
             salary.UpdatedByUserId = get_jwt_identity()
 
             db.session.commit()
@@ -671,7 +671,7 @@ class InterviewSchedulesResource(Resource):
                 position=args['Position'],
                 location=args['Location'],
                 createdBy=args['CreatedBy'],
-                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow(),
+                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow() + timedelta(hours=5),
                 campusId=args['CampusId']
             )
             db.session.add(new_schedule)
@@ -1169,7 +1169,7 @@ class ScheduledDeductionResource(Resource):
             if args.get('UpdatorId') is not None:
                 deduction.UpdatorId = args['UpdatorId']
             
-            deduction.UpdateDate = datetime.utcnow()
+            deduction.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             if args.get('InActive') is not None:
                 deduction.InActive = args['InActive']
 
@@ -1848,7 +1848,7 @@ class EmailStorageSystemResource(Resource):
             if args['UpdatorId'] is not None:
                 email.UpdatorId = args['UpdatorId']
             
-            email.UpdatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
+            email.UpdatedDate = datetime.strptime(datetime.utcnow() + timedelta(hours=5), '%Y-%m-%d %H:%M:%S')
             
             if args['EmailType'] is not None:
                 email.EmailType = args['EmailType']
@@ -2000,7 +2000,7 @@ class AvailableJobsResource(Resource):
             if args['updatorId'] is not None:
                 job.updatorId = args['updatorId']
             
-            job.updatedDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
+            job.updatedDate = datetime.strptime(datetime.utcnow() + timedelta(hours=5), '%Y-%m-%d %H:%M:%S')
             db.session.commit()
             return {"message": "AvailableJobs updated", "job_Id": job.job_Id}, 200
         except Exception as e:
@@ -2188,7 +2188,7 @@ class StaffInfoResource(Resource):
                 CreatorId=args['CreatorId'],
                 CreatorIP=args['CreatorIP'],
                 CreatorTerminal=args['CreatorTerminal'],
-                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow(),
+                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow() + timedelta(hours=5),
                 PhotoPath=args['PhotoPath'],
                 IsDisable=args['IsDisable'],
                 disableDetail=args['disableDetail'],
@@ -2391,7 +2391,7 @@ class StaffInfoResource(Resource):
             if args['UpdaterTerminal'] is not None:
                 staff.UpdaterTerminal = args['UpdaterTerminal']
             
-            staff.UpdateDate = datetime.strptime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')
+            staff.UpdateDate = datetime.strptime(datetime.utcnow() + timedelta(hours=5), '%Y-%m-%d %H:%M:%S')
             if args['CreatorId'] is not None:
                 staff.CreatorId = args['CreatorId']
             if args['CreatorIP'] is not None:
@@ -2587,7 +2587,7 @@ class StaffDepartmentResource(Resource):
                 CreatorId=args['CreatorId'],
                 CreatorIP=args['CreatorIP'],
                 CreatorTerminal=args['CreatorTerminal'],
-                CreateDate=datetime.utcnow(),
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
                 CampusId=args['CampusId'],
                 ManagerId=args['ManagerId']
             )
@@ -2629,7 +2629,7 @@ class StaffDepartmentResource(Resource):
             if args['UpdaterTerminal']:
                 department.UpdaterTerminal = args['UpdaterTerminal']
             
-            department.UpdateDate = datetime.utcnow()
+            department.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             
             if args['CreatorId']:
                 department.CreatorId = args['CreatorId']
@@ -2756,7 +2756,7 @@ class StaffTransferResource(Resource):
                 status=True,
                 CampusId=from_campus_id,
                 # CreatorId=get_jwt_identity(),
-                CreateDate=datetime.utcnow()
+                CreateDate=datetime.utcnow() + timedelta(hours=5)
             )
 
             # Start a database transaction
@@ -2797,7 +2797,7 @@ class StaffTransferResource(Resource):
         staff.DepartmentId = department_id
         staff.Designation_ID = designation_id
         staff.ReportingOfficerId = reporting_officer_id
-        staff.UpdateDate = datetime.utcnow()
+        staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
         db.session.add(staff)
 
     def update_staff_shift(self, staff_id, to_campus_id):
@@ -2808,7 +2808,7 @@ class StaffTransferResource(Resource):
         
         if staff_shift:
             staff_shift.CampusId = to_campus_id
-            staff_shift.UpdatedOn = datetime.utcnow()
+            staff_shift.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
             db.session.add(staff_shift)
 
     def update_user_campus(self, staff_id, to_campus_id, current_campus_id):
@@ -2820,7 +2820,7 @@ class StaffTransferResource(Resource):
         
         if user_campus:
             user_campus.campusId = to_campus_id
-            user_campus.updateDate = datetime.utcnow()
+            user_campus.updateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(user_campus)
         else:
             user_id = UserCampus.query.filter_by(staffId=staff_id).first().userId
@@ -2829,7 +2829,7 @@ class StaffTransferResource(Resource):
                 userId=user_id,
                 campusId=to_campus_id,
                 staffId=staff_id,
-                date=datetime.utcnow(),
+                date=datetime.utcnow() + timedelta(hours=5),
                 status=True
             )
             db.session.add(new_user_campus)
@@ -2847,7 +2847,7 @@ class StaffTransferResource(Resource):
             user.IsAEN = 0  # Unset IsAEN flag for other campuses
         
         user.campusId = to_campus_id
-        user.updateDate = datetime.utcnow()
+        user.updateDate = datetime.utcnow() + timedelta(hours=5)
         db.session.add(user)
     
     def put(self, id):
@@ -2910,7 +2910,7 @@ class StaffTransferResource(Resource):
             if args['UpdaterId'] is not None:
                 transfer.UpdaterId = args['UpdaterId']
             if args['UpdateDate'] is not None:
-                transfer.UpdateDate = datetime.utcnow()
+                transfer.UpdateDate = datetime.utcnow() + timedelta(hours=5)
 
             db.session.commit()
             return {"message": "Staff transfer updated successfully"}, 200
@@ -3138,7 +3138,7 @@ class SalaryResource(Resource):
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
 
-            salary.UpdatedOn = datetime.utcnow()
+            salary.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
 
             db.session.commit()
             return {"message": "Salary record updated successfully", "salary": salary.to_dict()}, 200
@@ -3204,7 +3204,7 @@ class MarkDayOffDepsResource(Resource):
                 Staff_Id=args['Staff_Id'],
                 Description=args.get('Description'),
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow(),
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
                 status=args.get('status'),
                 CampusId=args.get('CampusId'),
                 AcademicYearId=args.get('AcademicYearId')
@@ -3258,7 +3258,7 @@ class MarkDayOffDepsResource(Resource):
                     mark_day_off.AcademicYearId = args['AcademicYearId']
 
                 mark_day_off.UpdatorId = args['UpdatorId']
-                mark_day_off.UpdateDate = datetime.utcnow()
+                mark_day_off.UpdateDate = datetime.utcnow() + timedelta(hours=5)
 
                 updated_records.append(mark_day_off.to_dict())
             
@@ -3328,7 +3328,7 @@ class MarkDayOffHRsResource(Resource):
                     CampusIds=campus_id,
                     Description=args.get('Description'),
                     CreatorId=args['CreatorId'],
-                    CreateDate=datetime.utcnow(),
+                    CreateDate=datetime.utcnow() + timedelta(hours=5),
                     Status=args.get('Status'),
                     AcademicYearId=args.get('AcademicYearId')
                 )
@@ -3376,7 +3376,7 @@ class MarkDayOffHRsResource(Resource):
                     mark_day_off.AcademicYearId = args['AcademicYearId']
 
                 mark_day_off.UpdatorId = args['UpdatorId']
-                mark_day_off.UpdateDate = datetime.utcnow()
+                mark_day_off.UpdateDate = datetime.utcnow() + timedelta(hours=5)
 
                 updated_records.append(mark_day_off.to_dict())
             
@@ -3518,7 +3518,6 @@ class OneTimeAllowanceResource(Resource):
         parser.add_argument('OneTimeAllowance_ApprovedBy', type=int, required=True, help='Approved By is required')
         parser.add_argument('OneTimeAllowance_Taxable', type=bool, required=True, help='Taxable is required')
         parser.add_argument('CreatorId', type=int, required=True, help='Creator ID is required')
-        parser.add_argument('InActive', type=bool, required=True, help='InActive is required')
         args = parser.parse_args()
 
         try:
@@ -3530,8 +3529,7 @@ class OneTimeAllowanceResource(Resource):
                 OneTimeAllowance_ApprovedBy=args['OneTimeAllowance_ApprovedBy'],
                 OneTimeAllowance_Taxable=args['OneTimeAllowance_Taxable'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow() + timedelta(hours=5),
-                InActive = args['InActive']
+                CreateDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(one_time_allowance)
             db.session.commit()
@@ -3570,7 +3568,7 @@ class OneTimeAllowanceResource(Resource):
             one_time_allowance.OneTimeAllowance_ApprovedBy = args['OneTimeAllowance_ApprovedBy']
             one_time_allowance.OneTimeAllowance_Taxable = args['OneTimeAllowance_Taxable']
             one_time_allowance.UpdatorId = args['UpdatorId']
-            one_time_allowance.UpdateDate = datetime.utcnow()
+            one_time_allowance.UpdateDate = datetime.utcnow() + timedelta(hours=5)
 
             db.session.commit()
 
@@ -3641,7 +3639,7 @@ class ScheduledAllowanceResource(Resource):
                 ScheduledAllowance_EndDate=datetime.fromisoformat(args['ScheduledAllowance_EndDate']),
                 ScheduledAllowance_ApprovedBy=args['ScheduledAllowance_ApprovedBy'],
                 CreatorId=args['CreatorId'],
-                CreateDate=datetime.utcnow(),
+                CreateDate=datetime.utcnow() + timedelta(hours=5),
                 ScheduledAllowance_Taxable=args['ScheduledAllowance_Taxable']
             )
             db.session.add(scheduled_allowance)
@@ -3682,7 +3680,7 @@ class ScheduledAllowanceResource(Resource):
             scheduled_allowance.ScheduledAllowance_EndDate = datetime.fromisoformat(args['ScheduledAllowance_EndDate'])
             scheduled_allowance.ScheduledAllowance_ApprovedBy = args['ScheduledAllowance_ApprovedBy']
             scheduled_allowance.UpdatorId = args['UpdatorId']
-            scheduled_allowance.UpdateDate = datetime.utcnow()
+            scheduled_allowance.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             scheduled_allowance.ScheduledAllowance_Taxable = args['ScheduledAllowance_Taxable']
 
             db.session.commit()
