@@ -491,7 +491,6 @@ class NewJoinerApprovalResource(Resource):
                 To=datetime.utcnow(),
                 EmployeeId=staff_id,
                 CreatedOn=datetime.utcnow(),
-                IsActive=True,
                 CreatedByUserId=get_jwt_identity(),
                 HouseRent=basic / 2,
                 MedicalAllowance=basic / 10,
@@ -1112,9 +1111,7 @@ class ScheduledDeductionResource(Resource):
         parser.add_argument('ScheduledDeduction_EndDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help="End Date is required and must be in ISO format")
         parser.add_argument('ScheduledDeduction_ApprovedBy', type=int, required=True, help="Approved By is required")
         parser.add_argument('CreatorId', type=int, required=True, help="Creator ID is required")
-        parser.add_argument('UpdatorId', type=int, required=False)
-        parser.add_argument('UpdateDate', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('InActive', type=bool, required=True, help="Inactive status is required")
+        
         args = parser.parse_args()
 
         new_deduction = ScheduledDeduction(
@@ -1125,9 +1122,7 @@ class ScheduledDeductionResource(Resource):
             ScheduledDeduction_EndDate=args['ScheduledDeduction_EndDate'],
             ScheduledDeduction_ApprovedBy=args['ScheduledDeduction_ApprovedBy'],
             CreatorId=args['CreatorId'],
-            UpdatorId=args.get('UpdatorId'),
-            UpdateDate=args.get('UpdateDate'),
-            InActive=args['InActive']
+            CreateDate = datetime.utcnow() + timedelta(hours=5)
         )
 
         try:
@@ -1290,7 +1285,7 @@ class IARResource(Resource):
                 Status_Check=args['Status_Check'],
                 Remarks=args['Remarks'],
                 CreatorId=args.get('CreatorId'),
-                CreatedDate=datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S') if args['CreatedDate'] else datetime.utcnow()
+                CreatedDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_iar)
             db.session.commit()
@@ -1800,9 +1795,6 @@ class EmailStorageSystemResource(Resource):
         parser.add_argument('Email_Body', type=str, required=False)
         parser.add_argument('Status', type=bool, required=False)
         parser.add_argument('CreatorId', type=int, required=False)
-        parser.add_argument('CreatedDate', type=str, required=False)
-        parser.add_argument('UpdatorId', type=int, required=False)
-        parser.add_argument('UpdatedDate', type=str, required=False)
         parser.add_argument('EmailType', type=int, required=False)
         args = parser.parse_args()
 
@@ -1813,9 +1805,7 @@ class EmailStorageSystemResource(Resource):
                 Email_Body=args['Email_Body'],
                 Status=args['Status'],
                 CreatorId=args.get('CreatorId'),
-                CreatedDate=datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S') if args['CreatedDate'] else datetime.utcnow(),
-                UpdatorId=args.get('UpdatorId'),
-                UpdatedDate=datetime.strptime(args['UpdatedDate'], '%Y-%m-%d %H:%M:%S') if args['UpdatedDate'] else None,
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
                 EmailType=args.get('EmailType')
             )
             db.session.add(new_email)
@@ -1882,7 +1872,7 @@ class EmailStorageSystemResource(Resource):
             abort(400, message=f"Error deleting EmailStorageSystem: {str(e)}")
 
 class AvailableJobsResource(Resource):
-    @jwt_required()
+    
     def get(self, id=None):
         
         try:
@@ -1953,7 +1943,6 @@ class AvailableJobsResource(Resource):
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
-    @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('job_Title', type=str, required=True, help="Job Title is required")
@@ -1961,9 +1950,6 @@ class AvailableJobsResource(Resource):
         parser.add_argument('job_PostedBy', type=int, required=False)
         parser.add_argument('job_Status', type=bool, required=False)
         parser.add_argument('creatorId', type=int, required=False)
-        parser.add_argument('createdDate', type=str, required=False)
-        parser.add_argument('updatorId', type=int, required=False)
-        parser.add_argument('updatedDate', type=str, required=False)
         args = parser.parse_args()
 
         try:
@@ -1973,9 +1959,7 @@ class AvailableJobsResource(Resource):
                 job_PostedBy=args.get('job_PostedBy'),
                 job_Status=args.get('job_Status'),
                 creatorId=args.get('creatorId'),
-                createdDate=datetime.strptime(args['createdDate'], '%Y-%m-%d %H:%M:%S') if args['createdDate'] else datetime.utcnow(),
-                updatorId=args.get('updatorId'),
-                updatedDate=datetime.strptime(args['updatedDate'], '%Y-%m-%d %H:%M:%S') if args['updatedDate'] else None
+                createdDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_job)
             db.session.commit()
@@ -2111,7 +2095,6 @@ class StaffInfoResource(Resource):
         parser.add_argument('S_Village', type=str)
         parser.add_argument('Designation_ID', type=int, required=True, help='Designation ID is required')
         parser.add_argument('Grade_ID', type=int)
-        parser.add_argument('IsActive', type=bool, required=True, help='IsActive is required')
         parser.add_argument('IsNonTeacher', type=bool, required=True, help='IsNonTeacher is required')
         parser.add_argument('S_Salary', type=float)
         parser.add_argument('UpdaterId', type=int)
@@ -2196,7 +2179,6 @@ class StaffInfoResource(Resource):
                 S_Village=args['S_Village'],
                 Designation_ID=args['Designation_ID'],
                 Grade_ID=args['Grade_ID'],
-                IsActive=args['IsActive'],
                 IsNonTeacher=args['IsNonTeacher'],
                 S_Salary=args['S_Salary'],
                 UpdaterId=args['UpdaterId'],
@@ -3085,7 +3067,6 @@ class SalaryResource(Resource):
         parser.add_argument('CreatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=True, help='CreatedOn date is required')
         parser.add_argument('UpdatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), help='UpdatedOn date is optional')
         parser.add_argument('InActiveOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), help='InActiveOn date is optional')
-        parser.add_argument('IsActive', type=bool, required=True, help='IsActive is required')
         parser.add_argument('CreatedByUserId', type=int, required=True, help='CreatedByUserId is required')
         parser.add_argument('UpdatedByUserId', type=int, help='UpdatedByUserId is optional')
         parser.add_argument('InActiveByUserId', type=int, help='InActiveByUserId is optional')
@@ -3126,7 +3107,6 @@ class SalaryResource(Resource):
                 CreatedOn=args['CreatedOn'],
                 UpdatedOn=args.get('UpdatedOn'),
                 InActiveOn=args.get('InActiveOn'),
-                IsActive=args['IsActive'],
                 CreatedByUserId=args['CreatedByUserId'],
                 UpdatedByUserId=args.get('UpdatedByUserId'),
                 InActiveByUserId=args.get('InActiveByUserId'),
