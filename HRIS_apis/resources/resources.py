@@ -1631,7 +1631,7 @@ class EmailTypesResource(Resource):
             ]
             
             if id is None:
-                query = EmailTypes.query.order_by(EmailTypes.id)
+                query = EmailTypes.query.order_by(EmailTypes.Id)
                 total = query.count()
 
                 # Apply pagination
@@ -1738,20 +1738,20 @@ class EmailStorageSystemResource(Resource):
                 raise {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
 
             columns = [
-                {"field":"email_Id", "headerName": "", "width": width},
-                {"field":"email_Title", "headerName": "", "width": width},
-                {"field":"email_Subject", "headerName": "", "width": width},
-                {"field":"email_Body", "headerName": "", "width": width},
-                {"field":"status", "headerName": "", "width": width},
-                {"field":"creatorId", "headerName": "", "width": width},
-                {"field":"createdDate", "headerName": "", "width": width},
-                {"field":"updatorId", "headerName": "", "width": width},
-                {"field":"updatedDate", "headerName": "", "width": width},
-                {"field":"emailType", "headerName": "", "width": width}
+                {"field":"Email_Id", "headerName": "", "width": width},
+                {"field":"Email_Title", "headerName": "", "width": width},
+                {"field":"Email_Subject", "headerName": "", "width": width},
+                {"field":"Email_Body", "headerName": "", "width": width},
+                {"field":"Status", "headerName": "", "width": width},
+                {"field":"CreatorId", "headerName": "", "width": width},
+                {"field":"CreatedDate", "headerName": "", "width": width},
+                {"field":"UpdatorId", "headerName": "", "width": width},
+                {"field":"UpdatedDate", "headerName": "", "width": width},
+                {"field":"EmailType", "headerName": "", "width": width}
             ]
             if id is None:
                 
-                query = EmailStorageSystem.query.order_by(EmailStorageSystem.email_Id)
+                query = EmailStorageSystem.query.order_by(EmailStorageSystem.Email_Id)
                 total = query.count()
 
                 # Apply pagination
@@ -1807,7 +1807,7 @@ class EmailStorageSystemResource(Resource):
             )
             db.session.add(new_email)
             db.session.commit()
-            return {"message": "EmailStorageSystem created", "Email_Id": new_email.email_Id}, 201
+            return {"message": "EmailStorageSystem created", "Email_Id": new_email.Email_Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating EmailStorageSystem: {str(e)}")
@@ -4115,7 +4115,70 @@ class PayrollCloseResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+class EmailSendingResource(Resource):
+    
+    def generate_dynamic_email(self, template, **kwargs):
+        """
+        Generates an email by replacing placeholders in the template with actual values.
 
+        :param template: The email template with placeholders.
+        :param kwargs: The key-value pairs to replace in the template.
+        :return: The formatted email string.
+        """
+        return template.format(**kwargs)
+
+    def get_email_template(self, id):
+        email = EmailStorageSystem.query.get(id)
+        if email is None:
+            abort(404, message=f"EmailStorageSystem {id} doesn't exist")
+        
+        return email.Email_Body
+
+    # def get_email_template(self, template_name):
+    #     templates = {
+    #         "application_received": (
+    #             "Dear {candidate_name},\n"
+    #             "Thank you for applying for {position_title} at Alpha Education Network. "
+    #             "We appreciate your interest in joining our team. Your application has been received and is currently under review by our recruitment team.\n"
+    #             "If your qualifications meet our criteria and the position is still available, we will reach out to you regarding the next steps in the process.\n"
+    #             "Best regards,\n"
+    #             "Human Resources Department\n"
+    #             "Alpha Education Network"
+    #         ),
+    #         "interview_invitation": (
+    #             "Hello {candidate_name},\n"
+    #             "We are pleased to invite you for an interview for the {position_title} position at {company_name}. "
+    #             "The interview is scheduled for {interview_date} at {interview_time}.\n"
+    #             "Best regards,\n"
+    #             "Recruitment Team\n"
+    #             "{company_name}"
+    #         ),
+    #         # Add more templates as needed
+    #     }
+    #     return templates.get(template_name)
+
+    def post(self):
+        data = request.get_json()
+        template_id = data.get('template_id')
+        parameters = data.get('parameters', {})
+
+        if not template_id or not parameters:
+            return {"error": "template_id and parameters are required"}, 400
+
+        template = self.get_email_template(template_id)
+        if not template:
+            return {"error": "Template not found"}, 404
+
+        try:
+            email_content = self.generate_dynamic_email(template, **parameters)
+        except KeyError as e:
+            return {"error": f"Missing parameter: {e}"}, 400
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {e}"}, 500
+
+        return {"email_content": email_content}
+        
+        
 
 
 

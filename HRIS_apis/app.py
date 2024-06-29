@@ -3,9 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 import os
 from dotenv import load_dotenv 
-from datetime import datetime, date
-import json
 from flask_cors import CORS
+from flask_mail import Mail, Message
 
 load_dotenv() 
 
@@ -20,6 +19,17 @@ def create_app():
     jwt = JWTManager(app)
     
     CORS(app)
+    
+    # Configuration for Flask-Mail
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')  # Your Gmail address
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')  # Your Gmail password or App Password
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
+    
+    
     db.init_app(app)
     
     from routes.routes import register_routes
