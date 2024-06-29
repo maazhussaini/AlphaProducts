@@ -4040,7 +4040,80 @@ class SalaryTransferDetailsResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+class PayrollCloseResource(Resource):
+    def get(self, payroll_close_id=None):
+        if payroll_close_id:
+            payroll_close = PayrollClose.query.get(payroll_close_id)
+            if payroll_close:
+                return jsonify(payroll_close.to_dict())
+            else:
+                return {'error': 'PayrollClose not found'}, 404
+        else:
+            payroll_closes = PayrollClose.query.all()
+            return jsonify([pc.to_dict() for pc in payroll_closes])
 
+    def post(self):
+        data = request.get_json()
+        try:
+            new_payroll_close = PayrollClose(
+                PayrollClose_StaffId=data['PayrollClose_StaffId'],
+                PayrollClose_Period=data['PayrollClose_Period'],
+                PayrollClose_CloseDate=datetime.strptime(data['PayrollClose_CloseDate'], '%Y-%m-%dT%H:%M:%S') if data.get('PayrollClose_CloseDate') else None,
+                PayrollClose_ProcessedBy=data['PayrollClose_ProcessedBy'],
+                PayrollClose_ReceivedBy=data['PayrollClose_ReceivedBy'],
+                PayrollClose_ApprovedBy=data['PayrollClose_ApprovedBy'],
+                PayrollClose_Remarks=data['PayrollClose_Remarks'],
+                CreatedBy=data['CreatedBy'],
+                CreatedDate=datetime.utcnow(),
+                UpdatedBy=data.get('UpdatedBy'),
+                UpdatedDate=datetime.strptime(data['UpdatedDate'], '%Y-%m-%dT%H:%M:%S') if data.get('UpdatedDate') else None,
+                InActive=data['InActive']
+            )
+            db.session.add(new_payroll_close)
+            db.session.commit()
+            return jsonify(new_payroll_close.to_dict()), 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def put(self, payroll_close_id):
+        data = request.get_json()
+        try:
+            payroll_close = PayrollClose.query.get(payroll_close_id)
+            if payroll_close:
+                payroll_close.PayrollClose_StaffId = data.get('PayrollClose_StaffId', payroll_close.PayrollClose_StaffId)
+                payroll_close.PayrollClose_Period = data.get('PayrollClose_Period', payroll_close.PayrollClose_Period)
+                payroll_close.PayrollClose_CloseDate = datetime.strptime(data['PayrollClose_CloseDate'], '%Y-%m-%dT%H:%M:%S') if data.get('PayrollClose_CloseDate') else payroll_close.PayrollClose_CloseDate
+                payroll_close.PayrollClose_ProcessedBy = data.get('PayrollClose_ProcessedBy', payroll_close.PayrollClose_ProcessedBy)
+                payroll_close.PayrollClose_ReceivedBy = data.get('PayrollClose_ReceivedBy', payroll_close.PayrollClose_ReceivedBy)
+                payroll_close.PayrollClose_ApprovedBy = data.get('PayrollClose_ApprovedBy', payroll_close.PayrollClose_ApprovedBy)
+                payroll_close.PayrollClose_Remarks = data.get('PayrollClose_Remarks', payroll_close.PayrollClose_Remarks)
+                payroll_close.CreatedBy = data.get('CreatedBy', payroll_close.CreatedBy)
+                payroll_close.CreatedDate = payroll_close.CreatedDate
+                payroll_close.UpdatedBy = data.get('UpdatedBy', payroll_close.UpdatedBy)
+                payroll_close.UpdatedDate = datetime.utcnow()
+                payroll_close.InActive = data.get('InActive', payroll_close.InActive)
+
+                db.session.commit()
+                return jsonify(payroll_close.to_dict()), 200
+            else:
+                return {'error': 'PayrollClose not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def delete(self, payroll_close_id):
+        try:
+            payroll_close = PayrollClose.query.get(payroll_close_id)
+            if payroll_close:
+                db.session.delete(payroll_close)
+                db.session.commit()
+                return {'message': 'PayrollClose deleted successfully'}, 200
+            else:
+                return {'error': 'PayrollClose not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
 
 
 
