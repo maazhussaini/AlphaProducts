@@ -1243,7 +1243,42 @@ class StaffSeparation(db.Model):
             'InActive': self.InActive
         }
 
+class SalaryTransferDetails(db.Model):
+    __tablename__ = 'SalaryTransferDetails'
+    SalaryTransferDetails_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SalaryTransferDetails_StaffId = db.Column(db.Integer, nullable=False)
+    SalaryTransferDetails_TransferMethod = db.Column(db.String(20), nullable=False)
+    SalaryTransferDetails_BankName = db.Column(db.String(200))
+    SalaryTransferDetails_BankAccountNumber = db.Column(db.String(200))
+    SalaryTransferDetails_BankBranch = db.Column(db.String(200))
+    SalaryTransferDetails_BankOrChequeTitle = db.Column(db.String(200), nullable=False)
+    SalaryTransferDetails_ReasonForChequeIssuance = db.Column(db.String(200))
+    SalaryTransferDetails_EffectiveDate = db.Column(db.DateTime, nullable=False)
+    SalaryTransferDetails_Remarks = db.Column(db.String(200), nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
 
+    def to_dict(self):
+        return {
+            'SalaryTransferDetails_Id': self.SalaryTransferDetails_Id,
+            'SalaryTransferDetails_StaffId': self.SalaryTransferDetails_StaffId,
+            'SalaryTransferDetails_TransferMethod': self.SalaryTransferDetails_TransferMethod,
+            'SalaryTransferDetails_BankName': self.SalaryTransferDetails_BankName,
+            'SalaryTransferDetails_BankAccountNumber': self.SalaryTransferDetails_BankAccountNumber,
+            'SalaryTransferDetails_BankBranch': self.SalaryTransferDetails_BankBranch,
+            'SalaryTransferDetails_BankOrChequeTitle': self.SalaryTransferDetails_BankOrChequeTitle,
+            'SalaryTransferDetails_ReasonForChequeIssuance': self.SalaryTransferDetails_ReasonForChequeIssuance,
+            'SalaryTransferDetails_EffectiveDate': self.SalaryTransferDetails_EffectiveDate.isoformat() if self.SalaryTransferDetails_EffectiveDate else None,
+            'SalaryTransferDetails_Remarks': self.SalaryTransferDetails_Remarks,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
 
 
 

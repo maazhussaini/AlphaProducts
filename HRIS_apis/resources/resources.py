@@ -1,11 +1,5 @@
 from flask_restful import Resource, reqparse, abort
-from models.models import (
-    JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
-    ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
-    StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType, Salaries, MarkDayOffDeps,
-    MarkDayOffHRs, AllowanceHead, OneTimeAllowance, ScheduledAllowance, StaffIncrement, StaffPromotions,
-    StaffSeparation
-)
+from models.models import *
 from datetime import datetime, date, timedelta
 from app import db
 from flask import jsonify, request
@@ -3967,6 +3961,84 @@ class StaffSeparationResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+class SalaryTransferDetailsResource(Resource):
+    def get(self, transfer_id=None):
+        if transfer_id:
+            transfer = SalaryTransferDetails.query.get(transfer_id)
+            if transfer:
+                return jsonify(transfer.to_dict())
+            else:
+                return {'error': 'SalaryTransferDetails not found'}, 404
+        else:
+            transfers = SalaryTransferDetails.query.all()
+            return jsonify([t.to_dict() for t in transfers])
+
+    def post(self):
+        data = request.get_json()
+        try:
+            new_transfer = SalaryTransferDetails(
+                SalaryTransferDetails_StaffId=data['SalaryTransferDetails_StaffId'],
+                SalaryTransferDetails_TransferMethod=data['SalaryTransferDetails_TransferMethod'],
+                SalaryTransferDetails_BankName=data.get('SalaryTransferDetails_BankName'),
+                SalaryTransferDetails_BankAccountNumber=data.get('SalaryTransferDetails_BankAccountNumber'),
+                SalaryTransferDetails_BankBranch=data.get('SalaryTransferDetails_BankBranch'),
+                SalaryTransferDetails_BankOrChequeTitle=data['SalaryTransferDetails_BankOrChequeTitle'],
+                SalaryTransferDetails_ReasonForChequeIssuance=data.get('SalaryTransferDetails_ReasonForChequeIssuance'),
+                SalaryTransferDetails_EffectiveDate=datetime.strptime(data['SalaryTransferDetails_EffectiveDate'], '%Y-%m-%dT%H:%M:%S') if data.get('SalaryTransferDetails_EffectiveDate') else None,
+                SalaryTransferDetails_Remarks=data['SalaryTransferDetails_Remarks'],
+                CreatedBy=data['CreatedBy'],
+                CreatedDate=datetime.utcnow(),
+                UpdatedBy=data.get('UpdatedBy'),
+                UpdatedDate=datetime.strptime(data['UpdatedDate'], '%Y-%m-%dT%H:%M:%S') if data.get('UpdatedDate') else None,
+                InActive=0
+            )
+            db.session.add(new_transfer)
+            db.session.commit()
+            return jsonify(new_transfer.to_dict()), 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def put(self, transfer_id):
+        data = request.get_json()
+        try:
+            transfer = SalaryTransferDetails.query.get(transfer_id)
+            if transfer:
+                transfer.SalaryTransferDetails_StaffId = data.get('SalaryTransferDetails_StaffId', transfer.SalaryTransferDetails_StaffId)
+                transfer.SalaryTransferDetails_TransferMethod = data.get('SalaryTransferDetails_TransferMethod', transfer.SalaryTransferDetails_TransferMethod)
+                transfer.SalaryTransferDetails_BankName = data.get('SalaryTransferDetails_BankName', transfer.SalaryTransferDetails_BankName)
+                transfer.SalaryTransferDetails_BankAccountNumber = data.get('SalaryTransferDetails_BankAccountNumber', transfer.SalaryTransferDetails_BankAccountNumber)
+                transfer.SalaryTransferDetails_BankBranch = data.get('SalaryTransferDetails_BankBranch', transfer.SalaryTransferDetails_BankBranch)
+                transfer.SalaryTransferDetails_BankOrChequeTitle = data.get('SalaryTransferDetails_BankOrChequeTitle', transfer.SalaryTransferDetails_BankOrChequeTitle)
+                transfer.SalaryTransferDetails_ReasonForChequeIssuance = data.get('SalaryTransferDetails_ReasonForChequeIssuance', transfer.SalaryTransferDetails_ReasonForChequeIssuance)
+                transfer.SalaryTransferDetails_EffectiveDate = datetime.strptime(data['SalaryTransferDetails_EffectiveDate'], '%Y-%m-%dT%H:%M:%S') if data.get('SalaryTransferDetails_EffectiveDate') else transfer.SalaryTransferDetails_EffectiveDate
+                transfer.SalaryTransferDetails_Remarks = data.get('SalaryTransferDetails_Remarks', transfer.SalaryTransferDetails_Remarks)
+                transfer.CreatedBy = data.get('CreatedBy', transfer.CreatedBy)
+                transfer.CreatedDate = transfer.CreatedDate
+                transfer.UpdatedBy = data.get('UpdatedBy', transfer.UpdatedBy)
+                transfer.UpdatedDate = datetime.utcnow() + timedelta(hours=5)
+                transfer.InActive = data.get('InActive', transfer.InActive)
+
+                db.session.commit()
+                return jsonify(transfer.to_dict()), 200
+            else:
+                return {'error': 'SalaryTransferDetails not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def delete(self, transfer_id):
+        try:
+            transfer = SalaryTransferDetails.query.get(transfer_id)
+            if transfer:
+                db.session.delete(transfer)
+                db.session.commit()
+                return {'message': 'SalaryTransferDetails deleted successfully'}, 200
+            else:
+                return {'error': 'SalaryTransferDetails not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
 
 
 
