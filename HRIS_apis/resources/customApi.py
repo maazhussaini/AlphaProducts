@@ -277,3 +277,29 @@ class DynamicInsertOrUpdateResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+class DynamicDeleteResource(Resource):
+    def delete(self, id):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        
+        if not table_name:
+            return {'error': 'Table Name are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'error': f'Table {table_name} does not exist'}, 400
+        
+        try:
+            record = db.session.query(model_class).get(id)
+            record.InActive = 1
+            
+            db.session.commit()
+            return {'message': 'StaffPromotions deleted successfully'}, 200
+    
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500

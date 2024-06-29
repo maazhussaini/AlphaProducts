@@ -5,7 +5,7 @@ from resources.resources import (
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
     StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
-    ScheduledAllowanceResource
+    ScheduledAllowanceResource, StaffIncrementResource
 )
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
@@ -19,6 +19,13 @@ def register_routes(app):
     app.register_blueprint(api_bp, url_prefix='/api')
     
     api.add_resource(UserLoginResource, '/login')  # Register the authentication resource
+    
+    ## Dynamic APIs
+    api.add_resource(CallProcedureResource, '/callProcedure')
+    api.add_resource(DynamicGetResource, '/dynamicGet', '/dynamicGet/<int:id>')
+    api.add_resource(DynamicPostResource, '/dynamicPost')
+    api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
+    api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
     
     api.add_resource(JobApplicationFormResource, '/job_application_forms', '/job_application_forms/<int:id>')
     api.add_resource(NewJoinerApprovalResource, '/new_joiner_approvals', '/new_joiner_approvals/<int:id>')
@@ -48,10 +55,7 @@ def register_routes(app):
     api.add_resource(OneTimeAllowanceResource, '/oneTimeAllowance', '/oneTimeAllowance/<int:id>')
     api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')
     
-    ## Dynamic APIs
-    api.add_resource(CallProcedureResource, '/callProcedure')
-    api.add_resource(DynamicGetResource, '/dynamicGet', '/dynamicGet/<int:id>')
-    api.add_resource(DynamicPostResource, '/dynamicPost')
-    api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
-    api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
+    
+    api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
+    
     

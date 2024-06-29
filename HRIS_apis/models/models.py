@@ -1112,3 +1112,133 @@ class ScheduledAllowance(db.Model):
             "ScheduledAllowance_Taxable": self.ScheduledAllowance_Taxable
         }
 
+class StaffIncrement(db.Model):
+    __tablename__ = 'StaffIncrement'
+    StaffIncrement_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffIncrement_StaffId = db.Column(db.Integer, nullable=False)
+    StaffIncrement_CurrentSalary = db.Column(db.Float, nullable=False)
+    StaffIncrement_Date = db.Column(db.DateTime, nullable=False)
+    StaffIncrement_Reason = db.Column(db.String(20), nullable=False)
+    StaffIncrement_Others = db.Column(db.String(200))
+    StaffIncrement_NewSalary = db.Column(db.Float, nullable=False)
+    StaffIncrement_PercentageIncrease = db.Column(db.Integer, nullable=False)
+    StaffIncrement_InitiatedBy = db.Column(db.Integer, nullable=False)
+    StaffIncrement_Approval = db.Column(db.Integer, nullable=False)
+    StaffIncrement_Remarks = db.Column(db.String(200), nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffIncrement_Id': self.StaffIncrement_Id,
+            'StaffIncrement_StaffId': self.StaffIncrement_StaffId,
+            'StaffIncrement_CurrentSalary': self.StaffIncrement_CurrentSalary,
+            'StaffIncrement_Date': self.StaffIncrement_Date.isoformat(),
+            'StaffIncrement_Reason': self.StaffIncrement_Reason,
+            'StaffIncrement_Others': self.StaffIncrement_Others,
+            'StaffIncrement_NewSalary': self.StaffIncrement_NewSalary,
+            'StaffIncrement_PercentageIncrease': self.StaffIncrement_PercentageIncrease,
+            'StaffIncrement_InitiatedBy': self.StaffIncrement_InitiatedBy,
+            'StaffIncrement_Approval': self.StaffIncrement_Approval,
+            'StaffIncrement_Remarks': self.StaffIncrement_Remarks,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class StaffPromotions(db.Model):
+    __tablename__ = 'StaffPromotions'
+    StaffPromotion_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffPromotion_StaffId = db.Column(db.Integer, nullable=False)
+    StaffPromotion_SalaryHold = db.Column(db.Boolean, nullable=False)
+    StaffPromotion_NewDesignationId = db.Column(db.Integer, nullable=False)
+    StaffPromotion_NewDepartmentId = db.Column(db.Integer, nullable=False)
+    StaffPromotion_Date = db.Column(db.DateTime, nullable=False)
+    StaffPromotion_Reason = db.Column(db.String(100), nullable=False)
+    StaffPromotion_InitiatedBy = db.Column(db.Integer, nullable=False)
+    StaffPromotion_ApprovedBy = db.Column(db.Integer, nullable=False)
+    StaffPromotion_NewSalary = db.Column(db.Float, nullable=False)
+    StaffPromotion_NewSalaryEffectiveDate = db.Column(db.DateTime, nullable=False)
+    StaffPromotion_Remarks = db.Column(db.String(200), nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffPromotion_Id': self.StaffPromotion_Id,
+            'StaffPromotion_StaffId': self.StaffPromotion_StaffId,
+            'StaffPromotion_SalaryHold': self.StaffPromotion_SalaryHold,
+            'StaffPromotion_NewDesignationId': self.StaffPromotion_NewDesignationId,
+            'StaffPromotion_NewDepartmentId': self.StaffPromotion_NewDepartmentId,
+            'StaffPromotion_Date': self.StaffPromotion_Date.isoformat() if self.StaffPromotion_Date else None,
+            'StaffPromotion_Reason': self.StaffPromotion_Reason,
+            'StaffPromotion_InitiatedBy': self.StaffPromotion_InitiatedBy,
+            'StaffPromotion_ApprovedBy': self.StaffPromotion_ApprovedBy,
+            'StaffPromotion_NewSalary': self.StaffPromotion_NewSalary,
+            'StaffPromotion_NewSalaryEffectiveDate': self.StaffPromotion_NewSalaryEffectiveDate.isoformat() if self.StaffPromotion_NewSalaryEffectiveDate else None,
+            'StaffPromotion_Remarks': self.StaffPromotion_Remarks,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class StaffSeparation(db.Model):
+    __tablename__ = 'StaffSeparation'
+    StaffSeparation_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffSeparation_StaffId = db.Column(db.Integer, nullable=False)
+    StaffSeparation_Type = db.Column(db.String(50), nullable=False)
+    StaffSeparation_Reason = db.Column(db.String(20), nullable=False)
+    StaffSeparation_Details = db.Column(db.String(200), nullable=False)
+    StaffSeparation_ReleventDocumentReceived = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_ResignationDate = db.Column(db.DateTime, nullable=False)
+    StaffSeparation_LastWorkingDate = db.Column(db.DateTime, nullable=False)
+    StaffSeparation_NoticePeriod = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_ResignationApproved = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_SalaryHoldMonth = db.Column(db.String(20), nullable=False)
+    StaffSeparation_ClearanceDone = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_ClearanceDate = db.Column(db.DateTime)
+    StaffSeparation_ExitInterview = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_ExitInterviewDate = db.Column(db.DateTime)
+    StaffSeparation_FinalSettlementDone = db.Column(db.Boolean, nullable=False)
+    StaffSeparation_FinalSettlementDate = db.Column(db.DateTime)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffSeparation_Id': self.StaffSeparation_Id,
+            'StaffSeparation_StaffId': self.StaffSeparation_StaffId,
+            'StaffSeparation_Type': self.StaffSeparation_Type,
+            'StaffSeparation_Reason': self.StaffSeparation_Reason,
+            'StaffSeparation_Details': self.StaffSeparation_Details,
+            'StaffSeparation_ReleventDocumentReceived': self.StaffSeparation_ReleventDocumentReceived,
+            'StaffSeparation_ResignationDate': self.StaffSeparation_ResignationDate.isoformat() if self.StaffSeparation_ResignationDate else None,
+            'StaffSeparation_LastWorkingDate': self.StaffSeparation_LastWorkingDate.isoformat() if self.StaffSeparation_LastWorkingDate else None,
+            'StaffSeparation_NoticePeriod': self.StaffSeparation_NoticePeriod,
+            'StaffSeparation_ResignationApproved': self.StaffSeparation_ResignationApproved,
+            'StaffSeparation_SalaryHoldMonth': self.StaffSeparation_SalaryHoldMonth,
+            'StaffSeparation_ClearanceDone': self.StaffSeparation_ClearanceDone,
+            'StaffSeparation_ClearanceDate': self.StaffSeparation_ClearanceDate.isoformat() if self.StaffSeparation_ClearanceDate else None,
+            'StaffSeparation_ExitInterview': self.StaffSeparation_ExitInterview,
+            'StaffSeparation_ExitInterviewDate': self.StaffSeparation_ExitInterviewDate.isoformat() if self.StaffSeparation_ExitInterviewDate else None,
+            'StaffSeparation_FinalSettlementDone': self.StaffSeparation_FinalSettlementDone,
+            'StaffSeparation_FinalSettlementDate': self.StaffSeparation_FinalSettlementDate.isoformat() if self.StaffSeparation_FinalSettlementDate else None,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }

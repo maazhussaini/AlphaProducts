@@ -3,7 +3,8 @@ from models.models import (
     JobApplicationForm, NewJoinerApproval, InterviewSchedules, DeductionHead, OneTimeDeduction, 
     ScheduledDeduction, IAR, IAR_Remarks, IAR_Types, EmailTypes, EmailStorageSystem, AvailableJobs,
     StaffInfo, StaffDepartment, StaffTransfer, StaffShift, UserCampus, Users, UserType, Salaries, MarkDayOffDeps,
-    MarkDayOffHRs, AllowanceHead, OneTimeAllowance, ScheduledAllowance
+    MarkDayOffHRs, AllowanceHead, OneTimeAllowance, ScheduledAllowance, StaffIncrement, StaffPromotions,
+    StaffSeparation
 )
 from datetime import datetime, date, timedelta
 from app import db
@@ -3714,3 +3715,163 @@ class ScheduledAllowanceResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class StaffIncrementResource(Resource):
+    def get(self, staff_increment_id=None):
+        if staff_increment_id:
+            staff_increment = StaffIncrement.query.get(staff_increment_id)
+            if staff_increment:
+                return jsonify(staff_increment.to_dict())
+            else:
+                return {'error': 'StaffIncrement not found'}, 404
+        else:
+            staff_increments = StaffIncrement.query.all()
+            return jsonify([si.to_dict() for si in staff_increments])
+
+    def post(self):
+        data = request.get_json()
+        try:
+            new_staff_increment = StaffIncrement(
+                StaffIncrement_StaffId=data['StaffIncrement_StaffId'],
+                StaffIncrement_CurrentSalary=data['StaffIncrement_CurrentSalary'],
+                StaffIncrement_Date=datetime.strptime(data['StaffIncrement_Date'], '%Y-%m-%dT%H:%M:%S'),
+                StaffIncrement_Reason=data['StaffIncrement_Reason'],
+                StaffIncrement_Others=data.get('StaffIncrement_Others'),
+                StaffIncrement_NewSalary=data['StaffIncrement_NewSalary'],
+                StaffIncrement_PercentageIncrease=data['StaffIncrement_PercentageIncrease'],
+                StaffIncrement_InitiatedBy=data['StaffIncrement_InitiatedBy'],
+                StaffIncrement_Approval=data['StaffIncrement_Approval'],
+                StaffIncrement_Remarks=data['StaffIncrement_Remarks'],
+                CreatedBy=data['CreatedBy'],
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                InActive=0
+            )
+            db.session.add(new_staff_increment)
+            db.session.commit()
+            return jsonify(new_staff_increment.to_dict()), 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def put(self, staff_increment_id):
+        data = request.get_json()
+        try:
+            staff_increment = StaffIncrement.query.get(staff_increment_id)
+            if staff_increment:
+                staff_increment.StaffIncrement_StaffId = data.get('StaffIncrement_StaffId', staff_increment.StaffIncrement_StaffId)
+                staff_increment.StaffIncrement_CurrentSalary = data.get('StaffIncrement_CurrentSalary', staff_increment.StaffIncrement_CurrentSalary)
+                staff_increment.StaffIncrement_Date = datetime.strptime(data['StaffIncrement_Date'], '%Y-%m-%dT%H:%M:%S') if 'StaffIncrement_Date' in data else staff_increment.StaffIncrement_Date
+                staff_increment.StaffIncrement_Reason = data.get('StaffIncrement_Reason', staff_increment.StaffIncrement_Reason)
+                staff_increment.StaffIncrement_Others = data.get('StaffIncrement_Others', staff_increment.StaffIncrement_Others)
+                staff_increment.StaffIncrement_NewSalary = data.get('StaffIncrement_NewSalary', staff_increment.StaffIncrement_NewSalary)
+                staff_increment.StaffIncrement_PercentageIncrease = data.get('StaffIncrement_PercentageIncrease', staff_increment.StaffIncrement_PercentageIncrease)
+                staff_increment.StaffIncrement_InitiatedBy = data.get('StaffIncrement_InitiatedBy', staff_increment.StaffIncrement_InitiatedBy)
+                staff_increment.StaffIncrement_Approval = data.get('StaffIncrement_Approval', staff_increment.StaffIncrement_Approval)
+                staff_increment.StaffIncrement_Remarks = data.get('StaffIncrement_Remarks', staff_increment.StaffIncrement_Remarks)
+                staff_increment.UpdatedBy = data.get('UpdatedBy', staff_increment.UpdatedBy)
+                staff_increment.UpdatedDate = datetime.utcnow() + timedelta(hours=5)
+                staff_increment.InActive = data.get('InActive', staff_increment.InActive)
+                
+                db.session.commit()
+                return jsonify(staff_increment.to_dict()), 200
+            else:
+                return {'error': 'StaffIncrement not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def delete(self, staff_increment_id):
+        try:
+            staff_increment = StaffIncrement.query.get(staff_increment_id)
+            if staff_increment:
+                db.session.delete(staff_increment)
+                db.session.commit()
+                return {'message': 'StaffIncrement deleted successfully'}, 200
+            else:
+                return {'error': 'StaffIncrement not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+class StaffPromotionResource(Resource):
+    def get(self, promotion_id=None):
+        if promotion_id:
+            promotion = StaffPromotions.query.get(promotion_id)
+            if promotion:
+                return jsonify(promotion.to_dict())
+            else:
+                return {'error': 'StaffPromotions not found'}, 404
+        else:
+            promotions = StaffPromotions.query.all()
+            return jsonify([p.to_dict() for p in promotions])
+
+    def post(self):
+        data = request.get_json()
+        try:
+            new_promotion = StaffPromotions(
+                StaffPromotion_StaffId=data['StaffPromotion_StaffId'],
+                StaffPromotion_SalaryHold=data['StaffPromotion_SalaryHold'],
+                StaffPromotion_NewDesignationId=data['StaffPromotion_NewDesignationId'],
+                StaffPromotion_NewDepartmentId=data['StaffPromotion_NewDepartmentId'],
+                StaffPromotion_Date=datetime.strptime(data['StaffPromotion_Date'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffPromotion_Date') else None,
+                StaffPromotion_Reason=data['StaffPromotion_Reason'],
+                StaffPromotion_InitiatedBy=data['StaffPromotion_InitiatedBy'],
+                StaffPromotion_ApprovedBy=data['StaffPromotion_ApprovedBy'],
+                StaffPromotion_NewSalary=data['StaffPromotion_NewSalary'],
+                StaffPromotion_NewSalaryEffectiveDate=datetime.strptime(data['StaffPromotion_NewSalaryEffectiveDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffPromotion_NewSalaryEffectiveDate') else None,
+                StaffPromotion_Remarks=data['StaffPromotion_Remarks'],
+                CreatedBy=data['CreatedBy'],
+                CreatedDate=datetime.utcnow(),
+                UpdatedBy=data.get('UpdatedBy'),
+                UpdatedDate=datetime.strptime(data['UpdatedDate'], '%Y-%m-%dT%H:%M:%S') if data.get('UpdatedDate') else None,
+                InActive=data['InActive']
+            )
+            db.session.add(new_promotion)
+            db.session.commit()
+            return jsonify(new_promotion.to_dict()), 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def put(self, promotion_id):
+        data = request.get_json()
+        try:
+            promotion = StaffPromotions.query.get(promotion_id)
+            if promotion:
+                promotion.StaffPromotion_StaffId = data.get('StaffPromotion_StaffId', promotion.StaffPromotion_StaffId)
+                promotion.StaffPromotion_SalaryHold = data.get('StaffPromotion_SalaryHold', promotion.StaffPromotion_SalaryHold)
+                promotion.StaffPromotion_NewDesignationId = data.get('StaffPromotion_NewDesignationId', promotion.StaffPromotion_NewDesignationId)
+                promotion.StaffPromotion_NewDepartmentId = data.get('StaffPromotion_NewDepartmentId', promotion.StaffPromotion_NewDepartmentId)
+                promotion.StaffPromotion_Date = datetime.strptime(data['StaffPromotion_Date'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffPromotion_Date') else promotion.StaffPromotion_Date
+                promotion.StaffPromotion_Reason = data.get('StaffPromotion_Reason', promotion.StaffPromotion_Reason)
+                promotion.StaffPromotion_InitiatedBy = data.get('StaffPromotion_InitiatedBy', promotion.StaffPromotion_InitiatedBy)
+                promotion.StaffPromotion_ApprovedBy = data.get('StaffPromotion_ApprovedBy', promotion.StaffPromotion_ApprovedBy)
+                promotion.StaffPromotion_NewSalary = data.get('StaffPromotion_NewSalary', promotion.StaffPromotion_NewSalary)
+                promotion.StaffPromotion_NewSalaryEffectiveDate = datetime.strptime(data['StaffPromotion_NewSalaryEffectiveDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffPromotion_NewSalaryEffectiveDate') else promotion.StaffPromotion_NewSalaryEffectiveDate
+                promotion.StaffPromotion_Remarks = data.get('StaffPromotion_Remarks', promotion.StaffPromotion_Remarks)
+                promotion.CreatedBy = data.get('CreatedBy', promotion.CreatedBy)
+                promotion.CreatedDate = promotion.CreatedDate
+                promotion.UpdatedBy = data.get('UpdatedBy', promotion.UpdatedBy)
+                promotion.UpdatedDate = datetime.utcnow()
+                promotion.InActive = data.get('InActive', promotion.InActive)
+
+                db.session.commit()
+                return jsonify(promotion.to_dict()), 200
+            else:
+                return {'error': 'StaffPromotions not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def delete(self, promotion_id):
+        try:
+            promotion = StaffPromotions.query.get(promotion_id)
+            if promotion:
+                db.session.delete(promotion)
+                db.session.commit()
+                return {'message': 'StaffPromotions deleted successfully'}, 200
+            else:
+                return {'error': 'StaffPromotions not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
