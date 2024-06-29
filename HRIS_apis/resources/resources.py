@@ -3966,3 +3966,14 @@ class StaffSeparationResource(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': str(e)}, 500
+
+
+
+
+
+
+
+
+
+
+
