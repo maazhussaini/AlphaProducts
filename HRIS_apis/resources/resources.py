@@ -3875,3 +3875,94 @@ class StaffPromotionResource(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': str(e)}, 500
+
+class StaffSeparationResource(Resource):
+    def get(self, separation_id=None):
+        if separation_id:
+            separation = StaffSeparation.query.get(separation_id)
+            if separation:
+                return jsonify(separation.to_dict())
+            else:
+                return {'error': 'StaffSeparation not found'}, 404
+        else:
+            separations = StaffSeparation.query.all()
+            return jsonify([s.to_dict() for s in separations])
+
+    def post(self):
+        data = request.get_json()
+        try:
+            new_separation = StaffSeparation(
+                StaffSeparation_StaffId=data['StaffSeparation_StaffId'],
+                StaffSeparation_Type=data['StaffSeparation_Type'],
+                StaffSeparation_Reason=data['StaffSeparation_Reason'],
+                StaffSeparation_Details=data['StaffSeparation_Details'],
+                StaffSeparation_ReleventDocumentReceived=data['StaffSeparation_ReleventDocumentReceived'],
+                StaffSeparation_ResignationDate=datetime.strptime(data['StaffSeparation_ResignationDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ResignationDate') else None,
+                StaffSeparation_LastWorkingDate=datetime.strptime(data['StaffSeparation_LastWorkingDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_LastWorkingDate') else None,
+                StaffSeparation_NoticePeriod=data['StaffSeparation_NoticePeriod'],
+                StaffSeparation_ResignationApproved=data['StaffSeparation_ResignationApproved'],
+                StaffSeparation_SalaryHoldMonth=data['StaffSeparation_SalaryHoldMonth'],
+                StaffSeparation_ClearanceDone=data['StaffSeparation_ClearanceDone'],
+                StaffSeparation_ClearanceDate=datetime.strptime(data['StaffSeparation_ClearanceDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ClearanceDate') else None,
+                StaffSeparation_ExitInterview=data['StaffSeparation_ExitInterview'],
+                StaffSeparation_ExitInterviewDate=datetime.strptime(data['StaffSeparation_ExitInterviewDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ExitInterviewDate') else None,
+                StaffSeparation_FinalSettlementDone=data['StaffSeparation_FinalSettlementDone'],
+                StaffSeparation_FinalSettlementDate=datetime.strptime(data['StaffSeparation_FinalSettlementDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_FinalSettlementDate') else None,
+                CreatedBy=data['CreatedBy'],
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                InActive=0
+            )
+            db.session.add(new_separation)
+            db.session.commit()
+            return jsonify(new_separation.to_dict()), 201
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def put(self, separation_id):
+        data = request.get_json()
+        try:
+            separation = StaffSeparation.query.get(separation_id)
+            if separation:
+                separation.StaffSeparation_StaffId = data.get('StaffSeparation_StaffId', separation.StaffSeparation_StaffId)
+                separation.StaffSeparation_Type = data.get('StaffSeparation_Type', separation.StaffSeparation_Type)
+                separation.StaffSeparation_Reason = data.get('StaffSeparation_Reason', separation.StaffSeparation_Reason)
+                separation.StaffSeparation_Details = data.get('StaffSeparation_Details', separation.StaffSeparation_Details)
+                separation.StaffSeparation_ReleventDocumentReceived = data.get('StaffSeparation_ReleventDocumentReceived', separation.StaffSeparation_ReleventDocumentReceived)
+                separation.StaffSeparation_ResignationDate = datetime.strptime(data['StaffSeparation_ResignationDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ResignationDate') else separation.StaffSeparation_ResignationDate
+                separation.StaffSeparation_LastWorkingDate = datetime.strptime(data['StaffSeparation_LastWorkingDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_LastWorkingDate') else separation.StaffSeparation_LastWorkingDate
+                separation.StaffSeparation_NoticePeriod = data.get('StaffSeparation_NoticePeriod', separation.StaffSeparation_NoticePeriod)
+                separation.StaffSeparation_ResignationApproved = data.get('StaffSeparation_ResignationApproved', separation.StaffSeparation_ResignationApproved)
+                separation.StaffSeparation_SalaryHoldMonth = data.get('StaffSeparation_SalaryHoldMonth', separation.StaffSeparation_SalaryHoldMonth)
+                separation.StaffSeparation_ClearanceDone = data.get('StaffSeparation_ClearanceDone', separation.StaffSeparation_ClearanceDone)
+                separation.StaffSeparation_ClearanceDate = datetime.strptime(data['StaffSeparation_ClearanceDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ClearanceDate') else separation.StaffSeparation_ClearanceDate
+                separation.StaffSeparation_ExitInterview = data.get('StaffSeparation_ExitInterview', separation.StaffSeparation_ExitInterview)
+                separation.StaffSeparation_ExitInterviewDate = datetime.strptime(data['StaffSeparation_ExitInterviewDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_ExitInterviewDate') else separation.StaffSeparation_ExitInterviewDate
+                separation.StaffSeparation_FinalSettlementDone = data.get('StaffSeparation_FinalSettlementDone', separation.StaffSeparation_FinalSettlementDone)
+                separation.StaffSeparation_FinalSettlementDate = datetime.strptime(data['StaffSeparation_FinalSettlementDate'], '%Y-%m-%dT%H:%M:%S') if data.get('StaffSeparation_FinalSettlementDate') else separation.StaffSeparation_FinalSettlementDate
+                separation.CreatedBy = data.get('CreatedBy', separation.CreatedBy)
+                separation.CreatedDate = separation.CreatedDate
+                separation.UpdatedBy = data.get('UpdatedBy', separation.UpdatedBy)
+                separation.UpdatedDate = datetime.utcnow()
+                separation.InActive = data.get('InActive', separation.InActive)
+
+                db.session.commit()
+                return jsonify(separation.to_dict()), 200
+            else:
+                return {'error': 'StaffSeparation not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500
+
+    def delete(self, separation_id):
+        try:
+            separation = StaffSeparation.query.get(separation_id)
+            if separation:
+                db.session.delete(separation)
+                db.session.commit()
+                return {'message': 'StaffSeparation deleted successfully'}, 200
+            else:
+                return {'error': 'StaffSeparation not found'}, 404
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'error': str(e)}, 500

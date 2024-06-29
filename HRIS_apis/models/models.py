@@ -1242,3 +1242,28 @@ class StaffSeparation(db.Model):
             'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
             'InActive': self.InActive
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
