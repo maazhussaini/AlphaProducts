@@ -28,102 +28,59 @@ class UserLoginResource(Resource):
         username = data.get('username').lower().strip()
         password = data.get('password').strip()
 
-        if not username or not password:
-            return jsonify({'error': 'Username and password are required'}), 400
-
+        # Encrypt the username and password
         encrypted_username = encrypt(username)
         encrypted_password = encrypt(password)
 
-        user = Users.query.filter_by(Username=encrypted_username).first()
+        user = Users.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
 
         if user and user.Status:
-            if encrypted_password != user.Password:
-                return {"error": "Password Incorrect"}, 401
+            user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
+
+            user_rights = db.session.query(FormDetails.Action, Form.Controller)\
+                .join(FormDetailPermissions, FormDetails.Id == FormDetailPermissions.FormDetailId)\
+                .join(Form, FormDetails.FormId == Form.FormId)\
+                .join(Role, FormDetailPermissions.RoleId == Role.Role_id)\
+                .join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                .filter(LNK_USER_ROLE.User_Id == user.User_Id, FormDetailPermissions.Status == True)\
+                .all()
+
+            user_type = UserType.query.filter_by(UserTypeId=user.UserType_id).first()
             
-            else:
-                user_campus = UserCampus.query.filter_by(UserId=user.User_Id, Status=True).first()
-                if user_campus:
-                    user_types = UserType.query.filter_by(UserTypeId=user.UserType_id).first()
-                    roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id).filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
-                    role_ids = [role.Role_id for role in roles]
-                    
-                    school_info = SchoolDetails.query.filter_by(status=True).first()
+            access_token = create_access_token(identity=encrypted_username)
+            user_details = {
+                'access_token': access_token,
+                'user': {
+                    'User_Id': user.User_Id,
+                    'Firstname': user.Firstname,
+                    'CampusId': user.CampusId,
+                    'UserType': user_type.UserTypeName,
+                    'Roles': [role.RoleName for role in user_roles],
+                    'Rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
+                    "SchoolDetails": [],
+                    "CurrentAcademicYear": [],
+                    "StudentCount": 0
+                }
+            }
+            
+            school_info = SchoolDetails.query.filter_by(status=True).first()
+            if school_info:
+                user_details["user"]["SchoolDetails"].append({
+                        "SchoolName": school_info.SchoolName,
+                        "MobileNo": school_info.MobileNo,
+                        "MiniLogo": school_info.MiniLogo,
+                        "ReportLogo": school_info.ReportLogo,
+                        "Address": school_info.Address
+                    } if school_info else None)
+            
+            academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+            if academic_year:
+                user_details["user"]["CurrentAcademicYear"] = academic_year.to_dict()
+            
+            if user_type.UserTypeId == 7:
+                user_details["user"]["StudentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
 
-                    rights = FormDetailPermissions.query.filter(
-                        FormDetailPermissions.RoleId.in_(role_ids),
-                        FormDetailPermissions.Status == True
-                    ).all()
-                    
-                    form_details = FormDetails.query.filter(
-                        FormDetails.Id.in_([right.FormDetailId for right in rights]),
-                        FormDetails.Status ==True
-                    ).all()
-                    
-                    forms = Form.query.filter(
-                        Form.FormId.in_([form_detail.FormId for form_detail in form_details])
-                    ).all()
+            return {"data": [user_details]}, 200
 
-                    # user_data = {
-                    #     "User_Id": user.User_Id,
-                    #     "CampusId": user.CampusId,
-                    #     "Firstname": user.Firstname,
-                    #     "Teacher_Id": user.Teacher_id,
-                    #     "Ispasswordchanged": user.Ispasswordchanged,
-                    #     # "SchoolDetails": school_info.to_dict() if school_info else None,
-                    #     'UserRoles': [role.to_dict() for role in roles],
-                    #     'IsSysAdmin': any(role.IsSysAdmin for role in roles),
-                    #     'Rights': [right.to_dict() for right in rights],
-                    #     'CurrentAcademicYear': AcademicYear.query.filter_by(IsActive=True, status=True).first().academic_year_Id,
-                    # }
-                    
-                    user_data = {
-                        "User_Id": user.User_Id,
-                        "CampusId": user.CampusId,
-                        "UserType": {"Id": user_types.UserTypeId, "Name": user_types.UserTypeName} if user_types else None,
-                        "Firstname": user.Firstname,
-                        "Teacher_Id": user.Teacher_id,
-                        "ispasswordchanged": user.Ispasswordchanged,
-                        "SchoolDetails": {
-                            "SchoolName": school_info.SchoolName,
-                            "MobileNo": school_info.MobileNo,
-                            "MiniLogo": school_info.MiniLogo,
-                            "ReportLogo": school_info.ReportLogo,
-                            "Address": school_info.Address
-                        } if school_info else None,
-                        'UserRoles': [{"Role_Id": role.Role_id, "RoleName": role.RoleName} for role in roles],
-                        'IsSysAdmin': any(role.IsSysAdmin for role in roles),
-                        # 'Rights': [
-                        #     {
-                        #         "Controller": forms.Controller, 
-                        #         "Action": forms.FormDetail.Action
-                        #     } for right in rights],
-                        'CurrentAcademicYear': AcademicYear.query.filter_by(IsActive=True, status=True).first().academic_year_Id
-                    }
-                    
-                    return jsonify({"data": [user_data]})
-
-                    if user.UserType_id == 7:
-                        user_data["StuCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
-
-                    if user.UserType_id != 3 and user.UserType_id != 7:
-                        user_data["CampusId"] = user_campus.campusId
-
-                    if user.CampusId:
-                        if user.UserType_id == "Teacher":
-                            user_data["TeacherId"] = user.UserCampus[0].StaffId
-                        elif user.UserType_id == "Associate Teacher":
-                            user_data["AssociateTeacherId"] = user.UserCampus[0].StaffId
-
-                        staff_id = user.CampusId[0].StaffId
-                        user_data["IsAEN"] = StaffInfo.query.get(staff_id).IsAEN if staff_id else 0
-
-                    else:
-                        user_data["IsAEN"] = 0
-
-                    return jsonify(user_data), 200
-                else:
-                    return jsonify({'error': 'Invalid username or password'}), 401
-
-        else:
-            return jsonify({'error': 'Invalid username or password or account is blocked'}), 401
-
+        return jsonify({'error': 'Invalid username or password'}), 401

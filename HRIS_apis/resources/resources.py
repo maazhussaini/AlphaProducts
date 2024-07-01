@@ -4166,10 +4166,8 @@ class EmailSendingResource(Resource):
             return {"message": "Email sent successfully"}, 200
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
-        
-        
-        
-        
+
+
 
 
 
