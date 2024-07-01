@@ -2814,21 +2814,21 @@ class StaffTransferResource(Resource):
         Updates the UserCampus table with the new campus ID.
         Inserts a new record if necessary.
         """
-        user_campus = UserCampus.query.filter_by(staffId=staff_id, campusId=current_campus_id).first()
+        user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
         
         if user_campus:
-            user_campus.campusId = to_campus_id
-            user_campus.updateDate = datetime.utcnow() + timedelta(hours=5)
+            user_campus.CampusId = to_campus_id
+            user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(user_campus)
         else:
-            user_id = UserCampus.query.filter_by(staffId=staff_id).first().userId
+            user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
             
             new_user_campus = UserCampus(
-                userId=user_id,
-                campusId=to_campus_id,
-                staffId=staff_id,
-                date=datetime.utcnow() + timedelta(hours=5),
-                status=True
+                UserId=user_id,
+                CampusId=to_campus_id,
+                StaffId=staff_id,
+                Date=datetime.utcnow() + timedelta(hours=5),
+                Status=True
             )
             db.session.add(new_user_campus)
 
@@ -2836,7 +2836,7 @@ class StaffTransferResource(Resource):
         """
         Updates the Users table with the new campus ID and sets the IsAEN flag if transferring to campus 11
         """
-        user_id = UserCampus.query.filter_by(staffId=staff_id).first().userId
+        user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
         user = Users.query.get(user_id)
         
         if to_campus_id == 11:
@@ -2844,7 +2844,7 @@ class StaffTransferResource(Resource):
         else:
             user.IsAEN = 0  # Unset IsAEN flag for other campuses
         
-        user.campusId = to_campus_id
+        user.CampusId = to_campus_id
         user.updateDate = datetime.utcnow() + timedelta(hours=5)
         db.session.add(user)
     

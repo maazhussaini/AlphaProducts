@@ -101,7 +101,7 @@ class UserCampus(db.Model):
     __tablename__ = 'UserCampus'
 
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('USERS.user_Id'))
+    UserId = db.Column(db.Integer, db.ForeignKey('USERS.User_Id'))
     CampusId = db.Column(db.Integer, nullable=True)
     StaffId = db.Column(db.Integer, nullable=True)
     Date = db.Column(db.DateTime, nullable=True)
@@ -1272,7 +1272,7 @@ class StaffDepartment(db.Model):
 
     Id = db.Column(db.Integer, primary_key=True)
     DepartmentName = db.Column(db.String(255), nullable=True)
-    status = db.Column(db.Boolean, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
     UpdaterId = db.Column(db.BigInteger, nullable=True)
     UpdaterIP = db.Column(db.String(20), nullable=True)
     UpdaterTerminal = db.Column(db.String(255), nullable=True)
@@ -1288,7 +1288,7 @@ class StaffDepartment(db.Model):
         return {
             'Id': self.Id,
             'DepartmentName': self.DepartmentName,
-            'status': self.status,
+            'Status': self.Status,
             'UpdaterId': self.UpdaterId,
             'UpdaterIP': self.UpdaterIP,
             'UpdaterTerminal': self.UpdaterTerminal,
