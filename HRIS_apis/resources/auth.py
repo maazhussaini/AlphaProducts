@@ -6,22 +6,6 @@ from models.models import *
 from flask import Flask, request, jsonify
 from app import db
 
-"""
-    SELECT
-        dbo.USERS.Firstname, dbo.ROLES.RoleName, dbo.Forms.FormName, dbo.Forms.Controller, 
-        dbo.FormDetails.Action, dbo.FormDetails.ActionName, dbo.ROLES.Role_Id
-    FROM
-        dbo.FormDetailPermissions INNER JOIN
-        dbo.FormDetails ON dbo.FormDetailPermissions.FormDetailId = dbo.FormDetails.Id INNER JOIN
-        dbo.Forms ON dbo.FormDetails.FormId = dbo.Forms.FormId INNER JOIN
-        dbo.ROLES ON dbo.FormDetailPermissions.RoleId = dbo.ROLES.Role_Id INNER JOIN
-        dbo.LNK_USER_ROLE ON dbo.ROLES.Role_Id = dbo.LNK_USER_ROLE.Role_Id INNER JOIN
-        dbo.USERS ON dbo.LNK_USER_ROLE.User_Id = dbo.USERS.User_Id
-    WHERE
-        (dbo.ROLES.Role_Id = 8)
-"""
-
-
 class UserLoginResource(Resource):
     def post(self):
         data = request.get_json()
