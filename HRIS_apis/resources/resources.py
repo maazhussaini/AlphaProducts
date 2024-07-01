@@ -1,13 +1,14 @@
 from flask_restful import Resource, reqparse, abort
 from models.models import *
 from datetime import datetime, date, timedelta
-from app import db
+from app import db, mail
 from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
 import json
 from sqlalchemy.exc import SQLAlchemyError
+from flask_mail import Message
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -4134,36 +4135,15 @@ class EmailSendingResource(Resource):
         
         return email.Email_Body
 
-    # def get_email_template(self, template_name):
-    #     templates = {
-    #         "application_received": (
-    #             "Dear {candidate_name},\n"
-    #             "Thank you for applying for {position_title} at Alpha Education Network. "
-    #             "We appreciate your interest in joining our team. Your application has been received and is currently under review by our recruitment team.\n"
-    #             "If your qualifications meet our criteria and the position is still available, we will reach out to you regarding the next steps in the process.\n"
-    #             "Best regards,\n"
-    #             "Human Resources Department\n"
-    #             "Alpha Education Network"
-    #         ),
-    #         "interview_invitation": (
-    #             "Hello {candidate_name},\n"
-    #             "We are pleased to invite you for an interview for the {position_title} position at {company_name}. "
-    #             "The interview is scheduled for {interview_date} at {interview_time}.\n"
-    #             "Best regards,\n"
-    #             "Recruitment Team\n"
-    #             "{company_name}"
-    #         ),
-    #         # Add more templates as needed
-    #     }
-    #     return templates.get(template_name)
-
     def post(self):
         data = request.get_json()
         template_id = data.get('template_id')
         parameters = data.get('parameters', {})
+        recipients = data.get('recipients', [])
+        cc = data.get('cc', [])
 
-        if not template_id or not parameters:
-            return {"error": "template_id and parameters are required"}, 400
+        if not template_id or not parameters or not recipients:
+            return {"error": "template_id, parameters, and recipients are required"}, 400
 
         template = self.get_email_template(template_id)
         if not template:
@@ -4176,7 +4156,18 @@ class EmailSendingResource(Resource):
         except Exception as e:
             return {"error": f"An unexpected error occurred: {e}"}, 500
 
-        return {"email_content": email_content}
+        try:
+            # Sending the email
+            msg = Message(subject="Your Subject",
+                        recipients=recipients,
+                        cc=cc,
+                        body=email_content)
+            mail.send(msg)
+            return {"message": "Email sent successfully"}, 200
+        except Exception as e:
+            return {"error": f"Failed to send email: {e}"}, 500
+        
+        
         
         
 

@@ -1,69 +1,71 @@
-# auth.py
+    # auth.py
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from resources.crypto_utils import encrypt, decrypt
-from models.models import Users, UserCampus, Role, UserType
+from models.models import *
+from flask import Flask, request, jsonify
+from app import db
+
+"""
+    SELECT
+        dbo.USERS.Firstname, dbo.ROLES.RoleName, dbo.Forms.FormName, dbo.Forms.Controller, 
+        dbo.FormDetails.Action, dbo.FormDetails.ActionName, dbo.ROLES.Role_Id
+    FROM
+        dbo.FormDetailPermissions INNER JOIN
+        dbo.FormDetails ON dbo.FormDetailPermissions.FormDetailId = dbo.FormDetails.Id INNER JOIN
+        dbo.Forms ON dbo.FormDetails.FormId = dbo.Forms.FormId INNER JOIN
+        dbo.ROLES ON dbo.FormDetailPermissions.RoleId = dbo.ROLES.Role_Id INNER JOIN
+        dbo.LNK_USER_ROLE ON dbo.ROLES.Role_Id = dbo.LNK_USER_ROLE.Role_Id INNER JOIN
+        dbo.USERS ON dbo.LNK_USER_ROLE.User_Id = dbo.USERS.User_Id
+    WHERE
+        (dbo.ROLES.Role_Id = 8)
+"""
+
 
 class UserLoginResource(Resource):
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', required=True, help="Username cannot be blank")
-        parser.add_argument('password', required=True, help="Password cannot be blank")
-        args = parser.parse_args()
+        data = request.get_json()
+        username = data.get('username').lower().strip()
+        password = data.get('password').strip()
 
-        # Replace this with your actual user verification logic
-        
-        try:
-            user = Users.query.filter_by(username=encrypt(args['username'])).first()
-            if user:
-                password= decrypt(user.password)
-                
-            # password = Users.query.filter_by(password=encrypted_identity['password']).first()
-            
-            if user and password:
-                print(decrypt(user.username), decrypt(user.password))
-                access_token = create_access_token(identity={'username': encrypt(args['username'])})
-                
-                # Fetch related UserCampus and Role information
-                user_campus = UserCampus.query.filter_by(id=1).first()
-                
-                print(user.campusId)
-                if user_campus:
-                    print(list(user_campus.to_dict()))
-                
-                roles = Role.query.filter_by(campusId=user.campusId).first()
-                userType = UserType.query.filter_by(campusId=user_campus.id).first()
+        if not username or not password:
+            return jsonify({'error': 'Username and password are required'}), 400
 
-                staff_id = user_campus.staffId if user_campus else None
-                userType_id = userType.userType_id if userType else None
-                userTypeName = userType.userTypeName if userType else None
-                
-                # roles = []
-                is_sys_admin = False
+        encrypted_username = encrypt(username)
+        encrypted_password = encrypt(password)
 
-                # for user_role in user_roles:
-                #     role = Role.query.filter_by(role_id=user_role.role_id).first()
-                #     if role:
-                #         roles.append(role.role_name)
-                #         if role.is_sys_admin:
-                #             is_sys_admin = True
-                
-                return {
-                    'authID': access_token,
-                    "campusId": user_campus.id,
-                    "userName": user.username,
-                    "userType": userTypeName,
-                    "userTypeId": userType_id,
-                    "userId": user.user_Id,
-                    "userFirstName": user.firstname,
-                    "staffId": staff_id,
-                    "userRoles": "",
-                    "isSysAdmin": is_sys_admin,
-                    "connectionString": "",
-                    "roles": roles.roleName
-                }, 200
+        user = Users.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
+
+        if user and user.Status:
+            response = {
+                "User_Id": user.User_Id,
+                "CampusId": user.CampusId,
+                "UserType": user.UserType.to_dict() if user.UserType else None,
+                "Firstname": user.Firstname,
+                "Teacher_Id": user.Teacher_id,
+                "Ispasswordchanged": user.Ispasswordchanged,
+                "SchoolDetails": SchoolDetails.query.filter_by(status=True).first().to_dict()
+            }
+
+            if not user.Ispasswordchanged and user.UserType.userTypeId in [3, 7]:
+                response['redirect'] = "reset_password"
             else:
-                return {'message': 'Invalid credentials'}, 401
-                
-        except Exception as e:
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+                user_campus = UserCampus.query.filter_by(UserId=user.User_Id, status=True).first()
+                if user_campus:
+                    role_ids = [role.Role_Id for role in user.ROLES]
+                    user_rights = FormDetailPermissions.query.filter(
+                        FormDetailPermissions.RoleId.in_(role_ids),
+                        FormDetailPermissions.Status == True
+                    ).all()
+
+                    response['UserRoles'] = [role.to_dict() for role in user.ROLES]
+                    response['IsSysAdmin'] = any(role.isSysAdmin for role in user.ROLES)
+                    response['Rights'] = [right.to_dict() for right in user_rights]
+                    response['CurrentAcademicYear'] = AcademicYear.query.filter_by(IsActive=True, status=True).first().academic_year_Id
+                    response['redirect'] = "home"
+                else:
+                    return jsonify({'error': 'Invalid username or password'}), 401
+
+                return jsonify(response), 200
+        else:
+            return jsonify({'error': 'Invalid username or password or account is blocked'}), 401

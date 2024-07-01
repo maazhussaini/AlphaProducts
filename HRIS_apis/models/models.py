@@ -210,6 +210,138 @@ class Role(db.Model):
             "booksDueWidget": self.booksDueWidget
         }
 
+class Form(db.Model):
+    __tablename__ = 'Forms'
+    FormId = db.Column(db.Integer, primary_key=True)
+    FormName = db.Column(db.String(100), nullable=False)
+    Controller = db.Column(db.String(450))
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'FormId': self.FormId,
+            'FormName': self.FormName,
+            'Controller': self.Controller,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
+
+class FormDetails(db.Model):
+    __tablename__ = 'FormDetails'
+    Id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    FormId = db.Column(db.Integer, nullable=False)
+    Action = db.Column(db.String(450), nullable=False)
+    ActionName = db.Column(db.String(1000), nullable=False)
+    IsReport = db.Column(db.Boolean, nullable=False)
+    UserTypeId = db.Column(db.Integer)
+    Status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'FormId': self.FormId,
+            'Action': self.Action,
+            'ActionName': self.ActionName,
+            'IsReport': self.IsReport,
+            'UserTypeId': self.UserTypeId,
+            'Status': self.Status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
+
+class FormDetailPermissions(db.Model):
+    __tablename__ = 'FormDetailPermissions'
+    Id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    FormDetailId = db.Column(db.BigInteger)
+    RoleId = db.Column(db.Integer)
+    Status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'FormDetailId': self.FormDetailId,
+            'RoleId': self.RoleId,
+            'Status': self.Status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
+
+class LNK_USER_ROLE(db.Model):
+    __tablename__ = 'LNK_USER_ROLE'
+    User_Id = db.Column(db.Integer, primary_key=True)
+    Role_Id = db.Column(db.Integer, primary_key=True)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'User_Id': self.User_Id,
+            'Role_Id': self.Role_Id,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
+
 class JobApplicationForm(db.Model):
     __tablename__ = 'JobApplicationForms'
 
@@ -463,7 +595,7 @@ class ScheduledDeduction(db.Model):
     deduction_head = db.relationship('DeductionHead', backref=db.backref('scheduledDeduction', lazy=True))
     
     def __repr__(self):
-        return f'<DeductionHead {self.deductionHead_Id}>'
+        return f'<ScheduledDeduction_Id {self.ScheduledDeduction_Id}>'
     
     def to_dict(self):
         return {
@@ -1313,7 +1445,369 @@ class PayrollClose(db.Model):
             'InActive': self.InActive
         }
 
+class SchoolDetails(db.Model):
+    __tablename__ = 'SchoolDetails'
+    id = db.Column(db.Integer, primary_key=True)
+    SchoolName = db.Column(db.String(100))
+    SchoolRegirtrationNo = db.Column(db.String(50))
+    SchoolNTN = db.Column(db.String(50))
+    Description = db.Column(db.String(250))
+    PhoneNo = db.Column(db.String(50))
+    MobileNo = db.Column(db.String(50))
+    Address = db.Column(db.String(500))
+    SchoolLogo = db.Column(db.String(50))
+    MiniLogo = db.Column(db.String(50))
+    ReportLogo = db.Column(db.String(50))
+    IsSaturdayOff = db.Column(db.Boolean, nullable=False)
+    status = db.Column(db.Boolean, nullable=False)
+    FridayStaffTimeOut = db.Column(db.DateTime)
+    FridayStaffTimeIn = db.Column(db.DateTime)
+    FridayStudentTimeOut = db.Column(db.DateTime)
+    FridayStudentTimeIn = db.Column(db.DateTime)
+    NormalStaffTimeOut = db.Column(db.DateTime)
+    NormalStaffTimeIn = db.Column(db.DateTime)
+    NormalStudentTimeOut = db.Column(db.DateTime)
+    NormalStudentTimeIn = db.Column(db.DateTime)
+    NetVerification = db.Column(db.String(100))
+    BaseURL = db.Column(db.String(250))
+    LoginDetailSendThrough = db.Column(db.String(5))
+    LoginDetailTempleteSMS = db.Column(db.String(130))
+    LoginDetailTempleteEmail = db.Column(db.Text)
+    ReSendPasswordThrough = db.Column(db.String(5))
+    ReSendPasswordTemplateSMS = db.Column(db.String(130))
+    ReSendPasswordTemplateEmail = db.Column(db.Text)
+    NotificationsSendThrough = db.Column(db.String(5))
+    NotificationTemplateEmail = db.Column(db.Text)
+    Email = db.Column(db.String(250))
+    Password = db.Column(db.String(250))
+    SmtpPort = db.Column(db.Integer)
+    SmtpHost = db.Column(db.String(250))
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime)
+    CampusId = db.Column(db.Integer)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'SchoolName': self.SchoolName,
+            'SchoolRegirtrationNo': self.SchoolRegirtrationNo,
+            'SchoolNTN': self.SchoolNTN,
+            'Description': self.Description,
+            'PhoneNo': self.PhoneNo,
+            'MobileNo': self.MobileNo,
+            'Address': self.Address,
+            'SchoolLogo': self.SchoolLogo,
+            'MiniLogo': self.MiniLogo,
+            'ReportLogo': self.ReportLogo,
+            'IsSaturdayOff': self.IsSaturdayOff,
+            'status': self.status,
+            'FridayStaffTimeOut': self.FridayStaffTimeOut,
+            'FridayStaffTimeIn': self.FridayStaffTimeIn,
+            'FridayStudentTimeOut': self.FridayStudentTimeOut,
+            'FridayStudentTimeIn': self.FridayStudentTimeIn,
+            'NormalStaffTimeOut': self.NormalStaffTimeOut,
+            'NormalStaffTimeIn': self.NormalStaffTimeIn,
+            'NormalStudentTimeOut': self.NormalStudentTimeOut,
+            'NormalStudentTimeIn': self.NormalStudentTimeIn,
+            'NetVerification': self.NetVerification,
+            'BaseURL': self.BaseURL,
+            'LoginDetailSendThrough': self.LoginDetailSendThrough,
+            'LoginDetailTempleteSMS': self.LoginDetailTempleteSMS,
+            'LoginDetailTempleteEmail': self.LoginDetailTempleteEmail,
+            'ReSendPasswordThrough': self.ReSendPasswordThrough,
+            'ReSendPasswordTemplateSMS': self.ReSendPasswordTemplateSMS,
+            'ReSendPasswordTemplateEmail': self.ReSendPasswordTemplateEmail,
+            'NotificationsSendThrough': self.NotificationsSendThrough,
+            'NotificationTemplateEmail': self.NotificationTemplateEmail,
+            'Email': self.Email,
+            'Password': self.Password,
+            'SmtpPort': self.SmtpPort,
+            'SmtpHost': self.SmtpHost,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate,
+            'CampusId': self.CampusId
+        }
+
+class StudentInfo(db.Model):
+    __tablename__ = 'StudentInfo'
+    Student_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Registration_ID = db.Column(db.Integer)
+    Stu_AdmissionNo = db.Column(db.String(50), nullable=False)
+    Stu_Name = db.Column(db.String(50), nullable=False)
+    Stu_FName = db.Column(db.String(50), nullable=False)
+    Stu_FCNIC = db.Column(db.String(20))
+    Stu_AdmissionDate = db.Column(db.DateTime, nullable=False)
+    Stu_Gender = db.Column(db.Integer, nullable=False)
+    Stu_DoB = db.Column(db.DateTime, nullable=False)
+    Stu_DoBWords = db.Column(db.String(50))
+    Stu_BirthPlace = db.Column(db.String(50))
+    Stu_GRNo = db.Column(db.Integer)
+    Stu_ClassId = db.Column(db.Integer)
+    Stu_Religion = db.Column(db.String(50))
+    Stu_Cast = db.Column(db.String(50))
+    Stu_Tribe = db.Column(db.String(50))
+    Stu_FatherGuardianName = db.Column(db.String(50))
+    Stu_FGCNIC = db.Column(db.String(20))
+    Stu_ParentEmail = db.Column(db.String(250))
+    Stu_FGOccupation = db.Column(db.String(50))
+    Stu_Relation = db.Column(db.String(50))
+    Stu_PreSchool = db.Column(db.String(100))
+    Stu_PerAddress = db.Column(db.String(500), nullable=False)
+    Stu_TempAddress = db.Column(db.String(500))
+    Stu_Mobile = db.Column(db.String(20))
+    Stu_OfficeNo = db.Column(db.String(20))
+    Stu_ResidentNo = db.Column(db.String(20))
+    Stud_Active = db.Column(db.Boolean, nullable=False)
+    IsSpecialDiscount = db.Column(db.Boolean, nullable=False)
+    SpecialDiscountAmount = db.Column(db.Float)
+    IsSiblingDiscount = db.Column(db.Boolean, nullable=False)
+    SiblingDiscountPercentage = db.Column(db.Integer, nullable=False)
+    AcademicYear = db.Column(db.Integer, nullable=False)
+    IsPassed = db.Column(db.Boolean, nullable=False)
+    IsLeave = db.Column(db.Boolean, nullable=False)
+    Stu_EnrollmentNo = db.Column(db.String(50))
+    Stu_RollNo = db.Column(db.String(50))
+    LeavingReasons = db.Column(db.String(255))
+    LeavingRemarks = db.Column(db.String(255))
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime)
+    IsDisable = db.Column(db.Boolean)
+    disableDetail = db.Column(db.String(255))
+    PhotoPath = db.Column(db.String(500))
+    CampusId = db.Column(db.Integer)
+    SpecialDiscountPercentage = db.Column(db.Float)
+    FinancialAssistanceId = db.Column(db.Integer)
+    Area = db.Column(db.String(300))
+    TelePhoneNo1 = db.Column(db.String(20))
+    TelePhoneNo2 = db.Column(db.String(20))
+    SMSServiceNo = db.Column(db.String(20))
+    Organization = db.Column(db.String(150))
+    OrganizationAddress = db.Column(db.String(250))
+    CompanyNo = db.Column(db.String(20))
+    MotherName = db.Column(db.String(150))
+    MotherCnic = db.Column(db.String(20))
+    MotherProfession = db.Column(db.String(100))
+    MotherOrganization = db.Column(db.String(100))
+    EmergencyContactNo = db.Column(db.String(200))
+    EmerContactPerson = db.Column(db.String(100))
+    Allergies = db.Column(db.String(200))
+    Food = db.Column(db.String(200))
+    Medical = db.Column(db.String(100))
+    BloodGroupId = db.Column(db.Integer)
+    ConveyenceType = db.Column(db.String(50))
+    VanDriverName = db.Column(db.String(100))
+    VanNumber = db.Column(db.String(100))
+    VanDriverContactNo = db.Column(db.String(100))
+    LeavingDate = db.Column(db.DateTime)
+    LeavingConduct = db.Column(db.String(1000))
+    LeavingAcademicRecord = db.Column(db.String(1000))
+    WhatsApp = db.Column(db.String(20))
+    FatherCellNo = db.Column(db.String(20))
+    MotherCellNo = db.Column(db.String(20))
+    MotherOrganizationAddress = db.Column(db.String(500))
+    MotherOrganizationNo = db.Column(db.String(20))
+    Stu_AdmissionClassId = db.Column(db.Integer)
+    HouseNo = db.Column(db.String(255))
+    Street_Sector_BlockNo = db.Column(db.String(255))
+    AreaId = db.Column(db.BigInteger)
+    CityId = db.Column(db.BigInteger)
+    District = db.Column(db.String(50))
+    CountryId = db.Column(db.BigInteger)
+    Province = db.Column(db.String(50))
+    GroupId = db.Column(db.Integer)
+    BarcodeId = db.Column(db.String(50))
+    AcademicStatus = db.Column(db.Integer)
+    EduEmail = db.Column(db.String(100))
+    EduPassword = db.Column(db.String(100))
+    HouseId = db.Column(db.Integer, nullable=False)
+    AlphaId = db.Column(db.Text)
+    BFormId = db.Column(db.String(20))
+    GuardianName = db.Column(db.String(100))
+    GuardianCNIC = db.Column(db.String(20))
+    GuardianOccupation = db.Column(db.String(100))
+    GuardianOrganization = db.Column(db.String(250))
+    GuardianOrganizationAddress = db.Column(db.String(250))
+    GuardianOrganizationNo = db.Column(db.String(20))
+    GuardianCellNo = db.Column(db.String(20))
+    CounselorId = db.Column(db.Integer)
+    StuPersonalEmail = db.Column(db.String(100))
+    Stu_FatherEmail = db.Column(db.String(100))
+    Stu_MotherEmail = db.Column(db.String(100))
+    Stu_FileNo = db.Column(db.String(50))
+    ToPromote = db.Column(db.String(1))
+    UserId = db.Column(db.Integer)
+    ParentUserId = db.Column(db.Integer)
+    Student_IdNew = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            "Student_ID": self.Student_ID,
+            "Registration_ID": self.Registration_ID,
+            "Stu_AdmissionNo": self.Stu_AdmissionNo,
+            "Stu_Name": self.Stu_Name,
+            "Stu_FName": self.Stu_FName,
+            "Stu_FCNIC": self.Stu_FCNIC,
+            "Stu_AdmissionDate": self.Stu_AdmissionDate,
+            "Stu_Gender": self.Stu_Gender,
+            "Stu_DoB": self.Stu_DoB,
+            "Stu_DoBWords": self.Stu_DoBWords,
+            "Stu_BirthPlace": self.Stu_BirthPlace,
+            "Stu_GRNo": self.Stu_GRNo,
+            "Stu_ClassId": self.Stu_ClassId,
+            "Stu_Religion": self.Stu_Religion,
+            "Stu_Cast": self.Stu_Cast,
+            "Stu_Tribe": self.Stu_Tribe,
+            "Stu_FatherGuardianName": self.Stu_FatherGuardianName,
+            "Stu_FGCNIC": self.Stu_FGCNIC,
+            "Stu_ParentEmail": self.Stu_ParentEmail,
+            "Stu_FGOccupation": self.Stu_FGOccupation,
+            "Stu_Relation": self.Stu_Relation,
+            "Stu_PreSchool": self.Stu_PreSchool,
+            "Stu_PerAddress": self.Stu_PerAddress,
+            "Stu_TempAddress": self.Stu_TempAddress,
+            "Stu_Mobile": self.Stu_Mobile,
+            "Stu_OfficeNo": self.Stu_OfficeNo,
+            "Stu_ResidentNo": self.Stu_ResidentNo,
+            "Stud_Active": self.Stud_Active,
+            "IsSpecialDiscount": self.IsSpecialDiscount,
+            "SpecialDiscountAmount": self.SpecialDiscountAmount,
+            "IsSiblingDiscount": self.IsSiblingDiscount,
+            "SiblingDiscountPercentage": self.SiblingDiscountPercentage,
+            "AcademicYear": self.AcademicYear,
+            "IsPassed": self.IsPassed,
+            "IsLeave": self.IsLeave,
+            "Stu_EnrollmentNo": self.Stu_EnrollmentNo,
+            "Stu_RollNo": self.Stu_RollNo,
+            "LeavingReasons": self.LeavingReasons,
+            "LeavingRemarks": self.LeavingRemarks,
+            "UpdaterId": self.UpdaterId,
+            "UpdaterIP": self.UpdaterIP,
+            "UpdaterTerminal": self.UpdaterTerminal,
+            "UpdateDate": self.UpdateDate,
+            "CreatorId": self.CreatorId,
+            "CreatorIP": self.CreatorIP,
+            "CreatorTerminal": self.CreatorTerminal,
+            "CreateDate": self.CreateDate,
+            "IsDisable": self.IsDisable,
+            "disableDetail": self.disableDetail,
+            "PhotoPath": self.PhotoPath,
+            "CampusId": self.CampusId,
+            "SpecialDiscountPercentage": self.SpecialDiscountPercentage,
+            "FinancialAssistanceId": self.FinancialAssistanceId,
+            "Area": self.Area,
+            "TelePhoneNo1": self.TelePhoneNo1,
+            "TelePhoneNo2": self.TelePhoneNo2,
+            "SMSServiceNo": self.SMSServiceNo,
+            "Organization": self.Organization,
+            "OrganizationAddress": self.OrganizationAddress,
+            "CompanyNo": self.CompanyNo,
+            "MotherName": self.MotherName,
+            "MotherCnic": self.MotherCnic,
+            "MotherProfession": self.MotherProfession,
+            "MotherOrganization": self.MotherOrganization,
+            "EmergencyContactNo": self.EmergencyContactNo,
+            "EmerContactPerson": self.EmerContactPerson,
+            "Allergies": self.Allergies,
+            "Food": self.Food,
+            "Medical": self.Medical,
+            "BloodGroupId": self.BloodGroupId,
+            "ConveyenceType": self.ConveyenceType,
+            "VanDriverName": self.VanDriverName,
+            "VanNumber": self.VanNumber,
+            "VanDriverContactNo": self.VanDriverContactNo,
+            "LeavingDate": self.LeavingDate,
+            "LeavingConduct": self.LeavingConduct,
+            "LeavingAcademicRecord": self.LeavingAcademicRecord,
+            "WhatsApp": self.WhatsApp,
+            "FatherCellNo": self.FatherCellNo,
+            "MotherCellNo": self.MotherCellNo,
+            "MotherOrganizationAddress": self.MotherOrganizationAddress,
+            "MotherOrganizationNo": self.MotherOrganizationNo,
+            "Stu_AdmissionClassId": self.Stu_AdmissionClassId,
+            "HouseNo": self.HouseNo,
+            "Street_Sector_BlockNo": self.Street_Sector_BlockNo,
+            "AreaId": self.AreaId,
+            "CityId": self.CityId,
+            "District": self.District,
+            "CountryId": self.CountryId,
+            "Province": self.Province,
+            "GroupId": self.GroupId,
+            "BarcodeId": self.BarcodeId,
+            "AcademicStatus": self.AcademicStatus,
+            "EduEmail": self.EduEmail,
+            "EduPassword": self.EduPassword,
+            "HouseId": self.HouseId,
+            "AlphaId": self.AlphaId,
+            "BFormId": self.BFormId,
+            "GuardianName": self.GuardianName,
+            "GuardianCNIC": self.GuardianCNIC,
+            "GuardianOccupation": self.GuardianOccupation,
+            "GuardianOrganization": self.GuardianOrganization,
+            "GuardianOrganizationAddress": self.GuardianOrganizationAddress,
+            "GuardianOrganizationNo": self.GuardianOrganizationNo,
+            "GuardianCellNo": self.GuardianCellNo,
+            "CounselorId": self.CounselorId,
+            "StuPersonalEmail": self.StuPersonalEmail,
+            "Stu_FatherEmail": self.Stu_FatherEmail,
+            "Stu_MotherEmail": self.Stu_MotherEmail,
+            "Stu_FileNo": self.Stu_FileNo,
+            "ToPromote": self.ToPromote,
+            "UserId": self.UserId,
+            "ParentUserId": self.ParentUserId,
+            "Student_IdNew": self.Student_IdNew
+        }
+
+class AcademicYear(db.Model):
+    __tablename__ = 'AcademicYear'
+    academic_year_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    academic_year = db.Column(db.String(10))
+    status = db.Column(db.Boolean, nullable=False)
+    startDate = db.Column(db.DateTime, nullable=False)
+    endDate = db.Column(db.DateTime, nullable=False)
+    IsActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            "academic_year_Id": self.academic_year_Id,
+            "academic_year": self.academic_year,
+            "status": self.status,
+            "startDate": self.startDate.isoformat() if self.startDate else None,
+            "endDate": self.endDate.isoformat() if self.endDate else None,
+            "IsActive": self.IsActive
+        }
+
+class EduGroupStudent(db.Model):
+    __tablename__ = 'EduGroupStudent'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    GroupID = db.Column(db.Integer, nullable=False)
+    StudentID = db.Column(db.Integer, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self):
+        return {
+            "Id": self.Id,
+            "GroupID": self.GroupID,
+            "StudentID": self.StudentID,
+            "CampusId": self.CampusId
+        }
 
 
 
