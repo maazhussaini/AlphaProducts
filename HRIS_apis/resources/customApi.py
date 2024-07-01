@@ -69,11 +69,25 @@ class DynamicGetResource(Resource):
 
 class CallProcedureResource(Resource):
     def post(self):
-        data = request.get_json()
-        procedure_name = data.get('procedure_name')
-        parameters = data.get('parameters', {})
-        page = data.get('pageNo', 1)
-        per_page = data.get('per_page', 10)
+        
+        parser = reqparse.RequestParser()
+        parser.add_argument('procedure_name', type=str, required=True, location='json', help='Stored Procedure or Table name must be given')
+        parser.add_argument('pageNo', type=int, location='json', help='Page number must be an integer')
+        parser.add_argument('per_page', type=int, location='json', help='Page size must be an integer')
+        parser.add_argument('parameters', type=dict, default={}, location='json', help='Parameters must be a dictionary')
+        
+        args = parser.parse_args()
+        
+        procedure_name = args['procedure_name']
+        page = args['pageNo']
+        per_page = args['per_page']
+        parameters = args['parameters']
+        
+        
+        # procedure_name = data.get('procedure_name')
+        # parameters = data.get('parameters', {})
+        # page = data.get('pageNo', 1)
+        # per_page = data.get('per_page', 10)
 
         if not procedure_name:
             return {'error': 'Procedure name is required'}, 400
@@ -105,18 +119,23 @@ class CallProcedureResource(Resource):
             # Convert results to a list of dictionaries for JSON response
             result_list = [dict(zip(columns, row)) for row in results]
             
-            # Apply pagination
-            total = len(result_list)
-            start = (page - 1) * per_page
-            end = start + per_page
-            paginated_results = result_list[start:end]
+            if page and per_page:
+                # Apply pagination
+                total = len(result_list)
+                start = (page - 1) * per_page
+                end = start + per_page
+                paginated_results = result_list[start:end]
 
-            return jsonify({
-                'data': paginated_results,
-                'page': page,
-                'per_page': per_page,
-                'total': total
-            })
+                return jsonify({
+                    'data': paginated_results,
+                    'page': page,
+                    'per_page': per_page,
+                    'total': total
+                })
+            else:
+                return jsonify(
+                    {"data": result_list}
+                )
 
         except SQLAlchemyError as e:
             connection.rollback()
