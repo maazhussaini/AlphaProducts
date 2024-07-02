@@ -48,6 +48,7 @@ def register_routes(app):
     api.add_resource(StaffInfoResource, '/staffInfo', '/staffInfo/<int:id>')
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
+    api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
     
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
     api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')
@@ -56,7 +57,5 @@ def register_routes(app):
     api.add_resource(OneTimeAllowanceResource, '/oneTimeAllowance', '/oneTimeAllowance/<int:id>')
     api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')
     
-    
-    api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
     
     
