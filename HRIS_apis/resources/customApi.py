@@ -153,16 +153,19 @@ class DynamicPostResource(Resource):
         insert_data = data.get('Data')
 
         if not table_name or not insert_data:
-            return {'error': 'Table_Name and Data are required'}, 400
+            return {'status': 'error',
+                'message': 'Table_Name and Data are required'}, 400
 
         # Get the model class based on the table name
         model_class = get_model_by_tablename(table_name)
         if not model_class:
-            return {'error': f'Table {table_name} does not exist'}, 400
+            return {'status': 'error',
+                'message': f'Table {table_name} does not exist'}, 400
 
         # Validate that insert_data is a list of dictionaries
         if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
-            return {'error': 'Data should be a list of dictionaries'}, 400
+            return {'status': 'error',
+                'message': 'Data should be a list of dictionaries'}, 400
 
         # Insert records
         try:
@@ -170,13 +173,16 @@ class DynamicPostResource(Resource):
             print(records)
             db.session.bulk_save_objects(records)
             db.session.commit()
-            return {'message': f'{len(records)} records inserted into {table_name} successfully'}, 201
+            return {'status': 'success',
+                'message': f'{len(records)} records inserted into {table_name} successfully'}, 201
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
 
 class DynamicUpdateResource(Resource):
     def put(self):
@@ -186,13 +192,15 @@ class DynamicUpdateResource(Resource):
         update_data = data.get('Data')
 
         if not table_name or not record_id or not update_data:
-            return {'error': 'Table_Name, id, and Data are required'}, 400
+            return {'status': 'error',
+                'message': 'Table_Name, id, and Data are required'}, 400
 
         # Get the model class based on the table name
         model_class = globals().get(table_name)
 
         if not model_class:
-            return {'error': f'Table {table_name} does not exist'}, 400
+            return {'status': 'error',
+                'message': f'Table {table_name} does not exist'}, 400
 
         # Find the record by id and update it with the provided data
         try:
@@ -205,13 +213,16 @@ class DynamicUpdateResource(Resource):
                     setattr(record, key, value)
 
             db.session.commit()
-            return {'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
+            return {'status': 'success',
+                'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
 
 class DynamicInsertOrUpdateResource(Resource):
     def post(self):
@@ -287,14 +298,17 @@ class DynamicInsertOrUpdateResource(Resource):
             db.session.commit()
 
             return {
+                'status': 'success',
                 'message': f'{len(inserted_records)} records inserted, {len(updated_records)} records updated in {table_name} successfully'
             }, 201
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
 
 class DynamicDeleteResource(Resource):
     def delete(self, id):
@@ -302,23 +316,28 @@ class DynamicDeleteResource(Resource):
         table_name = data.get('Table_Name')
         
         if not table_name:
-            return {'error': 'Table Name are required'}, 400
+            return {'status': 'error',
+                'message': 'Table Name are required'}, 400
 
         # Get the model class based on the table name
         model_class = get_model_by_tablename(table_name)
         if not model_class:
-            return {'error': f'Table {table_name} does not exist'}, 400
+            return {'status': 'error',
+                'message': f'Table {table_name} does not exist'}, 400
         
         try:
             record = db.session.query(model_class).get(id)
             record.InActive = 1
             
             db.session.commit()
-            return {'message': 'StaffPromotions deleted successfully'}, 200
+            return {'status': 'error',
+                'message': 'StaffPromotions deleted successfully'}, 200
     
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
-            return {'error': str(e)}, 500
+            return {'status': 'error',
+                'message': str(e)}, 500

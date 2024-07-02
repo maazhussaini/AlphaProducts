@@ -34,17 +34,20 @@ class UserLoginResource(Resource):
             
             access_token = create_access_token(identity=encrypted_username)
             user_details = {
-                'access_token': access_token,
-                'user': {
-                    'User_Id': user.User_Id,
-                    'Firstname': user.Firstname,
-                    'CampusId': user.CampusId,
-                    'UserType': user_type.UserTypeName,
-                    'Roles': [role.RoleName for role in user_roles],
-                    'Rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
-                    "SchoolDetails": [],
-                    "CurrentAcademicYear": [],
-                    "StudentCount": 0
+                'status': 'error',
+                'message': {
+                    'access_token': access_token,
+                    'user': {
+                        'User_Id': user.User_Id,
+                        'Firstname': user.Firstname,
+                        'CampusId': user.CampusId,
+                        'UserType': user_type.UserTypeName,
+                        'Roles': [role.RoleName for role in user_roles],
+                        'Rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
+                        "SchoolDetails": [],
+                        "CurrentAcademicYear": [],
+                        "StudentCount": 0
+                    }
                 }
             }
             
