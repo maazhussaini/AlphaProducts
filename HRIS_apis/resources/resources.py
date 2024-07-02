@@ -2751,7 +2751,7 @@ class StaffTransferResource(Resource):
                 Transfer_initiated_by=args['Transfer_initiated_by'],
                 Transfer_approval=args['Transfer_approval'],
                 Remarks=args['Remarks'],
-                status=True,
+                Status=True,
                 CampusId=from_campus_id,
                 # CreatorId=get_jwt_identity(),
                 CreateDate=datetime.utcnow() + timedelta(hours=5)
@@ -2814,13 +2814,8 @@ class StaffTransferResource(Resource):
         Updates the UserCampus table with the new campus ID.
         Inserts a new record if necessary.
         """
-        user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
         
-        if user_campus:
-            user_campus.CampusId = to_campus_id
-            user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
-            db.session.add(user_campus)
-        else:
+        if to_campus_id == 11:
             user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
             
             new_user_campus = UserCampus(
@@ -2831,6 +2826,12 @@ class StaffTransferResource(Resource):
                 Status=True
             )
             db.session.add(new_user_campus)
+            
+        else:
+            user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
+            user_campus.CampusId = to_campus_id
+            user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
+            db.session.add(user_campus)
 
     def update_user(self, staff_id, to_campus_id):
         """
@@ -2847,7 +2848,7 @@ class StaffTransferResource(Resource):
         user.CampusId = to_campus_id
         user.updateDate = datetime.utcnow() + timedelta(hours=5)
         db.session.add(user)
-    
+
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('StaffId', type=int, required=False)

@@ -1317,7 +1317,7 @@ class StaffTransfer(db.Model):
     Transfer_initiated_by = db.Column(db.Integer, nullable=True)
     Transfer_approval = db.Column(db.Integer, nullable=True)
     Remarks = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.Boolean, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
     CampusId = db.Column(db.Integer, nullable=True)
     CreatorId = db.Column(db.Integer, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
@@ -1342,7 +1342,7 @@ class StaffTransfer(db.Model):
             'Transfer_initiated_by': self.Transfer_initiated_by,
             'Transfer_approval': self.Transfer_approval,
             'Remarks': self.Remarks,
-            'status': self.status,
+            'Status': self.Status,
             'CampusId': self.CampusId,
             'CreatorId': self.CreatorId,
             'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
