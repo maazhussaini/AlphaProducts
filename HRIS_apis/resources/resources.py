@@ -3847,13 +3847,22 @@ class StaffIncrementResource(Resource):
 
     def post(self):
         data = request.get_json()
-        
+        flag = False
         try:
             # Check if the Staff ID exists
             staff_info = StaffInfo.query.get(data['StaffIncrement_StaffId'])
             if not staff_info:
                 return jsonify({"error": "Staff not found."}), 404
 
+            staff_increment_info = StaffIncrement.query.filter_by(StaffIncrement_StaffId=data['StaffIncrement_StaffId'], InActive=False).first()
+        
+            if staff_increment_info:
+                staff_increment_info.InActive = 1
+                db.session.commit()
+                flag = True
+                
+                return {"data": [new_staff_increment.to_dict()], "new_salary.Id": new_salary_Id}, 201
+                
             new_staff_increment = StaffIncrement(
                 StaffIncrement_StaffId=data['StaffIncrement_StaffId'],
                 StaffIncrement_CurrentSalary=data['StaffIncrement_CurrentSalary'],
@@ -3872,68 +3881,74 @@ class StaffIncrementResource(Resource):
             db.session.add(new_staff_increment)
             db.session.commit()
 
-            self.create_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, data['CreatedBy'])
-            return {"data": [new_staff_increment.to_dict()]}, 201
+            if flag:
+                new_salary_Id = self.update_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, data['CreatedBy'])    
+            else:
+                new_salary_Id = self.create_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, data['CreatedBy'])
+                
+            return {"data": [new_staff_increment.to_dict()], "new_salary.Id": new_salary_Id}, 201
+        
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': str(e)}, 500
-
+    
     def create_employee_salary(self, staff_id, total_salary, user_id):
         try:
             staff_info = StaffInfo.query.get(staff_id)
             if not staff_info:
                 return {"error": "Unsuccessful", "message": "No record found"}
 
-            salary_info = Salaries.query.filter_by(EmployeeId=staff_id, InActive=0).all()
+            salary_info = Salaries.query.filter_by(EmployeeId=staff_id, IsActive=0).all()
             if not salary_info:
-                return {"error": "Unsuccessful", "message": "No record found"}
+                is_non_teacher = staff_info.IsNonTeacher
+                basic = total_salary / 2
 
-            for salary in salary_info:
-                salary.InActive = 1
+                new_salary = Salaries(
+                    BasicAmount=basic,
+                    AllowancesAmount=basic,
+                    TotalAmount=total_salary,
+                    AnnualLeaves=10,
+                    RemainingAnnualLeaves=10,
+                    DailyHours=8,
+                    PFAmount=basic / 12,
+                    EOBIAmount=basic / 12,
+                    SESSIAmount=basic / 12,
+                    SalaryMode=1,
+                    IsProbationPeriod=False,
+                    From=datetime.utcnow() + timedelta(hours=5),
+                    To=datetime.utcnow() + timedelta(hours=5),
+                    EmployeeId=staff_id,
+                    CreatedOn=datetime.utcnow() + timedelta(hours=5),
+                    CreatedByUserId=user_id,
+                    HouseRent=basic / 2,
+                    MedicalAllowance=basic / 10,
+                    UtilityAllowance=basic / 5,
+                    IncomeTax=0,
+                    Toil=0,
+                    ConveyanceAllowance=basic / 5,
+                    StaffLunch=0,
+                    CasualLeaves=12 if is_non_teacher else 10,
+                    SickLeaves=7,
+                    RemainingCasualLeaves=12 if is_non_teacher else 10,
+                    RemainingSickLeaves=7,
+                    StudyLeaves=5,
+                    RemainingStudyLeaves=5,
+                    Loan=0,
+                    Arrears=0,
+                    IsActive=1
+                )
+
+                db.session.add(new_salary)
                 db.session.commit()
 
-            is_non_teacher = staff_info.IsNonTeacher
-            basic = total_salary / 2
-
-            new_salary = Salaries(
-                BasicAmount=basic,
-                AllowancesAmount=basic,
-                TotalAmount=total_salary,
-                AnnualLeaves=10,
-                RemainingAnnualLeaves=10,
-                DailyHours=8,
-                PFAmount=basic / 12,
-                EOBIAmount=basic / 12,
-                SESSIAmount=basic / 12,
-                SalaryMode=1,
-                IsProbationPeriod=False,
-                From=datetime.utcnow() + timedelta(hours=5),
-                To=datetime.utcnow() + timedelta(hours=5),
-                EmployeeId=staff_id,
-                CreatedOn=datetime.utcnow() + timedelta(hours=5),
-                CreatedByUserId=user_id,
-                HouseRent=basic / 2,
-                MedicalAllowance=basic / 10,
-                UtilityAllowance=basic / 5,
-                IncomeTax=0,
-                Toil=0,
-                ConveyanceAllowance=basic / 5,
-                StaffLunch=0,
-                CasualLeaves=12 if is_non_teacher else 10,
-                SickLeaves=7,
-                RemainingCasualLeaves=12 if is_non_teacher else 10,
-                RemainingSickLeaves=7,
-                StudyLeaves=5,
-                RemainingStudyLeaves=5,
-                Loan=0,
-                Arrears=0
-            )
-
-            db.session.add(new_salary)
-            db.session.commit()
+                return new_salary.Id
+            else:
+                new_salary_Id = self.update_employee_salary(staff_id, total_salary, user_id)
+                return new_salary_Id
         except Exception as e:
             db.session.rollback()
             print(f"Error creating employee salary: {str(e)}")
+            return {"error": "Error creating employee salary", "message": str(e)}
 
     def put(self):
         self.parser = reqparse.RequestParser()
@@ -3953,40 +3968,56 @@ class StaffIncrementResource(Resource):
         args = self.parser.parse_args()
         staff_increment_date = datetime.strptime(args['StaffIncrement_Date'], '%Y-%m-%dT%H:%M:%S')
 
-        staff_increment_info = StaffIncrement.query.filter(
-            StaffIncrement.StaffIncrement_Id == args['StaffIncrement_Id']
-        ).first()
+        staff_increment_info = StaffIncrement.query.filter_by(StaffIncrement_Id=args['StaffIncrement_Id'], InActive=False).first()
         
-        if staff_increment_info:
-            staff_increment_info.InActive = 1
-            db.session.commit()
-        
-        new_staff_increment = StaffIncrement(
-            StaffIncrement_StaffId=args['StaffIncrement_StaffId'],
-            StaffIncrement_CurrentSalary=args['StaffIncrement_CurrentSalary'],
-            StaffIncrement_Date=staff_increment_date,
-            StaffIncrement_Reason=args['StaffIncrement_Reason'],
-            StaffIncrement_Others=args.get('StaffIncrement_Others'),
-            StaffIncrement_NewSalary=args['StaffIncrement_NewSalary'],
-            StaffIncrement_PercentageIncrease=args['StaffIncrement_PercentageIncrease'],
-            StaffIncrement_InitiatedBy=args['StaffIncrement_InitiatedBy'],
-            StaffIncrement_Approval=args['StaffIncrement_Approval'],
-            StaffIncrement_Remarks=args['StaffIncrement_Remarks'],
-            CreatedBy=args['CreatedBy'],
-            CreatedDate=datetime.utcnow() + timedelta(hours=5),
-            InActive=0
-        )
+        if not staff_increment_info:
+            return {"error": "Staff increment record not found"}
 
+        staff_increment_info.InActive = 1
+        db.session.commit()
+        
         try:
-            with db.session.begin_nested():
-                db.session.add(new_staff_increment)
-                db.session.flush()
-
-                self.update_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, args['CreatedBy'])
+            """
+            new_staff_increment = StaffIncrement(
+                StaffIncrement_StaffId=args['StaffIncrement_StaffId'],
+                StaffIncrement_CurrentSalary=args['StaffIncrement_CurrentSalary'],
+                StaffIncrement_Date=staff_increment_date,
+                StaffIncrement_Reason=args['StaffIncrement_Reason'],
+                StaffIncrement_Others=args.get('StaffIncrement_Others'),
+                StaffIncrement_NewSalary=args['StaffIncrement_NewSalary'],
+                StaffIncrement_PercentageIncrease=args['StaffIncrement_PercentageIncrease'],
+                StaffIncrement_InitiatedBy=args['StaffIncrement_InitiatedBy'],
+                StaffIncrement_Approval=args['StaffIncrement_Approval'],
+                StaffIncrement_Remarks=args['StaffIncrement_Remarks'],
+                CreatedBy=args['CreatedBy'],
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                InActive=0
+            )
+            db.session.add(new_staff_increment)
+            db.session.commit()
+            """
+            new_staff_increment = StaffIncrement(
+                StaffIncrement_StaffId=args['StaffIncrement_StaffId'],
+                StaffIncrement_CurrentSalary=args['StaffIncrement_CurrentSalary'],
+                StaffIncrement_Date=datetime.strptime(args['StaffIncrement_Date'], '%Y-%m-%dT%H:%M:%S'),
+                StaffIncrement_Reason=args['StaffIncrement_Reason'],
+                StaffIncrement_Others=args['StaffIncrement_Others'],
+                StaffIncrement_NewSalary=args['StaffIncrement_NewSalary'],
+                StaffIncrement_PercentageIncrease=args['StaffIncrement_PercentageIncrease'],
+                StaffIncrement_InitiatedBy=args['StaffIncrement_InitiatedBy'],
+                StaffIncrement_Approval=args['StaffIncrement_Approval'],
+                StaffIncrement_Remarks=args['StaffIncrement_Remarks'],
+                CreatedBy=args['CreatedBy'],
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                InActive=0
+            )
+            db.session.add(new_staff_increment)
             db.session.commit()
             
-            return {"data": [new_staff_increment.to_dict()]}, 201
-        
+            new_salary_Id = self.update_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, args['CreatedBy'])
+
+            return {"data": [new_staff_increment.to_dict()], "new_salary_Id": new_salary_Id}, 201
+
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': str(e)}, 500
@@ -3999,13 +4030,10 @@ class StaffIncrementResource(Resource):
             salary = Salaries.query.filter_by(EmployeeId=staff_id, IsActive=True).first()
             
             if not salary:
-                return  {"status": "error", "message": "salary not found"}
+                new_salary_Id = self.create_employee_salary(staff_id, total_salary, userId)
+                return new_salary_Id
 
             print("salary found")
-            # staff_info = StaffInfo.query.get(staff_id)
-            # if not staff_info:
-            #     return
-
             basic = total_salary / 2
 
             salary.BasicAmount = basic
@@ -4023,10 +4051,14 @@ class StaffIncrementResource(Resource):
             salary.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
             salary.UpdatedByUserId = userId
 
-            db.session.add(salary)
+            print(salary.to_dict())
+            # db.session.add(salary)
+            db.session.commit()
+            return salary.Id
         except Exception as e:
             db.session.rollback()
             print(f"Error updating employee salary: {str(e)}")
+            return {"error": "Error updating employee salary", "message": str(e)}
 
     def delete(self, staff_increment_id):
         try:
