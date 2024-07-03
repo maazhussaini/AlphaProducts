@@ -3861,8 +3861,6 @@ class StaffIncrementResource(Resource):
                 db.session.commit()
                 flag = True
                 
-                return {"data": [new_staff_increment.to_dict()], "new_salary.Id": new_salary_Id}, 201
-                
             new_staff_increment = StaffIncrement(
                 StaffIncrement_StaffId=data['StaffIncrement_StaffId'],
                 StaffIncrement_CurrentSalary=data['StaffIncrement_CurrentSalary'],
