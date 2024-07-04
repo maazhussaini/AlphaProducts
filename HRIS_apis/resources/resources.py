@@ -3896,7 +3896,8 @@ class StaffIncrementResource(Resource):
             if not staff_info:
                 return {"error": "Unsuccessful", "message": "No record found"}
 
-            salary_info = Salaries.query.filter_by(EmployeeId=staff_id, IsActive=0).all()
+            salary_info = Salaries.query.filter_by(EmployeeId=staff_id, IsActive=1).all()
+            print(salary_info)
             if not salary_info:
                 is_non_teacher = staff_info.IsNonTeacher
                 basic = total_salary / 2
