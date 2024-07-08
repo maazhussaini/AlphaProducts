@@ -1461,6 +1461,38 @@ class Salaries(db.Model):
             'Arrears': self.Arrears
         }
 
+class SalaryHold(db.Model):
+    __tablename__ = 'SalaryHold'
+
+    SalaryHold_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SalaryHold_StaffId = db.Column(db.Integer, nullable=False)
+    SalaryHold_Status = db.Column(db.Boolean, nullable=False)
+    SalaryHold_Month = db.Column(db.String(20), nullable=False)
+    SalaryHold_Reason = db.Column(db.String(100), nullable=False)
+    SalaryHold_InitiatedBy = db.Column(db.Integer, nullable=False)
+    SalaryHold_ApprovedBy = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'SalaryHold_Id': self.SalaryHold_Id,
+            'SalaryHold_StaffId': self.SalaryHold_StaffId,
+            'SalaryHold_Status': self.SalaryHold_Status,
+            'SalaryHold_Month': self.SalaryHold_Month,
+            'SalaryHold_Reason': self.SalaryHold_Reason,
+            'SalaryHold_InitiatedBy': self.SalaryHold_InitiatedBy,
+            'SalaryHold_ApprovedBy': self.SalaryHold_ApprovedBy,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
 class MarkDayOffDeps(db.Model):
     __tablename__ = 'MarkDayOffDeps'
 
@@ -1808,15 +1840,201 @@ class PayrollClose(db.Model):
             'InActive': self.InActive
         }
 
+# ------- LEAVE -------
 
+class LeavePolicy(db.Model):
+    __tablename__ = 'LeavePolicy'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LeaveTypeId = db.Column(db.Integer, nullable=True)
+    IsDefault = db.Column(db.Boolean, nullable=False)
+    TotalNoOfLeaveDays = db.Column(db.Integer, nullable=True)
+    MonthlyLeaveAllow = db.Column(db.Integer, nullable=True)
+    Priority = db.Column(db.Integer, nullable=True)
+    InCash = db.Column(db.Boolean, nullable=False)
+    LeaveAllowInProbation = db.Column(db.Boolean, nullable=False)
+    IsActive = db.Column(db.Boolean, nullable=False)
+    status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
 
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'LeaveTypeId': self.LeaveTypeId,
+            'IsDefault': self.IsDefault,
+            'TotalNoOfLeaveDays': self.TotalNoOfLeaveDays,
+            'MonthlyLeaveAllow': self.MonthlyLeaveAllow,
+            'Priority': self.Priority,
+            'InCash': self.InCash,
+            'LeaveAllowInProbation': self.LeaveAllowInProbation,
+            'IsActive': self.IsActive,
+            'status': self.status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
 
+class LeaveRequest(db.Model):
+    __tablename__ = 'LeaveRequest'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StudentId = db.Column(db.Integer, nullable=False)
+    FromDate = db.Column(db.Date, nullable=False)
+    ToDate = db.Column(db.Date, nullable=False)
+    Reason = db.Column(db.String(255), nullable=False)
+    Remarks = db.Column(db.String(255), nullable=True)
+    LeaveStatusId = db.Column(db.Integer, nullable=False)
+    ApprovedBy = db.Column(db.Integer, nullable=True)
+    LeaveApplicationPath = db.Column(db.String(255), nullable=True)
+    AcademicYearId = db.Column(db.Integer, nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=True)
 
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StudentId': self.StudentId,
+            'FromDate': self.FromDate.isoformat(),
+            'ToDate': self.ToDate.isoformat(),
+            'Reason': self.Reason,
+            'Remarks': self.Remarks,
+            'LeaveStatusId': self.LeaveStatusId,
+            'ApprovedBy': self.ApprovedBy,
+            'LeaveApplicationPath': self.LeaveApplicationPath,
+            'AcademicYearId': self.AcademicYearId,
+            'Status': self.Status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat(),
+            'CampusId': self.CampusId
+        }
 
+class LeaveRequestHistories(db.Model):
+    __tablename__ = 'LeaveRequestHistories'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StudentId = db.Column(db.Integer, nullable=False)
+    FromDate = db.Column(db.Date, nullable=False)
+    ToDate = db.Column(db.Date, nullable=False)
+    Reason = db.Column(db.String(255), nullable=False)
+    Remarks = db.Column(db.String(255), nullable=True)
+    LeaveStatusId = db.Column(db.Integer, nullable=False)
+    ApprovedBy = db.Column(db.Integer, nullable=True)
+    LeaveApplicationPath = db.Column(db.String(255), nullable=True)
+    AcademicYearId = db.Column(db.Integer, nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=True)
+    Action = db.Column(db.String(20), nullable=True)
 
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StudentId': self.StudentId,
+            'FromDate': self.FromDate.isoformat(),
+            'ToDate': self.ToDate.isoformat(),
+            'Reason': self.Reason,
+            'Remarks': self.Remarks,
+            'LeaveStatusId': self.LeaveStatusId,
+            'ApprovedBy': self.ApprovedBy,
+            'LeaveApplicationPath': self.LeaveApplicationPath,
+            'AcademicYearId': self.AcademicYearId,
+            'Status': self.Status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat(),
+            'CampusId': self.CampusId,
+            'Action': self.Action
+        }
+
+class LeaveStatus(db.Model):
+    __tablename__ = 'LeaveStatus'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LeaveStatusName = db.Column(db.String(50), nullable=False)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'LeaveStatusName': self.LeaveStatusName,
+            'Status': self.Status,
+            'CampusId': self.CampusId
+        }
+
+class LeaveType(db.Model):
+    __tablename__ = 'LeaveType'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LeaveTypeName = db.Column(db.String(50), nullable=True)
+    LeaveTypeCode = db.Column(db.String(50), nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'LeaveTypeName': self.LeaveTypeName,
+            'LeaveTypeCode': self.LeaveTypeCode,
+            'Status': self.Status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
 
 
 
