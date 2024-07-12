@@ -2034,6 +2034,727 @@ class LeaveType(db.Model):
             'CampusId': self.CampusId
         }
 
+# ------- HISTORY -------
+
+class NewJoinerApprovalHistory(db.Model):
+    __tablename__ = 'NewJoinerApprovalHistory'
+
+    NewJoinerApprovalHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    NewJoinerApprovalHistory_StaffId = db.Column(db.Integer, nullable=False)
+    NewJoinerApprovalHistory_Salary = db.Column(db.Float, nullable=False)
+    NewJoinerApprovalHistory_HiringApprovedBy = db.Column(db.Integer, nullable=False)
+    NewJoinerApprovalHistory_FileVerified = db.Column(db.Boolean, nullable=False)
+    NewJoinerApprovalHistory_EmpDetailsVerified = db.Column(db.Boolean, nullable=False)
+    NewJoinerApprovalHistory_AddToPayrollMonth = db.Column(db.String(15), nullable=False)
+    NewJoinerApprovalHistory_Remarks = db.Column(db.String(300), nullable=False)
+    NewJoinerApprovalHistory_NewJoinerApprovalId = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'NewJoinerApprovalHistory_Id': self.NewJoinerApprovalHistory_Id,
+            'NewJoinerApprovalHistory_StaffId': self.NewJoinerApprovalHistory_StaffId,
+            'NewJoinerApprovalHistory_Salary': self.NewJoinerApprovalHistory_Salary,
+            'NewJoinerApprovalHistory_HiringApprovedBy': self.NewJoinerApprovalHistory_HiringApprovedBy,
+            'NewJoinerApprovalHistory_FileVerified': self.NewJoinerApprovalHistory_FileVerified,
+            'NewJoinerApprovalHistory_EmpDetailsVerified': self.NewJoinerApprovalHistory_EmpDetailsVerified,
+            'NewJoinerApprovalHistory_AddToPayrollMonth': self.NewJoinerApprovalHistory_AddToPayrollMonth,
+            'NewJoinerApprovalHistory_Remarks': self.NewJoinerApprovalHistory_Remarks,
+            'NewJoinerApprovalHistory_NewJoinerApprovalId': self.NewJoinerApprovalHistory_NewJoinerApprovalId,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'CreatedBy': self.CreatedBy,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class OneTimeAllowanceHistory(db.Model):
+    __tablename__ = 'OneTimeAllowanceHistory'
+
+    OneTimeAllowanceHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    OneTimeAllowanceHistory_StaffId = db.Column(db.Integer, nullable=False)
+    OneTimeAllowanceHistory_AllowanceHeadId = db.Column(db.Integer, nullable=False)
+    OneTimeAllowanceHistory_Amount = db.Column(db.Float, nullable=False)
+    OneTimeAllowanceHistory_PamentMonth = db.Column(db.String(15), nullable=False)
+    OneTimeAllowanceHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    OneTimeAllowanceHistory_Taxable = db.Column(db.Boolean, nullable=False)
+    OneTimeAllowanceHistory_OneTimeAllowance_Id = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'OneTimeAllowanceHistory_Id': self.OneTimeAllowanceHistory_Id,
+            'OneTimeAllowanceHistory_StaffId': self.OneTimeAllowanceHistory_StaffId,
+            'OneTimeAllowanceHistory_AllowanceHeadId': self.OneTimeAllowanceHistory_AllowanceHeadId,
+            'OneTimeAllowanceHistory_Amount': self.OneTimeAllowanceHistory_Amount,
+            'OneTimeAllowanceHistory_PamentMonth': self.OneTimeAllowanceHistory_PamentMonth,
+            'OneTimeAllowanceHistory_ApprovedBy': self.OneTimeAllowanceHistory_ApprovedBy,
+            'OneTimeAllowanceHistory_Taxable': self.OneTimeAllowanceHistory_Taxable,
+            'OneTimeAllowanceHistory_OneTimeAllowance_Id': self.OneTimeAllowanceHistory_OneTimeAllowance_Id,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat(),
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'InActive': self.InActive
+        }
+
+class OneTimeDeductionHistory(db.Model):
+    __tablename__ = 'OneTimeDeductionHistory'
+
+    OneTimeDeductionHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    OneTimeDeductionHistory_StaffId = db.Column(db.Integer, nullable=False)
+    OneTimeDeductionHistory_DeductionHeadId = db.Column(db.Integer, nullable=False)
+    OneTimeDeductionHistory_Amount = db.Column(db.Float, nullable=False)
+    OneTimeDeductionHistory_DeductionMonth = db.Column(db.String(15), nullable=False)
+    OneTimeDeductionHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    OneTimeDeductionHistory_OneTimeDeduction_Id = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'OneTimeDeductionHistory_Id': self.OneTimeDeductionHistory_Id,
+            'OneTimeDeductionHistory_StaffId': self.OneTimeDeductionHistory_StaffId,
+            'OneTimeDeductionHistory_DeductionHeadId': self.OneTimeDeductionHistory_DeductionHeadId,
+            'OneTimeDeductionHistory_Amount': self.OneTimeDeductionHistory_Amount,
+            'OneTimeDeductionHistory_DeductionMonth': self.OneTimeDeductionHistory_DeductionMonth,
+            'OneTimeDeductionHistory_ApprovedBy': self.OneTimeDeductionHistory_ApprovedBy,
+            'OneTimeDeductionHistory_OneTimeDeduction_Id': self.OneTimeDeductionHistory_OneTimeDeduction_Id,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat(),
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'InActive': self.InActive
+        }
+
+class PayrollCloseHistory(db.Model):
+    __tablename__ = 'PayrollCloseHistory'
+
+    PayrollCloseHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    PayrollCloseHistory_Period = db.Column(db.String(100), nullable=False)
+    PayrollCloseHistory_CloseDate = db.Column(db.DateTime, nullable=False)
+    PayrollCloseHistory_ProcessedBy = db.Column(db.Integer, nullable=False)
+    PayrollCloseHistory_ReviewedBy = db.Column(db.Integer, nullable=False)
+    PayrollCloseHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    PayrollCloseHistory_Remarks = db.Column(db.String(200), nullable=False)
+    PayrollCloseHistory_PayrollClose_Id = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'PayrollCloseHistory_Id': self.PayrollCloseHistory_Id,
+            'PayrollCloseHistory_Period': self.PayrollCloseHistory_Period,
+            'PayrollCloseHistory_CloseDate': self.PayrollCloseHistory_CloseDate.isoformat(),
+            'PayrollCloseHistory_ProcessedBy': self.PayrollCloseHistory_ProcessedBy,
+            'PayrollCloseHistory_ReviewedBy': self.PayrollCloseHistory_ReviewedBy,
+            'PayrollCloseHistory_ApprovedBy': self.PayrollCloseHistory_ApprovedBy,
+            'PayrollCloseHistory_Remarks': self.PayrollCloseHistory_Remarks,
+            'PayrollCloseHistory_PayrollClose_Id': self.PayrollCloseHistory_PayrollClose_Id,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class SalaryHoldHistory(db.Model):
+    __tablename__ = 'SalaryHoldHistory'
+
+    SalaryHoldHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SalaryHoldHistory_StaffId = db.Column(db.Integer, nullable=False)
+    SalaryHoldHistory_Status = db.Column(db.Boolean, nullable=False)
+    SalaryHoldHistory_Month = db.Column(db.String(20), nullable=False)
+    SalaryHoldHistory_Reason = db.Column(db.String(100), nullable=False)
+    SalaryHoldHistory_InitiatedBy = db.Column(db.Integer, nullable=False)
+    SalaryHoldHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    SalaryHoldHistory_SalaryHold_Id = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'SalaryHoldHistory_Id': self.SalaryHoldHistory_Id,
+            'SalaryHoldHistory_StaffId': self.SalaryHoldHistory_StaffId,
+            'SalaryHoldHistory_Status': self.SalaryHoldHistory_Status,
+            'SalaryHoldHistory_Month': self.SalaryHoldHistory_Month,
+            'SalaryHoldHistory_Reason': self.SalaryHoldHistory_Reason,
+            'SalaryHoldHistory_InitiatedBy': self.SalaryHoldHistory_InitiatedBy,
+            'SalaryHoldHistory_ApprovedBy': self.SalaryHoldHistory_ApprovedBy,
+            'SalaryHoldHistory_SalaryHold_Id': self.SalaryHoldHistory_SalaryHold_Id,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class SalaryTransferDetailsHistory(db.Model):
+    __tablename__ = 'SalaryTransferDetailsHistory'
+
+    SalaryTransferDetailsHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SalaryTransferDetailsHistory_StaffId = db.Column(db.Integer, nullable=False)
+    SalaryTransferDetailsHistory_TransferMethod = db.Column(db.String(20), nullable=False)
+    SalaryTransferDetailsHistory_BankName = db.Column(db.String(200), nullable=True)
+    SalaryTransferDetailsHistory_BankAccountNumber = db.Column(db.String(200), nullable=True)
+    SalaryTransferDetailsHistory_BankBranch = db.Column(db.String(200), nullable=True)
+    SalaryTransferDetailsHistory_BankOrChequeTitle = db.Column(db.String(200), nullable=False)
+    SalaryTransferDetailsHistory_ReasonForChequeIssuance = db.Column(db.String(200), nullable=True)
+    SalaryTransferDetailsHistory_EffectiveDate = db.Column(db.DateTime, nullable=False)
+    SalaryTransferDetailsHistory_Remarks = db.Column(db.String(200), nullable=False)
+    SalaryTransferDetailsHistory_SalaryTransferDetails_Id = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'SalaryTransferDetailsHistory_Id': self.SalaryTransferDetailsHistory_Id,
+            'SalaryTransferDetailsHistory_StaffId': self.SalaryTransferDetailsHistory_StaffId,
+            'SalaryTransferDetailsHistory_TransferMethod': self.SalaryTransferDetailsHistory_TransferMethod,
+            'SalaryTransferDetailsHistory_BankName': self.SalaryTransferDetailsHistory_BankName,
+            'SalaryTransferDetailsHistory_BankAccountNumber': self.SalaryTransferDetailsHistory_BankAccountNumber,
+            'SalaryTransferDetailsHistory_BankBranch': self.SalaryTransferDetailsHistory_BankBranch,
+            'SalaryTransferDetailsHistory_BankOrChequeTitle': self.SalaryTransferDetailsHistory_BankOrChequeTitle,
+            'SalaryTransferDetailsHistory_ReasonForChequeIssuance': self.SalaryTransferDetailsHistory_ReasonForChequeIssuance,
+            'SalaryTransferDetailsHistory_EffectiveDate': self.SalaryTransferDetailsHistory_EffectiveDate.isoformat(),
+            'SalaryTransferDetailsHistory_Remarks': self.SalaryTransferDetailsHistory_Remarks,
+            'SalaryTransferDetailsHistory_SalaryTransferDetails_Id': self.SalaryTransferDetailsHistory_SalaryTransferDetails_Id,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class ScheduledAllowanceHistory(db.Model):
+    __tablename__ = 'ScheduledAllowanceHistory'
+
+    ScheduledAllowanceHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ScheduledAllowanceHistory_StaffId = db.Column(db.Integer, nullable=False)
+    ScheduledAllowanceHistory_AllowanceHeadId = db.Column(db.Integer, nullable=False)
+    ScheduledAllowanceHistory_AmountPerMonth = db.Column(db.Float, nullable=False)
+    ScheduledAllowanceHistory_StartDate = db.Column(db.DateTime, nullable=False)
+    ScheduledAllowanceHistory_EndDate = db.Column(db.DateTime, nullable=False)
+    ScheduledAllowanceHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    ScheduledAllowanceHistory_ScheduledAllowance_Id = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+    ScheduledAllowanceHistory_Taxable = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'ScheduledAllowanceHistory_Id': self.ScheduledAllowanceHistory_Id,
+            'ScheduledAllowanceHistory_StaffId': self.ScheduledAllowanceHistory_StaffId,
+            'ScheduledAllowanceHistory_AllowanceHeadId': self.ScheduledAllowanceHistory_AllowanceHeadId,
+            'ScheduledAllowanceHistory_AmountPerMonth': self.ScheduledAllowanceHistory_AmountPerMonth,
+            'ScheduledAllowanceHistory_StartDate': self.ScheduledAllowanceHistory_StartDate.isoformat(),
+            'ScheduledAllowanceHistory_EndDate': self.ScheduledAllowanceHistory_EndDate.isoformat(),
+            'ScheduledAllowanceHistory_ApprovedBy': self.ScheduledAllowanceHistory_ApprovedBy,
+            'ScheduledAllowanceHistory_ScheduledAllowance_Id': self.ScheduledAllowanceHistory_ScheduledAllowance_Id,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat(),
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'InActive': self.InActive,
+            'ScheduledAllowanceHistory_Taxable': self.ScheduledAllowanceHistory_Taxable
+        }
+
+class ScheduledDeductionHistory(db.Model):
+    __tablename__ = 'ScheduledDeductionHistory'
+
+    ScheduledDeductionHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ScheduledDeductionHistory_StaffId = db.Column(db.Integer, nullable=False)
+    ScheduledDeductionHistory_DeductionHeadId = db.Column(db.Integer, nullable=False)
+    ScheduledDeductionHistory_AmountPerMonth = db.Column(db.Float, nullable=False)
+    ScheduledDeductionHistory_StartDate = db.Column(db.DateTime, nullable=False)
+    ScheduledDeductionHistory_EndDate = db.Column(db.DateTime, nullable=False)
+    ScheduledDeductionHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    ScheduledDeductionHistory_ScheduledDeduction_Id = db.Column(db.Integer, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def to_dict(self):
+        return {
+            'ScheduledDeductionHistory_Id': self.ScheduledDeductionHistory_Id,
+            'ScheduledDeductionHistory_StaffId': self.ScheduledDeductionHistory_StaffId,
+            'ScheduledDeductionHistory_DeductionHeadId': self.ScheduledDeductionHistory_DeductionHeadId,
+            'ScheduledDeductionHistory_AmountPerMonth': self.ScheduledDeductionHistory_AmountPerMonth,
+            'ScheduledDeductionHistory_StartDate': self.ScheduledDeductionHistory_StartDate.isoformat(),
+            'ScheduledDeductionHistory_EndDate': self.ScheduledDeductionHistory_EndDate.isoformat(),
+            'ScheduledDeductionHistory_ApprovedBy': self.ScheduledDeductionHistory_ApprovedBy,
+            'ScheduledDeductionHistory_ScheduledDeduction_Id': self.ScheduledDeductionHistory_ScheduledDeduction_Id,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat(),
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'InActive': self.InActive
+        }
+
+class StaffInfoHistory(db.Model):
+    __tablename__ = 'StaffInfo_History'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Staff_ID = db.Column(db.Integer, nullable=False)
+    Personal_ID = db.Column(db.String(100))
+    S_Name = db.Column(db.String(50), nullable=False)
+    S_FName = db.Column(db.String(100))
+    S_Gender = db.Column(db.Integer, nullable=False)
+    S_CNIC = db.Column(db.String(50))
+    S_Email = db.Column(db.String(250))
+    S_ContactNo = db.Column(db.String(50))
+    S_DoB = db.Column(db.DateTime, nullable=False)
+    S_JoiningDate = db.Column(db.DateTime, nullable=False)
+    S_firstJOrderNo = db.Column(db.String(50))
+    S_JoiningDesg = db.Column(db.Integer)
+    S_JoiningGrade = db.Column(db.Integer)
+    S_firstJPlace = db.Column(db.String(50))
+    S_PresentDesignation = db.Column(db.Integer)
+    S_PresentGrade = db.Column(db.Integer)
+    S_SchoolName = db.Column(db.String(100))
+    S_District = db.Column(db.String(50))
+    S_Union = db.Column(db.String(50))
+    S_WardNo = db.Column(db.String(50))
+    S_Village = db.Column(db.String(50))
+    Designation_ID = db.Column(db.Integer, nullable=False)
+    Grade_ID = db.Column(db.Integer)
+    IsActive = db.Column(db.Boolean, nullable=False)
+    IsNonTeacher = db.Column(db.Boolean, nullable=False)
+    S_Salary = db.Column(db.Float)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime)
+    PhotoPath = db.Column(db.String(500))
+    IsDisable = db.Column(db.Boolean, nullable=False)
+    disableDetail = db.Column(db.String(255))
+    EOBI = db.Column(db.String(50))
+    ProbationPeriod = db.Column(db.Float)
+    ProbationEndDate = db.Column(db.DateTime)
+    IsPermanent = db.Column(db.Boolean, nullable=False)
+    IsTerminate = db.Column(db.Boolean)
+    DepartmentId = db.Column(db.Integer)
+    HouseNo = db.Column(db.String(255))
+    Street_Sector_BlockNo = db.Column(db.String(255))
+    AreaId = db.Column(db.BigInteger)
+    CityId = db.Column(db.BigInteger)
+    District = db.Column(db.String(50))
+    Province = db.Column(db.String(50))
+    CountryId = db.Column(db.BigInteger)
+    PresentAddress = db.Column(db.String(500))
+    TempAddress = db.Column(db.String(500))
+    Whatsapp = db.Column(db.String(20))
+    EmergencyContactName = db.Column(db.String(50))
+    EmergencyContactNo = db.Column(db.String(50))
+    HomeNo = db.Column(db.String(20))
+    Rent_Personal = db.Column(db.String(20))
+    MaritalStatus = db.Column(db.String(50))
+    AccountTitle = db.Column(db.String(50))
+    AccountNo = db.Column(db.String(50))
+    BankName = db.Column(db.String(50))
+    Branch = db.Column(db.String(50))
+    IsFatherName = db.Column(db.Boolean)
+    FHWName = db.Column(db.String(50))
+    FHWCNIC = db.Column(db.String(20))
+    FWHDOB = db.Column(db.DateTime)
+    CampusId = db.Column(db.Integer)
+    BarcodeId = db.Column(db.String(50), nullable=False)
+    IsAppearLive = db.Column(db.Boolean, nullable=False)
+    Category = db.Column(db.Integer)
+    FId = db.Column(db.Integer)
+    Initials = db.Column(db.String(50))
+    IsSalaryOn = db.Column(db.Boolean)
+    EmpId = db.Column(db.Integer)
+    IsAEN = db.Column(db.Integer)
+    ReportingOfficerId = db.Column(db.Integer)
+    FileNumber = db.Column(db.Integer)
+    FileLocation = db.Column(db.String(255))
+    P_Salary = db.Column(db.Float)
+    Grace_In = db.Column(db.Integer)
+    Grace_Out = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Staff_ID': self.Staff_ID,
+            'Personal_ID': self.Personal_ID,
+            'S_Name': self.S_Name,
+            'S_FName': self.S_FName,
+            'S_Gender': self.S_Gender,
+            'S_CNIC': self.S_CNIC,
+            'S_Email': self.S_Email,
+            'S_ContactNo': self.S_ContactNo,
+            'S_DoB': self.S_DoB.isoformat() if self.S_DoB else None,
+            'S_JoiningDate': self.S_JoiningDate.isoformat() if self.S_JoiningDate else None,
+            'S_firstJOrderNo': self.S_firstJOrderNo,
+            'S_JoiningDesg': self.S_JoiningDesg,
+            'S_JoiningGrade': self.S_JoiningGrade,
+            'S_firstJPlace': self.S_firstJPlace,
+            'S_PresentDesignation': self.S_PresentDesignation,
+            'S_PresentGrade': self.S_PresentGrade,
+            'S_SchoolName': self.S_SchoolName,
+            'S_District': self.S_District,
+            'S_Union': self.S_Union,
+            'S_WardNo': self.S_WardNo,
+            'S_Village': self.S_Village,
+            'Designation_ID': self.Designation_ID,
+            'Grade_ID': self.Grade_ID,
+            'IsActive': self.IsActive,
+            'IsNonTeacher': self.IsNonTeacher,
+            'S_Salary': self.S_Salary,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'PhotoPath': self.PhotoPath,
+            'IsDisable': self.IsDisable,
+            'disableDetail': self.disableDetail,
+            'EOBI': self.EOBI,
+            'ProbationPeriod': self.ProbationPeriod,
+            'ProbationEndDate': self.ProbationEndDate.isoformat() if self.ProbationEndDate else None,
+            'IsPermanent': self.IsPermanent,
+            'IsTerminate': self.IsTerminate,
+            'DepartmentId': self.DepartmentId,
+            'HouseNo': self.HouseNo,
+            'Street_Sector_BlockNo': self.Street_Sector_BlockNo,
+            'AreaId': self.AreaId,
+            'CityId': self.CityId,
+            'District': self.District,
+            'Province': self.Province,
+            'CountryId': self.CountryId,
+            'PresentAddress': self.PresentAddress,
+            'TempAddress': self.TempAddress,
+            'Whatsapp': self.Whatsapp,
+            'EmergencyContactName': self.EmergencyContactName,
+            'EmergencyContactNo': self.EmergencyContactNo,
+            'HomeNo': self.HomeNo,
+            'Rent_Personal': self.Rent_Personal,
+            'MaritalStatus': self.MaritalStatus,
+            'AccountTitle': self.AccountTitle,
+            'AccountNo': self.AccountNo,
+            'BankName': self.BankName,
+            'Branch': self.Branch,
+            'IsFatherName': self.IsFatherName,
+            'FHWName': self.FHWName,
+            'FHWCNIC': self.FHWCNIC,
+            'FWHDOB': self.FWHDOB.isoformat() if self.FWHDOB else None,
+            'CampusId': self.CampusId,
+            'BarcodeId': self.BarcodeId,
+            'IsAppearLive': self.IsAppearLive,
+            'Category': self.Category,
+            'FId': self.FId,
+            'Initials': self.Initials,
+            'IsSalaryOn': self.IsSalaryOn,
+            'EmpId': self.EmpId,
+            'IsAEN': self.IsAEN,
+            'ReportingOfficerId': self.ReportingOfficerId,
+            'FileNumber': self.FileNumber,
+            'FileLocation': self.FileLocation,
+            'P_Salary': self.P_Salary,
+            'Grace_In': self.Grace_In,
+            'Grace_Out': self.Grace_Out
+        }
+
+class StaffPromotionsHistory(db.Model):
+    __tablename__ = 'StaffPromotionsHistory'
+
+    StaffPromotionHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffPromotionHistory_StaffId = db.Column(db.Integer, nullable=False)
+    StaffPromotionHistory_SalaryHold = db.Column(db.Boolean, nullable=False)
+    StaffPromotionHistory_NewDesignationId = db.Column(db.Integer, nullable=False)
+    StaffPromotionHistory_NewDepartmentId = db.Column(db.Integer, nullable=False)
+    StaffPromotionHistory_Date = db.Column(db.DateTime, nullable=False)
+    StaffPromotionHistory_Reason = db.Column(db.String(100), nullable=False)
+    StaffPromotionHistory_InitiatedBy = db.Column(db.Integer, nullable=False)
+    StaffPromotionHistory_ApprovedBy = db.Column(db.Integer, nullable=False)
+    StaffPromotionHistory_NewSalary = db.Column(db.Float, nullable=False)
+    StaffPromotionHistory_NewSalaryEffectiveDate = db.Column(db.DateTime, nullable=False)
+    StaffPromotionHistory_Remarks = db.Column(db.String(200), nullable=False)
+    StaffPromotionHistory_StaffPromotion_Id = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffPromotionHistory_Id': self.StaffPromotionHistory_Id,
+            'StaffPromotionHistory_StaffId': self.StaffPromotionHistory_StaffId,
+            'StaffPromotionHistory_SalaryHold': self.StaffPromotionHistory_SalaryHold,
+            'StaffPromotionHistory_NewDesignationId': self.StaffPromotionHistory_NewDesignationId,
+            'StaffPromotionHistory_NewDepartmentId': self.StaffPromotionHistory_NewDepartmentId,
+            'StaffPromotionHistory_Date': self.StaffPromotionHistory_Date.isoformat() if self.StaffPromotionHistory_Date else None,
+            'StaffPromotionHistory_Reason': self.StaffPromotionHistory_Reason,
+            'StaffPromotionHistory_InitiatedBy': self.StaffPromotionHistory_InitiatedBy,
+            'StaffPromotionHistory_ApprovedBy': self.StaffPromotionHistory_ApprovedBy,
+            'StaffPromotionHistory_NewSalary': self.StaffPromotionHistory_NewSalary,
+            'StaffPromotionHistory_NewSalaryEffectiveDate': self.StaffPromotionHistory_NewSalaryEffectiveDate.isoformat() if self.StaffPromotionHistory_NewSalaryEffectiveDate else None,
+            'StaffPromotionHistory_Remarks': self.StaffPromotionHistory_Remarks,
+            'StaffPromotionHistory_StaffPromotion_Id': self.StaffPromotionHistory_StaffPromotion_Id,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class StaffPayrollHistory(db.Model):
+    __tablename__ = 'StaffPayrollHistory'
+
+    StaffPayrollHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffPayrollHistory_StaffPayrollId = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_StaffId = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_FromDate = db.Column(db.DateTime, nullable=False)
+    StaffPayrollHistory_ToDate = db.Column(db.DateTime, nullable=False)
+    StaffPayrollHistory_TotalDays = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_AbsentDays = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_PresentDays = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_LeaveDays = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_LateComingDays = db.Column(db.Numeric(18, 2))
+    StaffPayrollHistory_Toil = db.Column(db.Numeric(18, 2))
+    StaffPayrollHistory_EarlyGoingDays = db.Column(db.Numeric(18, 2))
+    StaffPayrollHistory_RecommendedDeduction = db.Column(db.Numeric(18, 2))
+    StaffPayrollHistory_CL = db.Column(db.Integer)
+    StaffPayrollHistory_SL = db.Column(db.Integer)
+    StaffPayrollHistory_EL = db.Column(db.Integer)
+    StaffPayrollHistory_AL = db.Column(db.Integer)
+    StaffPayrollHistory_SA = db.Column(db.Integer)
+    StaffPayrollHistory_PatMat = db.Column(db.Integer)
+    StaffPayrollHistory_Remarks = db.Column(db.String(500))
+    StaffPayrollHistory_TotalAmount = db.Column(db.Integer, nullable=False)
+    StaffPayrollHistory_ToilApprovedBy = db.Column(db.Integer)
+    StaffPayroll_ProccessToHR = db.Column(db.Boolean)
+    StaffPayroll_HRRemarks = db.Column(db.String(500))
+    StaffPayroll_ProcessToFinance = db.Column(db.Boolean)
+    StaffPayroll_FinanceRemarks = db.Column(db.String(500))
+    StaffPayroll_MarkedDayOff = db.Column(db.Integer)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdaterId = db.Column(db.Integer)
+    UpdateDate = db.Column(db.DateTime)
+    CampusId = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffPayrollHistory_Id': self.StaffPayrollHistory_Id,
+            'StaffPayrollHistory_StaffPayrollId': self.StaffPayrollHistory_StaffPayrollId,
+            'StaffPayrollHistory_StaffId': self.StaffPayrollHistory_StaffId,
+            'StaffPayrollHistory_FromDate': self.StaffPayrollHistory_FromDate.isoformat() if self.StaffPayrollHistory_FromDate else None,
+            'StaffPayrollHistory_ToDate': self.StaffPayrollHistory_ToDate.isoformat() if self.StaffPayrollHistory_ToDate else None,
+            'StaffPayrollHistory_TotalDays': self.StaffPayrollHistory_TotalDays,
+            'StaffPayrollHistory_AbsentDays': self.StaffPayrollHistory_AbsentDays,
+            'StaffPayrollHistory_PresentDays': self.StaffPayrollHistory_PresentDays,
+            'StaffPayrollHistory_LeaveDays': self.StaffPayrollHistory_LeaveDays,
+            'StaffPayrollHistory_LateComingDays': str(self.StaffPayrollHistory_LateComingDays) if self.StaffPayrollHistory_LateComingDays else None,
+            'StaffPayrollHistory_Toil': str(self.StaffPayrollHistory_Toil) if self.StaffPayrollHistory_Toil else None,
+            'StaffPayrollHistory_EarlyGoingDays': str(self.StaffPayrollHistory_EarlyGoingDays) if self.StaffPayrollHistory_EarlyGoingDays else None,
+            'StaffPayrollHistory_RecommendedDeduction': str(self.StaffPayrollHistory_RecommendedDeduction) if self.StaffPayrollHistory_RecommendedDeduction else None,
+            'StaffPayrollHistory_CL': self.StaffPayrollHistory_CL,
+            'StaffPayrollHistory_SL': self.StaffPayrollHistory_SL,
+            'StaffPayrollHistory_EL': self.StaffPayrollHistory_EL,
+            'StaffPayrollHistory_AL': self.StaffPayrollHistory_AL,
+            'StaffPayrollHistory_SA': self.StaffPayrollHistory_SA,
+            'StaffPayrollHistory_PatMat': self.StaffPayrollHistory_PatMat,
+            'StaffPayrollHistory_Remarks': self.StaffPayrollHistory_Remarks,
+            'StaffPayrollHistory_TotalAmount': self.StaffPayrollHistory_TotalAmount,
+            'StaffPayrollHistory_ToilApprovedBy': self.StaffPayrollHistory_ToilApprovedBy,
+            'StaffPayroll_ProccessToHR': self.StaffPayroll_ProccessToHR,
+            'StaffPayroll_HRRemarks': self.StaffPayroll_HRRemarks,
+            'StaffPayroll_ProcessToFinance': self.StaffPayroll_ProcessToFinance,
+            'StaffPayroll_FinanceRemarks': self.StaffPayroll_FinanceRemarks,
+            'StaffPayroll_MarkedDayOff': self.StaffPayroll_MarkedDayOff,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'UpdaterId': self.UpdaterId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CampusId': self.CampusId
+        }
+
+class StaffSeparationHistory(db.Model):
+    __tablename__ = 'StaffSeparationHistory'
+
+    StaffSeparationHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffSeparationHistory_StaffId = db.Column(db.Integer, nullable=False)
+    StaffSeparationHistory_Type = db.Column(db.String(50), nullable=False)
+    StaffSeparationHistory_Reason = db.Column(db.String(20), nullable=False)
+    StaffSeparationHistory_Details = db.Column(db.String(200), nullable=False)
+    StaffSeparationHistory_ReleventDocumentReceived = db.Column(db.Boolean, nullable=False)
+    StaffSeparationHistory_ResignationDate = db.Column(db.DateTime, nullable=False)
+    StaffSeparationHistory_LastWorkingDate = db.Column(db.DateTime, nullable=False)
+    StaffSeparationHistory_NoticePeriod = db.Column(db.String(10), nullable=False)
+    StaffSeparationHistory_ResignationApproved = db.Column(db.String(10), nullable=False)
+    StaffSeparationHistory_SalaryHoldMonth = db.Column(db.String(20), nullable=False)
+    StaffSeparationHistory_ClearanceDone = db.Column(db.Boolean, nullable=False)
+    StaffSeparationHistory_ClearanceDate = db.Column(db.DateTime)
+    StaffSeparationHistory_ExitInterview = db.Column(db.String(10), nullable=False)
+    StaffSeparationHistory_ExitInterviewDate = db.Column(db.DateTime)
+    StaffSeparationHistory_FinalSettlementDone = db.Column(db.String(10), nullable=False)
+    StaffSeparationHistory_FinalSettlementDate = db.Column(db.DateTime)
+    StaffSeparationHistory_StaffSeparation_Id = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'StaffSeparationHistory_Id': self.StaffSeparationHistory_Id,
+            'StaffSeparationHistory_StaffId': self.StaffSeparationHistory_StaffId,
+            'StaffSeparationHistory_Type': self.StaffSeparationHistory_Type,
+            'StaffSeparationHistory_Reason': self.StaffSeparationHistory_Reason,
+            'StaffSeparationHistory_Details': self.StaffSeparationHistory_Details,
+            'StaffSeparationHistory_ReleventDocumentReceived': self.StaffSeparationHistory_ReleventDocumentReceived,
+            'StaffSeparationHistory_ResignationDate': self.StaffSeparationHistory_ResignationDate.isoformat() if self.StaffSeparationHistory_ResignationDate else None,
+            'StaffSeparationHistory_LastWorkingDate': self.StaffSeparationHistory_LastWorkingDate.isoformat() if self.StaffSeparationHistory_LastWorkingDate else None,
+            'StaffSeparationHistory_NoticePeriod': self.StaffSeparationHistory_NoticePeriod,
+            'StaffSeparationHistory_ResignationApproved': self.StaffSeparationHistory_ResignationApproved,
+            'StaffSeparationHistory_SalaryHoldMonth': self.StaffSeparationHistory_SalaryHoldMonth,
+            'StaffSeparationHistory_ClearanceDone': self.StaffSeparationHistory_ClearanceDone,
+            'StaffSeparationHistory_ClearanceDate': self.StaffSeparationHistory_ClearanceDate.isoformat() if self.StaffSeparationHistory_ClearanceDate else None,
+            'StaffSeparationHistory_ExitInterview': self.StaffSeparationHistory_ExitInterview,
+            'StaffSeparationHistory_ExitInterviewDate': self.StaffSeparationHistory_ExitInterviewDate.isoformat() if self.StaffSeparationHistory_ExitInterviewDate else None,
+            'StaffSeparationHistory_FinalSettlementDone': self.StaffSeparationHistory_FinalSettlementDone,
+            'StaffSeparationHistory_FinalSettlementDate': self.StaffSeparationHistory_FinalSettlementDate.isoformat() if self.StaffSeparationHistory_FinalSettlementDate else None,
+            'StaffSeparationHistory_StaffSeparation_Id': self.StaffSeparationHistory_StaffSeparation_Id,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class StudentFeeReceivingsDetailHistory(db.Model):
+    __tablename__ = 'StudentFeeReceivingsDetailHistory'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ChartOfAccountId = db.Column(db.Integer, nullable=False)
+    Narration = db.Column(db.String(200), nullable=False)
+    Amount = db.Column(db.Numeric(18, 2), nullable=False)
+    CampusId = db.Column(db.Integer, nullable=False)
+    StudentFeeReceivingsId = db.Column(db.Integer, nullable=False)
+    InActive = db.Column(db.Boolean, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'ChartOfAccountId': self.ChartOfAccountId,
+            'Narration': self.Narration,
+            'Amount': float(self.Amount),
+            'CampusId': self.CampusId,
+            'StudentFeeReceivingsId': self.StudentFeeReceivingsId,
+            'InActive': self.InActive
+        }
+
+class StudentFeeStructureDeletedHistory(db.Model):
+    __tablename__ = 'StudentFeeStructureDeletedHistory'
+
+    StudentFeeStructureDeletedHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StudentFeeStructure_AlphaFeeStructureId = db.Column(db.Integer, nullable=False)
+    StudentFeeStructure_ClassId = db.Column(db.Integer, nullable=False)
+    StudentFeeStructure_StudentId = db.Column(db.Integer, nullable=False)
+    StudentFeeStructure_Quantity = db.Column(db.Integer, nullable=False)
+    StudentFeeStructure_FeeAmount = db.Column(db.Numeric(18, 2), nullable=False)
+    StudentFeeStructure_TaxPercent = db.Column(db.Numeric(18, 2), nullable=True)
+    StudentFeeStructure_TaxAmount = db.Column(db.Numeric(18, 2), nullable=True)
+    StudentFeeStructure_DiscountPercent = db.Column(db.Numeric(18, 2), nullable=True)
+    StudentFeeStructure_DiscountAmount = db.Column(db.Numeric(18, 2), nullable=True)
+    StudentFeeStructure_IntervalMonth = db.Column(db.Integer, nullable=True)
+    StudentFeeStructure_NetAmount = db.Column(db.Numeric(18, 2), nullable=True)
+    StudentFeeStructure_Remarks = db.Column(db.String(100), nullable=True)
+    StudentFeeStructure_DefaultChg = db.Column(db.Boolean, nullable=True)
+    StudentFeeStructure_FeeCount = db.Column(db.Integer, nullable=True)
+    StudentFeeStructure_StartDate = db.Column(db.DateTime, nullable=True)
+    StudentFeeStructure_AccountId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.BigInteger, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'StudentFeeStructureDeletedHistory_Id': self.StudentFeeStructureDeletedHistory_Id,
+            'StudentFeeStructure_AlphaFeeStructureId': self.StudentFeeStructure_AlphaFeeStructureId,
+            'StudentFeeStructure_ClassId': self.StudentFeeStructure_ClassId,
+            'StudentFeeStructure_StudentId': self.StudentFeeStructure_StudentId,
+            'StudentFeeStructure_Quantity': self.StudentFeeStructure_Quantity,
+            'StudentFeeStructure_FeeAmount': float(self.StudentFeeStructure_FeeAmount),
+            'StudentFeeStructure_TaxPercent': float(self.StudentFeeStructure_TaxPercent) if self.StudentFeeStructure_TaxPercent else None,
+            'StudentFeeStructure_TaxAmount': float(self.StudentFeeStructure_TaxAmount) if self.StudentFeeStructure_TaxAmount else None,
+            'StudentFeeStructure_DiscountPercent': float(self.StudentFeeStructure_DiscountPercent) if self.StudentFeeStructure_DiscountPercent else None,
+            'StudentFeeStructure_DiscountAmount': float(self.StudentFeeStructure_DiscountAmount) if self.StudentFeeStructure_DiscountAmount else None,
+            'StudentFeeStructure_IntervalMonth': self.StudentFeeStructure_IntervalMonth,
+            'StudentFeeStructure_NetAmount': float(self.StudentFeeStructure_NetAmount) if self.StudentFeeStructure_NetAmount else None,
+            'StudentFeeStructure_Remarks': self.StudentFeeStructure_Remarks,
+            'StudentFeeStructure_DefaultChg': self.StudentFeeStructure_DefaultChg,
+            'StudentFeeStructure_FeeCount': self.StudentFeeStructure_FeeCount,
+            'StudentFeeStructure_StartDate': self.StudentFeeStructure_StartDate.isoformat() if self.StudentFeeStructure_StartDate else None,
+            'StudentFeeStructure_AccountId': self.StudentFeeStructure_AccountId,
+            'CampusId': self.CampusId,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
