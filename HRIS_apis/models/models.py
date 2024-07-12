@@ -1810,11 +1810,10 @@ class SalaryTransferDetails(db.Model):
 class PayrollClose(db.Model):
     __tablename__ = 'PayrollClose'
     PayrollClose_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    PayrollClose_StaffId = db.Column(db.Integer, nullable=False)
     PayrollClose_Period = db.Column(db.String(100), nullable=False)
     PayrollClose_CloseDate = db.Column(db.DateTime, nullable=False)
     PayrollClose_ProcessedBy = db.Column(db.Integer, nullable=False)
-    PayrollClose_ReceivedBy = db.Column(db.Integer, nullable=False)
+    PayrollClose_ReviewedBy = db.Column(db.Integer, nullable=False)
     PayrollClose_ApprovedBy = db.Column(db.Integer, nullable=False)
     PayrollClose_Remarks = db.Column(db.String(200), nullable=False)
     CreatedBy = db.Column(db.Integer, nullable=False)
@@ -1826,11 +1825,10 @@ class PayrollClose(db.Model):
     def to_dict(self):
         return {
             'PayrollClose_Id': self.PayrollClose_Id,
-            'PayrollClose_StaffId': self.PayrollClose_StaffId,
             'PayrollClose_Period': self.PayrollClose_Period,
             'PayrollClose_CloseDate': self.PayrollClose_CloseDate.isoformat() if self.PayrollClose_CloseDate else None,
             'PayrollClose_ProcessedBy': self.PayrollClose_ProcessedBy,
-            'PayrollClose_ReceivedBy': self.PayrollClose_ReceivedBy,
+            'PayrollClose_ReviewedBy': self.PayrollClose_ReviewedBy,
             'PayrollClose_ApprovedBy': self.PayrollClose_ApprovedBy,
             'PayrollClose_Remarks': self.PayrollClose_Remarks,
             'CreatedBy': self.CreatedBy,
