@@ -2818,7 +2818,8 @@ class StaffTransferResource(Resource):
 
             # Commit the transaction
             db.session.commit()
-            return {"message": "Staff transfer created and related tables updated successfully"}, 201
+            return {"status": "success",
+                "message": "Staff transfer created and related tables updated successfully"}, 201
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
             db.session.rollback()

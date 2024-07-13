@@ -185,43 +185,67 @@ class DynamicPostResource(Resource):
 
 class DynamicUpdateResource(Resource):
     def put(self):
-        data = request.get_json()
-        table_name = data.get('Table_Name')
-        record_id = data.get('id')  # Assuming the primary key field is 'id'
-        update_data = data.get('Data')
+        parser = reqparse.RequestParser()
+        parser.add_argument('Table_Name', type=str, required=True, help='Table Name is required')
+        parser.add_argument('id', type=int, required=True, help='Kindly provide the record ID')
+        parser.add_argument('Data', type=dict, required=True, help='Data should be in JSON')
+        parser.add_argument('history_table', type=str, required=False)
+
+        args = parser.parse_args()
+
+        table_name = args['Table_Name']
+        history_table = args['history_table']
+        record_id = args['id']
+        update_data = args['Data']
 
         if not table_name or not record_id or not update_data:
-            return {'status': 'error',
-                'message': 'Table_Name, id, and Data are required'}, 400
+            return {'status': 'error', 'message': 'Table_Name, id, and Data are required'}, 400
 
         # Get the model class based on the table name
         model_class = globals().get(table_name)
 
         if not model_class:
-            return {'status': 'error',
-                'message': f'Table {table_name} does not exist'}, 400
+            return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
 
         # Find the record by id and update it with the provided data
         try:
             record = db.session.query(model_class).get(record_id)
             if not record:
                 return {'error': f'Record with id {record_id} not found in {table_name}'}, 404
+            
+            try:
+                if history_table:
+                    history_model_class = globals().get(history_table)
+                    
+                    if not history_model_class:
+                        return {'status': 'error', 'message': f'History Table {history_table} does not exist'}, 400
+                    
+                    # Convert the record to a dictionary and insert into the history table
+                    history_data = record.__dict__.copy()
+                    history_data.pop('_sa_instance_state', None)  # Remove the SQLAlchemy instance state
+                    history_record = history_model_class(**history_data)
+                    db.session.add(history_record)
+                    db.session.commit()
 
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                return {'status': 'error', 'message': str(e)}, 500
+            except Exception as e:
+                db.session.rollback()
+                return {'status': 'error', 'message': str(e)}, 500
+            
             for key, value in update_data.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
 
             db.session.commit()
-            return {'status': 'success',
-                'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
+            return {'status': 'success', 'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
+            return {'status': 'error', 'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
+            return {'status': 'error', 'message': str(e)}, 500
 
 class DynamicInsertOrUpdateResource(Resource):
     def post(self):
