@@ -438,6 +438,33 @@ class NewJoinerApprovalResource(Resource):
             new_joiner_approval = NewJoinerApproval.query.get(approval_id)
             if not new_joiner_approval:
                 return {'message': 'New joiner approval record not found'}, 404
+            
+            try:
+                new_joiner_approval_history = NewJoinerApprovalHistory(
+                    NewJoinerApprovalHistory_NewJoinerApprovalId = approval_id,
+                    NewJoinerApprovalHistory_StaffId= new_joiner_approval.NewJoinerApproval_StaffId,
+                    NewJoinerApprovalHistory_Salary= new_joiner_approval.NewJoinerApproval_Salary,
+                    NewJoinerApprovalHistory_HiringApprovedBy= new_joiner_approval.NewJoinerApproval_HiringApprovedBy,
+                    NewJoinerApprovalHistory_Remarks= new_joiner_approval.NewJoinerApproval_Remarks,
+                    NewJoinerApprovalHistory_FileVerified= new_joiner_approval.NewJoinerApproval_FileVerified,
+                    NewJoinerApprovalHistory_EmpDetailsVerified= new_joiner_approval.NewJoinerApproval_EmpDetailsVerified,
+                    NewJoinerApprovalHistory_AddToPayrollMonth= new_joiner_approval.NewJoinerApproval_AddToPayrollMonth,
+                    CreatedBy= new_joiner_approval.CreatedBy,
+                    CreatedDate= new_joiner_approval.CreatedDate,
+                    UpdatedBy = args['UpdatedBy'],
+                    UpdatedDate = datetime.utcnow() + timedelta(hours=5),
+                    InActive = 0
+                )
+
+                db.session.add(new_joiner_approval_history)
+                db.session.commit()
+                
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                return {'error': f"Database error occurred: {str(e)}"}, 500
+            except Exception as e:
+                db.session.rollback()
+                return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
             for key, value in args.items():
                 if value is not None:
@@ -976,7 +1003,28 @@ class OneTimeDeductionResource(Resource):
         deduction = OneTimeDeduction.query.get(id)
         if deduction is None:
             abort(404, message=f"OneTimeDeduction {id} doesn't exist")
-
+        
+        try:
+            new_deduction_history = OneTimeDeductionHistory(
+                OneTimeDeductionHistory_OneTimeDeduction_Id = args['OneTimeDeduction_Id'],
+                OneTimeDeductionHistory_StaffId=deduction.OneTimeDeduction_StaffId,
+                OneTimeDeductionHistory_DeductionHeadId=deduction.OneTimeDeduction_DeductionHeadId,
+                OneTimeDeductionHistory_Amount=deduction.OneTimeDeduction_Amount,
+                OneTimeDeductionHistory_DeductionMonth=deduction.OneTimeDeduction_DeductionMonth,
+                OneTimeDeductionHistory_ApprovedBy=deduction.OneTimeDeduction_ApprovedBy,
+                CreatorId=deduction.CreatorId,
+                CreateDate=deduction.CreateDate,
+                UpdatorId = args['UpdatorId'],
+                UpdateDate = datetime.utcnow() + timedelta(hours=5),
+                InActive = 0
+            )
+            db.session.add(new_deduction_history)
+            db.session.commit()
+            # return {"message": "One-time deduction History created", "id": new_deduction.OneTimeDeduction_Id}, 201
+        except Exception as e:
+            db.session.rollback()
+            abort(400, message=f"Error creating one-time deduction: {str(e)}")
+        
         try:
             if args['OneTimeDeduction_StaffId'] is not None:
                 deduction.OneTimeDeduction_StaffId = args['OneTimeDeduction_StaffId']
@@ -3559,6 +3607,32 @@ class OneTimeAllowanceResource(Resource):
             one_time_allowance = OneTimeAllowance.query.get(id)
             if not one_time_allowance:
                 return {'message': 'OneTimeAllowance record not found'}, 404
+            
+            try:
+                one_time_allowance = OneTimeAllowance(
+                    OneTimeAllowanceHistory_OneTimeAllowance_Id = id,
+                    OneTimeAllowanceHistory_StaffId= one_time_allowance.OneTimeAllowance_StaffId,
+                    OneTimeAllowanceHistory_AllowanceHeadId= one_time_allowance.OneTimeAllowance_AllowanceHeadId,
+                    OneTimeAllowanceHistory_Amount= one_time_allowance.OneTimeAllowance_Amount,
+                    OneTimeAllowanceHistory_PamentMonth= one_time_allowance.OneTimeAllowance_PamentMonth,
+                    OneTimeAllowanceHistory_ApprovedBy= one_time_allowance.OneTimeAllowance_ApprovedBy,
+                    OneTimeAllowanceHistory_Taxable= one_time_allowance.OneTimeAllowance_Taxable,
+                    CreatorId= one_time_allowance.CreatorId,
+                    CreateDate= one_time_allowance.CreateDate,
+                    UpdatorId= args['UpdatorId'],
+                    UpdateDate = datetime.utcnow() + timedelta(hours=5),
+                    InActive = 0
+                )
+                db.session.add(one_time_allowance)
+                db.session.commit()
+
+                # return {"message": "OneTimeAllowance record created successfully", "OneTimeAllowance": one_time_allowance.to_dict()}, 201
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                return {'error': f"Database error occurred: {str(e)}"}, 500
+            except Exception as e:
+                db.session.rollback()
+                return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
             one_time_allowance.OneTimeAllowance_StaffId = args['OneTimeAllowance_StaffId']
             one_time_allowance.OneTimeAllowance_AllowanceHeadId = args['OneTimeAllowance_AllowanceHeadId']
@@ -3884,7 +3958,8 @@ class StaffIncrementResource(Resource):
             else:
                 new_salary_Id = self.create_employee_salary(new_staff_increment.StaffIncrement_StaffId, new_staff_increment.StaffIncrement_NewSalary, data['CreatedBy'])
                 
-            return {"data": [new_staff_increment.to_dict()], "new_salary.Id": new_salary_Id}, 201
+            return {'status': 'success',
+                'message': 'Records inserted into `StaffIncrement` successfully'}, 201
         
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -4349,10 +4424,10 @@ class PayrollCloseResource(Resource):
                 PayrollClose_ApprovedBy=data['PayrollClose_ApprovedBy'],
                 PayrollClose_Remarks=data['PayrollClose_Remarks'],
                 CreatedBy=data['CreatedBy'],
-                CreatedDate=datetime.utcnow(),
-                UpdatedBy=data.get('UpdatedBy'),
-                UpdatedDate=datetime.strptime(data['UpdatedDate'], '%Y-%m-%dT%H:%M:%S') if data.get('UpdatedDate') else None,
-                InActive=data['InActive']
+                CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                # UpdatedBy=data.get('UpdatedBy'),
+                # UpdatedDate=datetime.strptime(data['UpdatedDate'], '%Y-%m-%dT%H:%M:%S') if data.get('UpdatedDate') else None,
+                InActive=0
             )
             db.session.add(new_payroll_close)
             db.session.commit()
@@ -4366,6 +4441,28 @@ class PayrollCloseResource(Resource):
         try:
             payroll_close = PayrollClose.query.get(payroll_close_id)
             if payroll_close:
+                
+                try:                    
+                    new_payroll_close = PayrollCloseHistory(
+                        PayrollCloseHistory_PayrollClose_Id = payroll_close_id,
+                        PayrollCloseHistory_Period= payroll_close.PayrollClose_Period,
+                        PayrollCloseHistory_CloseDate= payroll_close.PayrollClose_CloseDate,
+                        PayrollCloseHistory_ProcessedBy= payroll_close.PayrollClose_ProcessedBy,
+                        PayrollCloseHistory_ReviewedBy= payroll_close.PayrollClose_ReceivedBy,
+                        PayrollCloseHistory_ApprovedBy= payroll_close.PayrollClose_ApprovedBy,
+                        PayrollCloseHistory_Remarks= payroll_close.PayrollClose_Remarks,
+                        CreatedBy= payroll_close.CreatedBy,
+                        CreatedDate= payroll_close.CreatedDate,
+                        UpdatedBy= data.get('UpdatedBy'),
+                        UpdatedDate= datetime.utcnow() + timedelta(hours=5),
+                        InActive=0
+                    )
+                    db.session.add(new_payroll_close)
+                    db.session.commit()
+                except SQLAlchemyError as e:
+                    db.session.rollback()
+                    return {'error': str(e)}, 500
+                
                 payroll_close.PayrollClose_StaffId = data.get('PayrollClose_StaffId', payroll_close.PayrollClose_StaffId)
                 payroll_close.PayrollClose_Period = data.get('PayrollClose_Period', payroll_close.PayrollClose_Period)
                 payroll_close.PayrollClose_CloseDate = datetime.strptime(data['PayrollClose_CloseDate'], '%Y-%m-%dT%H:%M:%S') if data.get('PayrollClose_CloseDate') else payroll_close.PayrollClose_CloseDate

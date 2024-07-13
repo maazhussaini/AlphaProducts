@@ -170,7 +170,6 @@ class DynamicPostResource(Resource):
         # Insert records
         try:
             records = [model_class(**item) for item in insert_data]
-            print(records)
             db.session.bulk_save_objects(records)
             db.session.commit()
             return {'status': 'success',
