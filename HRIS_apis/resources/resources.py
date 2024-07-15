@@ -2784,7 +2784,7 @@ class StaffTransferResource(Resource):
             # Determine the from_campus_id based on the IsAEN flag
             print(f"staff.IsAEN: {staff.IsAEN}, staff.CampusId: {staff.CampusId}")
             from_campus_id = 11 if staff.IsAEN == 1 else staff.CampusId
-            print(from_campus_id)
+            current_campus_id=staff.CampusId
             to_campus_id = args['Transfer_To_Campus']
 
             # Create a new StaffTransfer record
@@ -2815,7 +2815,7 @@ class StaffTransferResource(Resource):
                 # Update related tables
                 self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'], args['DesignationId'])
                 self.update_staff_shift(args['StaffId'], to_campus_id)
-                self.update_user_campus(args['StaffId'], to_campus_id, staff.CampusId)
+                self.update_user_campus(args['StaffId'], to_campus_id, from_campus_id)
                 self.update_user(args['StaffId'], to_campus_id)
 
             # Commit the transaction
@@ -2852,11 +2852,13 @@ class StaffTransferResource(Resource):
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            print("update_staff_info")
+            raise e
         except Exception as e:
             # Rollback transaction in case of any unexpected error
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            print("update_staff_info")
+            raise e
         
     def update_staff_shift(self, staff_id, to_campus_id):
         """
@@ -2873,11 +2875,13 @@ class StaffTransferResource(Resource):
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            print("update_staff_shift")
+            raise e
         except Exception as e:
             # Rollback transaction in case of any unexpected error
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            print("update_staff_shift")
+            raise e
         
     def update_user_campus(self, staff_id, to_campus_id, current_campus_id):
         """
@@ -2886,18 +2890,21 @@ class StaffTransferResource(Resource):
         """
         try:
             if to_campus_id == 11:
-                user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
+                user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=to_campus_id).first()
                 
-                new_user_campus = UserCampus(
-                    UserId=user_id,
-                    CampusId=to_campus_id,
-                    StaffId=staff_id,
-                    Date=datetime.utcnow() + timedelta(hours=5),
-                    Status=True
-                )
-                db.session.add(new_user_campus)
+                if not user_campus:
+                    user_campus = UserCampus.query.filter_by(StaffId=staff_id).first()
+                    new_user_campus = UserCampus(
+                        UserId=user_campus.UserId,
+                        CampusId=to_campus_id,
+                        StaffId=staff_id,
+                        Date=datetime.utcnow() + timedelta(hours=5),
+                        Status=True
+                    )
+                    db.session.add(new_user_campus)
                 
             else:
+                print(f"to_campus_id: {to_campus_id}, staff_id: {staff_id}, current_campus_id: {current_campus_id}")
                 user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
                 user_campus.CampusId = to_campus_id
                 user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
@@ -2905,11 +2912,13 @@ class StaffTransferResource(Resource):
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            print("update_user_campus")
+            raise e
         except Exception as e:
             # Rollback transaction in case of any unexpected error
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            print("update_user_campus")
+            raise e
 
     def update_user(self, staff_id, to_campus_id):
         """
@@ -2931,12 +2940,14 @@ class StaffTransferResource(Resource):
         
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
+            print("update_user")
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            raise e
         except Exception as e:
             # Rollback transaction in case of any unexpected error
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            print("update_user")
+            raise e
 
     def put(self, id):
         parser = reqparse.RequestParser()
