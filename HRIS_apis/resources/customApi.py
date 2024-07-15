@@ -187,9 +187,10 @@ class DynamicUpdateResource(Resource):
     def put(self):
         parser = reqparse.RequestParser()
         parser.add_argument('Table_Name', type=str, required=True, help='Table Name is required')
+        parser.add_argument('history_table', type=str, required=False)
         parser.add_argument('id', type=int, required=True, help='Kindly provide the record ID')
         parser.add_argument('Data', type=dict, required=True, help='Data should be in JSON')
-        parser.add_argument('history_table', type=str, required=False)
+        
 
         args = parser.parse_args()
 
@@ -222,8 +223,20 @@ class DynamicUpdateResource(Resource):
                     
                     # Convert the record to a dictionary and insert into the history table
                     history_data = record.__dict__.copy()
+                    
                     history_data.pop('_sa_instance_state', None)  # Remove the SQLAlchemy instance state
-                    history_record = history_model_class(**history_data)
+                    # history_data = {f'History_{key}': value for key, value in record.__dict__.items() if key not in ['_sa_instance_state', 'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive']}
+                    # Keys to exclude from prefixing
+                    exclude_keys = {'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive'}
+
+                    # Efficiently update dictionary
+                    updated_history_data = {
+                        (f'History_{key}' if key not in exclude_keys else key): value
+                        for key, value in history_data.items()
+                    }
+                    updated_history_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
+                    
+                    history_record = history_model_class(**updated_history_data)
                     db.session.add(history_record)
                     db.session.commit()
 
@@ -239,14 +252,17 @@ class DynamicUpdateResource(Resource):
                     setattr(record, key, value)
 
             db.session.commit()
-            return {'status': 'success', 'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
+            
+            if history_table:
+                return {'status': 'success', 'message': f'Record in {history_table} added successfully'}, 200
+            else:
+                return {'status': 'success', 'message': f'Record in {table_name} with id {record_id} updated successfully'}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'status': 'error', 'message': str(e)}, 500
         except Exception as e:
             db.session.rollback()
             return {'status': 'error', 'message': str(e)}, 500
-
 class DynamicInsertOrUpdateResource(Resource):
     def post(self):
         data = request.get_json()

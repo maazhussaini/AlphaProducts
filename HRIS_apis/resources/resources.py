@@ -198,19 +198,19 @@ class JobApplicationFormResource(Resource):
                 Name_of_last_employer=args['Name_of_last_employer'],
                 Employment_duration_from=employment_duration_from,
                 Employment_duration_to=employment_duration_to,
-                Designation=args['designation'],
-                Reason_for_leaving=args['reason_for_leaving'],
-                Last_drawn_gross_salary=args['last_drawn_gross_salary'],
-                Benefits_if_any=args['benefits_if_any'],
-                Preferred_campus=args['preferred_campus'],
-                Preferred_location=args['preferred_location'],
-                Preferred_job_type=args['preferred_job_type'],
-                Section=args['section'],
-                Subject=args['subject'],
-                Expected_salary=args['expected_salary'],
-                Cv_path=args['cv_path'],
-                CoverLetter_Path=args['coverLetter_Path'],
-                Status=args['status']
+                Designation=args['Designation'],
+                Reason_for_leaving=args['Reason_for_leaving'],
+                Last_drawn_gross_salary=args['Last_drawn_gross_salary'],
+                Benefits_if_any=args['Benefits_if_any'],
+                Preferred_campus=args['Preferred_campus'],
+                Preferred_location=args['Preferred_location'],
+                Preferred_job_type=args['Preferred_job_type'],
+                Section=args['Section'],
+                Subject=args['Subject'],
+                Expected_salary=args['Expected_salary'],
+                Cv_path=args['Cv_path'],
+                CoverLetter_Path=args['CoverLetter_Path'],
+                Status=args['Status']
             )
 
             db.session.add(job_application_form)
@@ -2782,7 +2782,9 @@ class StaffTransferResource(Resource):
                 return {"message": "Staff not found"}, 404
 
             # Determine the from_campus_id based on the IsAEN flag
+            print(f"staff.IsAEN: {staff.IsAEN}, staff.CampusId: {staff.CampusId}")
             from_campus_id = 11 if staff.IsAEN == 1 else staff.CampusId
+            print(from_campus_id)
             to_campus_id = args['Transfer_To_Campus']
 
             # Create a new StaffTransfer record
@@ -2811,7 +2813,7 @@ class StaffTransferResource(Resource):
                 db.session.flush()
 
                 # Update related tables
-                self.update_staff_info(args['StaffId'], to_campus_id, args['ReportingOfficerId'], args['DepartmentId'], args['DesignationId'])
+                self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'], args['DesignationId'])
                 self.update_staff_shift(args['StaffId'], to_campus_id)
                 self.update_user_campus(args['StaffId'], to_campus_id, staff.CampusId)
                 self.update_user(args['StaffId'], to_campus_id)
@@ -2829,74 +2831,112 @@ class StaffTransferResource(Resource):
             db.session.rollback()
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
-    def update_staff_info(self, staff_id, to_campus_id, reporting_officer_id, department_id, designation_id):
+    def update_staff_info(self, staff, to_campus_id, reporting_officer_id, department_id, designation_id):
         """
         Updates the StaffInfo table with the new transfer details, 
         including setting the IsAEN flag if transferring to campus 11.
         """
-        staff = StaffInfo.query.get(staff_id)
-        if to_campus_id == 11:
-            staff.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
-        else:
-            staff.IsAEN = 0  # Unset IsAEN flag for other campuses
+        try:
+            # staff = StaffInfo.query.get(staff_id)
+            if to_campus_id == 11:
+                staff.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
+            else:
+                staff.IsAEN = 0  # Unset IsAEN flag for other campuses
+            
+            staff.CampusId = to_campus_id
+            staff.DepartmentId = department_id
+            staff.Designation_ID = designation_id
+            staff.ReportingOfficerId = reporting_officer_id
+            staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
+            db.session.add(staff)
+        except SQLAlchemyError as e:
+            # Rollback transaction in case of database error
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            # Rollback transaction in case of any unexpected error
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
         
-        staff.CampusId = to_campus_id
-        staff.DepartmentId = department_id
-        staff.Designation_ID = designation_id
-        staff.ReportingOfficerId = reporting_officer_id
-        staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
-        db.session.add(staff)
-
     def update_staff_shift(self, staff_id, to_campus_id):
         """
         Updates the StaffShift table with the new campus ID and sets the UpdatedOn date.
         """
-        staff_shift = StaffShift.query.filter_by(StaffId=staff_id).first()
+        try:
+            staff_shift = StaffShift.query.filter_by(StaffId=staff_id).first()
+            
+            if staff_shift:
+                staff_shift.CampusId = to_campus_id
+                staff_shift.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
+                db.session.add(staff_shift)
         
-        if staff_shift:
-            staff_shift.CampusId = to_campus_id
-            staff_shift.UpdatedOn = datetime.utcnow() + timedelta(hours=5)
-            db.session.add(staff_shift)
-
+        except SQLAlchemyError as e:
+            # Rollback transaction in case of database error
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            # Rollback transaction in case of any unexpected error
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+        
     def update_user_campus(self, staff_id, to_campus_id, current_campus_id):
         """
         Updates the UserCampus table with the new campus ID.
         Inserts a new record if necessary.
         """
-        
-        if to_campus_id == 11:
-            user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
-            
-            new_user_campus = UserCampus(
-                UserId=user_id,
-                CampusId=to_campus_id,
-                StaffId=staff_id,
-                Date=datetime.utcnow() + timedelta(hours=5),
-                Status=True
-            )
-            db.session.add(new_user_campus)
-            
-        else:
-            user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
-            user_campus.CampusId = to_campus_id
-            user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
-            db.session.add(user_campus)
+        try:
+            if to_campus_id == 11:
+                user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
+                
+                new_user_campus = UserCampus(
+                    UserId=user_id,
+                    CampusId=to_campus_id,
+                    StaffId=staff_id,
+                    Date=datetime.utcnow() + timedelta(hours=5),
+                    Status=True
+                )
+                db.session.add(new_user_campus)
+                
+            else:
+                user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
+                user_campus.CampusId = to_campus_id
+                user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
+                db.session.add(user_campus)
+        except SQLAlchemyError as e:
+            # Rollback transaction in case of database error
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            # Rollback transaction in case of any unexpected error
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def update_user(self, staff_id, to_campus_id):
         """
         Updates the Users table with the new campus ID and sets the IsAEN flag if transferring to campus 11
         """
-        user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
-        user = Users.query.get(user_id)
         
-        if to_campus_id == 11:
-            user.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
-        else:
-            user.IsAEN = 0  # Unset IsAEN flag for other campuses
+        try:
+            user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
+            user = Users.query.get(user_id)
+            
+            if to_campus_id == 11:
+                user.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
+            else:
+                user.IsAEN = 0  # Unset IsAEN flag for other campuses
+            
+            user.CampusId = to_campus_id
+            user.updateDate = datetime.utcnow() + timedelta(hours=5)
+            db.session.add(user)
         
-        user.CampusId = to_campus_id
-        user.updateDate = datetime.utcnow() + timedelta(hours=5)
-        db.session.add(user)
+        except SQLAlchemyError as e:
+            # Rollback transaction in case of database error
+            db.session.rollback()
+            return {"error": f"Database error occurred: {str(e)}"}, 500
+        except Exception as e:
+            # Rollback transaction in case of any unexpected error
+            db.session.rollback()
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
     def put(self, id):
         parser = reqparse.RequestParser()

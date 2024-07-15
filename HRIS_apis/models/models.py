@@ -3,6 +3,9 @@ from datetime import datetime
 import re
 from exceptions import ValidationError
 import json
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 class Users(db.Model):
     __tablename__ = 'USERS'
@@ -2036,41 +2039,25 @@ class LeaveType(db.Model):
 
 # ------- HISTORY -------
 
-class NewJoinerApprovalHistory(db.Model):
+class NewJoinerApprovalHistory(Base):
     __tablename__ = 'NewJoinerApprovalHistory'
-
-    NewJoinerApprovalHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    NewJoinerApprovalHistory_StaffId = db.Column(db.Integer, nullable=False)
-    NewJoinerApprovalHistory_Salary = db.Column(db.Float, nullable=False)
-    NewJoinerApprovalHistory_HiringApprovedBy = db.Column(db.Integer, nullable=False)
-    NewJoinerApprovalHistory_FileVerified = db.Column(db.Boolean, nullable=False)
-    NewJoinerApprovalHistory_EmpDetailsVerified = db.Column(db.Boolean, nullable=False)
-    NewJoinerApprovalHistory_AddToPayrollMonth = db.Column(db.String(15), nullable=False)
-    NewJoinerApprovalHistory_Remarks = db.Column(db.String(300), nullable=False)
-    NewJoinerApprovalHistory_NewJoinerApprovalId = db.Column(db.Integer, nullable=False)
-    CreatedDate = db.Column(db.DateTime, nullable=False)
+    History_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    History_NewJoinerApproval_StaffId = db.Column(db.Integer, nullable=False)
+    History_NewJoinerApproval_Salary = db.Column(db.Float, nullable=False)
+    History_NewJoinerApproval_HiringApprovedBy = db.Column(db.Integer, nullable=False)
+    History_NewJoinerApproval_FileVerified = db.Column(db.Boolean, nullable=False)
+    History_NewJoinerApproval_EmpDetailsVerified = db.Column(db.Boolean, nullable=False)
+    History_NewJoinerApproval_AddToPayrollMonth = db.Column(db.String(15), nullable=False)
+    History_NewJoinerApproval_Remarks = db.Column(db.String(300), nullable=False)
+    History_NewJoinerApproval_Id = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     CreatedBy = db.Column(db.Integer, nullable=False)
     UpdatedBy = db.Column(db.Integer, nullable=True)
     UpdatedDate = db.Column(db.DateTime, nullable=True)
     InActive = db.Column(db.Boolean, nullable=False)
-
+    
     def to_dict(self):
-        return {
-            'NewJoinerApprovalHistory_Id': self.NewJoinerApprovalHistory_Id,
-            'NewJoinerApprovalHistory_StaffId': self.NewJoinerApprovalHistory_StaffId,
-            'NewJoinerApprovalHistory_Salary': self.NewJoinerApprovalHistory_Salary,
-            'NewJoinerApprovalHistory_HiringApprovedBy': self.NewJoinerApprovalHistory_HiringApprovedBy,
-            'NewJoinerApprovalHistory_FileVerified': self.NewJoinerApprovalHistory_FileVerified,
-            'NewJoinerApprovalHistory_EmpDetailsVerified': self.NewJoinerApprovalHistory_EmpDetailsVerified,
-            'NewJoinerApprovalHistory_AddToPayrollMonth': self.NewJoinerApprovalHistory_AddToPayrollMonth,
-            'NewJoinerApprovalHistory_Remarks': self.NewJoinerApprovalHistory_Remarks,
-            'NewJoinerApprovalHistory_NewJoinerApprovalId': self.NewJoinerApprovalHistory_NewJoinerApprovalId,
-            'CreatedDate': self.CreatedDate.isoformat(),
-            'CreatedBy': self.CreatedBy,
-            'UpdatedBy': self.UpdatedBy,
-            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
-            'InActive': self.InActive
-        }
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 class OneTimeAllowanceHistory(db.Model):
     __tablename__ = 'OneTimeAllowanceHistory'
