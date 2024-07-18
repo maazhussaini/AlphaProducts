@@ -119,7 +119,7 @@ class JobApplicationFormResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('Initial_id', required=True)
+        parser.add_argument('Initial_id', required=False)
         parser.add_argument('First_name', required=True)
         parser.add_argument('Last_name', required=True)
         parser.add_argument('Father_name', required=True)
@@ -147,6 +147,7 @@ class JobApplicationFormResource(Resource):
         parser.add_argument('Reason_for_leaving')
         parser.add_argument('Last_drawn_gross_salary')
         parser.add_argument('Benefits_if_any')
+        parser.add_argument('JobApplied_For')
         parser.add_argument('Preferred_campus')
         parser.add_argument('Preferred_location')
         parser.add_argument('Preferred_job_type')
@@ -202,6 +203,7 @@ class JobApplicationFormResource(Resource):
                 Reason_for_leaving=args['Reason_for_leaving'],
                 Last_drawn_gross_salary=args['Last_drawn_gross_salary'],
                 Benefits_if_any=args['Benefits_if_any'],
+                JobApplied_For = args['JobApplied_For'],
                 Preferred_campus=args['Preferred_campus'],
                 Preferred_location=args['Preferred_location'],
                 Preferred_job_type=args['Preferred_job_type'],
@@ -216,7 +218,14 @@ class JobApplicationFormResource(Resource):
             db.session.add(job_application_form)
             db.session.commit()
 
-            return {'message': 'Job application form created successfully'}, 201
+            job_application_form = JobApplicationForm.query.get_or_404(job_application_form.Id)
+            if not job_application_form:
+                return {'message': 'New joiner approval record not found'}, 404
+
+            job_application_form.Initial_id = str(args['Cnic']) + '-' + str(job_application_form.Id)
+            db.session.commit()
+            
+            return {'message': f'Job application form created successfully {str(args['Cnic'])}-{str(job_application_form.Id)}'}, 201
         except ValueError as e:
             return {'error': 'Validation Error', 'message': str(e)}, 400
         except Exception as e:

@@ -762,7 +762,7 @@ class JobApplicationForm(db.Model):
     Status = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
-        return f'<JobApplicationForm {self.first_name} {self.last_name}>'
+        return self.Id
 
     def to_dict(self):
         return {
