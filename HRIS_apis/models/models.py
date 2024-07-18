@@ -748,6 +748,7 @@ class JobApplicationForm(db.Model):
     Benefits_if_any = db.Column(db.String(200), nullable=True)
 
     # Preference
+    JobApplied_For = db.Column(db.String(80), nullable=True)
     Preferred_campus = db.Column(db.String(80), nullable=True)
     Preferred_location = db.Column(db.String(80), nullable=True)
     Preferred_job_type = db.Column(db.String(80), nullable=True)
