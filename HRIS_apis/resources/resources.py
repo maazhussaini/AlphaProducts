@@ -91,7 +91,7 @@ class JobApplicationFormResource(Resource):
                     "columns": columns
                 }, 200
             else:
-                query = JobApplicationForm.query.order_by(JobApplicationForm.id)
+                query = JobApplicationForm.query.order_by(JobApplicationForm.Id)
                 total = query.count()
 
                 # Apply pagination
