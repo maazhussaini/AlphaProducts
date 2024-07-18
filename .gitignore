@@ -3,3 +3,8 @@
 
 # Ignore the __pycache__ folder
 __pycache__/
+
+# Ignore document files
+*.pdf
+*.docx
+*.doc

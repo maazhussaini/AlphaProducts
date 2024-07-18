@@ -10,11 +10,10 @@ import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
 from werkzeug.utils import secure_filename
+import os
 
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+UPLOAD_FOLDER = 'uploads/'
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -123,45 +122,50 @@ class JobApplicationFormResource(Resource):
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
+    def allowed_file(self, filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    """
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('Initial_id', required=False)
-        parser.add_argument('First_name', required=True)
-        parser.add_argument('Last_name', required=True)
-        parser.add_argument('Father_name', required=True)
-        parser.add_argument('Cnic', required=True)
-        parser.add_argument('Passport_number')
-        parser.add_argument('Dob', required=True)
-        parser.add_argument('Age', required=True, type=str)
-        parser.add_argument('Gender', required=True)
-        parser.add_argument('Cell_phone', required=True)
-        parser.add_argument('Alternate_number')
-        parser.add_argument('Email', required=True)
-        parser.add_argument('Residence', required=True)
-        parser.add_argument('Education_level', required=True)
-        parser.add_argument('Education_level_others')
-        parser.add_argument('Degree', required=True)
-        parser.add_argument('Specialization', required=True)
-        parser.add_argument('Institute', required=True)
-        parser.add_argument('Fresh', type=bool)
-        parser.add_argument('Experienced', type=bool)
-        parser.add_argument('Total_years_of_experience')
-        parser.add_argument('Name_of_last_employer')
-        parser.add_argument('Employment_duration_from')
-        parser.add_argument('Employment_duration_to')
-        parser.add_argument('Designation')
-        parser.add_argument('Reason_for_leaving')
-        parser.add_argument('Last_drawn_gross_salary')
-        parser.add_argument('Benefits_if_any')
-        parser.add_argument('JobApplied_For')
-        parser.add_argument('Preferred_campus')
-        parser.add_argument('Preferred_location')
-        parser.add_argument('Preferred_job_type')
-        parser.add_argument('Section')
-        parser.add_argument('Subject')
-        parser.add_argument('Expected_salary', required=True)
-        parser.add_argument('Status', type=bool)
-        args = parser.parse_args()
+        if request.content_type == 'multipart/form-data':
+            parser.add_argument('Initial_id', required=False)
+            parser.add_argument('First_name', required=True)
+            parser.add_argument('Last_name', required=True)
+            parser.add_argument('Father_name', required=True)
+            parser.add_argument('Cnic', required=True)
+            parser.add_argument('Passport_number')
+            parser.add_argument('Dob', required=True)
+            parser.add_argument('Age', required=True, type=str)
+            parser.add_argument('Gender', required=True)
+            parser.add_argument('Cell_phone', required=True)
+            parser.add_argument('Alternate_number')
+            parser.add_argument('Email', required=True)
+            parser.add_argument('Residence', required=True)
+            parser.add_argument('Education_level', required=True)
+            parser.add_argument('Education_level_others')
+            parser.add_argument('Degree', required=True)
+            parser.add_argument('Specialization', required=True)
+            parser.add_argument('Institute', required=True)
+            parser.add_argument('Fresh', type=bool)
+            parser.add_argument('Experienced', type=bool)
+            parser.add_argument('Total_years_of_experience')
+            parser.add_argument('Name_of_last_employer')
+            parser.add_argument('Employment_duration_from')
+            parser.add_argument('Employment_duration_to')
+            parser.add_argument('Designation')
+            parser.add_argument('Reason_for_leaving')
+            parser.add_argument('Last_drawn_gross_salary')
+            parser.add_argument('Benefits_if_any')
+            parser.add_argument('JobApplied_For')
+            parser.add_argument('Preferred_campus')
+            parser.add_argument('Preferred_location')
+            parser.add_argument('Preferred_job_type')
+            parser.add_argument('Section')
+            parser.add_argument('Subject')
+            parser.add_argument('Expected_salary', required=True)
+            parser.add_argument('Status', type=bool)
+            args = parser.parse_args()
 
         try:
             # Handle file uploads
@@ -248,6 +252,102 @@ class JobApplicationFormResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'error': 'Internal Server Error', 'message': str(e)}, 500
+    """
+    
+    
+    def post(self):
+        if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
+            return {"error": "CV and Cover Letter files are required"}, 400
+
+        cv_file = request.files['Cv_path']
+        cover_letter_file = request.files['CoverLetter_Path']
+
+        if cv_file.filename == '' or cover_letter_file.filename == '':
+            return {"error": "No selected file"}, 400
+
+        if cv_file and self.allowed_file(cv_file.filename):
+            cv_filename = secure_filename(cv_file.filename)
+            cv_path = os.path.join(UPLOAD_FOLDER, cv_filename)
+            cv_file.save(cv_path)
+        else:
+            return {"error": "CV file type not allowed"}, 400
+
+        if cover_letter_file and self.allowed_file(cover_letter_file.filename):
+            cover_letter_filename = secure_filename(cover_letter_file.filename)
+            cover_letter_path = os.path.join(UPLOAD_FOLDER, cover_letter_filename)
+            cover_letter_file.save(cover_letter_path)
+        else:
+            return {"error": "Cover Letter file type not allowed"}, 400
+
+        # Parse JSON data from the 'data' field
+        # Parse JSON data from the 'data' field
+        try:
+            data = json.loads(request.form.get('data'))
+        except json.JSONDecodeError as e:
+            return {'error': 'JSON Decode Error', 'message': str(e)}, 400
+        
+        try:
+            employment_duration_from = datetime.strptime(data.get('Employment_duration_from'), '%Y-%m-%d') if data.get('Employment_duration_from') else None
+            employment_duration_to = datetime.strptime(data.get('Employment_duration_to'), '%Y-%m-%d') if data.get('Employment_duration_to') else None
+
+            job_application_form = JobApplicationForm(
+                Initial_id=data.get('Initial_id'),
+                First_name=data.get('First_name'),
+                Last_name=data.get('Last_name'),
+                Father_name=data.get('Father_name'),
+                Cnic=data.get('Cnic'),
+                Passport_number=data.get('Passport_number'),
+                Dob=datetime.strptime(data.get('Dob'), '%Y-%m-%d'),
+                Age=data.get('Age'),
+                Gender=data.get('Gender'),
+                Cell_phone=data.get('Cell_phone'),
+                Alternate_number=data.get('Alternate_number'),
+                Email=data.get('Email'),
+                Residence=data.get('Residence'),
+                Education_level=data.get('Education_level'),
+                Education_level_others=data.get('Education_level_others'),
+                Degree=data.get('Degree'),
+                Specialization=data.get('Specialization'),
+                Institute=data.get('Institute'),
+                Fresh=data.get('Fresh'),
+                Experienced=data.get('Experienced'),
+                Total_years_of_experience=data.get('Total_years_of_experience'),
+                Name_of_last_employer=data.get('Name_of_last_employer'),
+                Employment_duration_from=employment_duration_from,
+                Employment_duration_to=employment_duration_to,
+                Designation=data.get('Designation'),
+                Reason_for_leaving=data.get('Reason_for_leaving'),
+                Last_drawn_gross_salary=data.get('Last_drawn_gross_salary'),
+                Benefits_if_any=data.get('Benefits_if_any'),
+                JobApplied_For=data.get('JobApplied_For'),
+                Preferred_campus=data.get('Preferred_campus'),
+                Preferred_location=data.get('Preferred_location'),
+                Preferred_job_type=data.get('Preferred_job_type'),
+                Section=data.get('Section'),
+                Subject=data.get('Subject'),
+                Expected_salary=data.get('Expected_salary'),
+                Cv_path=cv_path,
+                CoverLetter_Path=cover_letter_path,
+                Status=data.get('Status')
+            )
+
+            db.session.add(job_application_form)
+            db.session.commit()
+
+            job_application_form = JobApplicationForm.query.get_or_404(job_application_form.Id)
+            if not job_application_form:
+                return {'message': 'New joiner approval record not found'}, 404
+
+            job_application_form.Initial_id = str(data.get('Cnic')) + '-' + str(job_application_form.Id)
+            db.session.commit()
+            
+            return {'message': f'Job application form created successfully {str(data["Cnic"])}-{str(job_application_form.Id)}'}, 201
+        except ValueError as e:
+            return {'error': 'Validation Error', 'message': str(e)}, 400
+        except Exception as e:
+            db.session.rollback()
+            return {'error': 'Internal Server Error', 'message': str(e)}, 500
+    
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('Initial_id')
