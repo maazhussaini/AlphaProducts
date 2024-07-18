@@ -721,7 +721,7 @@ class JobApplicationForm(db.Model):
     Cnic = db.Column(db.String(13), nullable=False)
     Passport_number = db.Column(db.String(13), nullable=True)
     Dob = db.Column(db.Date, nullable=False)
-    Age = db.Column(db.Integer, nullable=False)
+    Age = db.Column(db.String(50), nullable=False)
     Gender = db.Column(db.String(10), nullable=False)
     Cell_phone = db.Column(db.String(11), nullable=False)
     Alternate_number = db.Column(db.String(11), nullable=True)
@@ -876,7 +876,7 @@ class InterviewSchedules(db.Model):
     CampusId = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
-        return f'<InterviewSchedule {self.Id}>'
+        return f'InterviewSchedule {self.Id}'
     
     def to_dict(self):
         return {
@@ -1843,150 +1843,6 @@ class PayrollClose(db.Model):
 
 # ------- LEAVE -------
 
-class LeavePolicy(db.Model):
-    __tablename__ = 'LeavePolicy'
-
-    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    LeaveTypeId = db.Column(db.Integer, nullable=True)
-    IsDefault = db.Column(db.Boolean, nullable=False)
-    TotalNoOfLeaveDays = db.Column(db.Integer, nullable=True)
-    MonthlyLeaveAllow = db.Column(db.Integer, nullable=True)
-    Priority = db.Column(db.Integer, nullable=True)
-    InCash = db.Column(db.Boolean, nullable=False)
-    LeaveAllowInProbation = db.Column(db.Boolean, nullable=False)
-    IsActive = db.Column(db.Boolean, nullable=False)
-    status = db.Column(db.Boolean, nullable=False)
-    UpdaterId = db.Column(db.BigInteger, nullable=True)
-    UpdaterIP = db.Column(db.String(20), nullable=True)
-    UpdaterTerminal = db.Column(db.String(255), nullable=True)
-    UpdateDate = db.Column(db.DateTime, nullable=True)
-    CreatorId = db.Column(db.BigInteger, nullable=True)
-    CreatorIP = db.Column(db.String(20), nullable=True)
-    CreatorTerminal = db.Column(db.String(255), nullable=True)
-    CreateDate = db.Column(db.DateTime, nullable=True)
-    CampusId = db.Column(db.Integer, nullable=True)
-
-    def to_dict(self):
-        return {
-            'Id': self.Id,
-            'LeaveTypeId': self.LeaveTypeId,
-            'IsDefault': self.IsDefault,
-            'TotalNoOfLeaveDays': self.TotalNoOfLeaveDays,
-            'MonthlyLeaveAllow': self.MonthlyLeaveAllow,
-            'Priority': self.Priority,
-            'InCash': self.InCash,
-            'LeaveAllowInProbation': self.LeaveAllowInProbation,
-            'IsActive': self.IsActive,
-            'status': self.status,
-            'UpdaterId': self.UpdaterId,
-            'UpdaterIP': self.UpdaterIP,
-            'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
-            'CreatorId': self.CreatorId,
-            'CreatorIP': self.CreatorIP,
-            'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
-            'CampusId': self.CampusId
-        }
-
-class LeaveRequest(db.Model):
-    __tablename__ = 'LeaveRequest'
-
-    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    StudentId = db.Column(db.Integer, nullable=False)
-    FromDate = db.Column(db.Date, nullable=False)
-    ToDate = db.Column(db.Date, nullable=False)
-    Reason = db.Column(db.String(255), nullable=False)
-    Remarks = db.Column(db.String(255), nullable=True)
-    LeaveStatusId = db.Column(db.Integer, nullable=False)
-    ApprovedBy = db.Column(db.Integer, nullable=True)
-    LeaveApplicationPath = db.Column(db.String(255), nullable=True)
-    AcademicYearId = db.Column(db.Integer, nullable=True)
-    Status = db.Column(db.Boolean, nullable=False)
-    UpdaterId = db.Column(db.BigInteger, nullable=True)
-    UpdaterIP = db.Column(db.String(20), nullable=True)
-    UpdaterTerminal = db.Column(db.String(255), nullable=True)
-    UpdateDate = db.Column(db.DateTime, nullable=True)
-    CreatorId = db.Column(db.BigInteger, nullable=True)
-    CreatorIP = db.Column(db.String(20), nullable=True)
-    CreatorTerminal = db.Column(db.String(255), nullable=True)
-    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    CampusId = db.Column(db.Integer, nullable=True)
-
-    def to_dict(self):
-        return {
-            'Id': self.Id,
-            'StudentId': self.StudentId,
-            'FromDate': self.FromDate.isoformat(),
-            'ToDate': self.ToDate.isoformat(),
-            'Reason': self.Reason,
-            'Remarks': self.Remarks,
-            'LeaveStatusId': self.LeaveStatusId,
-            'ApprovedBy': self.ApprovedBy,
-            'LeaveApplicationPath': self.LeaveApplicationPath,
-            'AcademicYearId': self.AcademicYearId,
-            'Status': self.Status,
-            'UpdaterId': self.UpdaterId,
-            'UpdaterIP': self.UpdaterIP,
-            'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
-            'CreatorId': self.CreatorId,
-            'CreatorIP': self.CreatorIP,
-            'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat(),
-            'CampusId': self.CampusId
-        }
-
-class LeaveRequestHistories(db.Model):
-    __tablename__ = 'LeaveRequestHistories'
-
-    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    StudentId = db.Column(db.Integer, nullable=False)
-    FromDate = db.Column(db.Date, nullable=False)
-    ToDate = db.Column(db.Date, nullable=False)
-    Reason = db.Column(db.String(255), nullable=False)
-    Remarks = db.Column(db.String(255), nullable=True)
-    LeaveStatusId = db.Column(db.Integer, nullable=False)
-    ApprovedBy = db.Column(db.Integer, nullable=True)
-    LeaveApplicationPath = db.Column(db.String(255), nullable=True)
-    AcademicYearId = db.Column(db.Integer, nullable=True)
-    Status = db.Column(db.Boolean, nullable=False)
-    UpdaterId = db.Column(db.BigInteger, nullable=True)
-    UpdaterIP = db.Column(db.String(20), nullable=True)
-    UpdaterTerminal = db.Column(db.String(255), nullable=True)
-    UpdateDate = db.Column(db.DateTime, nullable=True)
-    CreatorId = db.Column(db.BigInteger, nullable=True)
-    CreatorIP = db.Column(db.String(20), nullable=True)
-    CreatorTerminal = db.Column(db.String(255), nullable=True)
-    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    CampusId = db.Column(db.Integer, nullable=True)
-    Action = db.Column(db.String(20), nullable=True)
-
-    def to_dict(self):
-        return {
-            'Id': self.Id,
-            'StudentId': self.StudentId,
-            'FromDate': self.FromDate.isoformat(),
-            'ToDate': self.ToDate.isoformat(),
-            'Reason': self.Reason,
-            'Remarks': self.Remarks,
-            'LeaveStatusId': self.LeaveStatusId,
-            'ApprovedBy': self.ApprovedBy,
-            'LeaveApplicationPath': self.LeaveApplicationPath,
-            'AcademicYearId': self.AcademicYearId,
-            'Status': self.Status,
-            'UpdaterId': self.UpdaterId,
-            'UpdaterIP': self.UpdaterIP,
-            'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
-            'CreatorId': self.CreatorId,
-            'CreatorIP': self.CreatorIP,
-            'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat(),
-            'CampusId': self.CampusId,
-            'Action': self.Action
-        }
-
 class LeaveStatus(db.Model):
     __tablename__ = 'LeaveStatus'
 
@@ -2036,6 +1892,91 @@ class LeaveType(db.Model):
             'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
             'CampusId': self.CampusId
         }
+
+class StaffLeaveRequest(db.Model):
+    __tablename__ = 'StaffLeaveRequest'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=False)
+    FromDate = db.Column(db.Date, nullable=False)
+    ToDate = db.Column(db.Date, nullable=False)
+    Reason = db.Column(db.String(255), nullable=False)
+    Remarks = db.Column(db.String(255))
+    LeaveStatusId = db.Column(db.Integer, nullable=False)
+    ApprovedBy = db.Column(db.Integer)
+    LeaveApplicationPath = db.Column(db.String(255))
+    AcademicYearId = db.Column(db.Integer)
+    status = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger)
+    UpdaterIP = db.Column(db.String(20))
+    UpdaterTerminal = db.Column(db.String(255))
+    UpdateDate = db.Column(db.DateTime)
+    CreatorId = db.Column(db.BigInteger)
+    CreatorIP = db.Column(db.String(20))
+    CreatorTerminal = db.Column(db.String(255))
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer)
+    LeaveTypeId = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'FromDate': self.FromDate.isoformat(),
+            'ToDate': self.ToDate.isoformat(),
+            'Reason': self.Reason,
+            'Remarks': self.Remarks,
+            'LeaveStatusId': self.LeaveStatusId,
+            'ApprovedBy': self.ApprovedBy,
+            'LeaveApplicationPath': self.LeaveApplicationPath,
+            'AcademicYearId': self.AcademicYearId,
+            'status': self.status,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId,
+            'LeaveTypeId': self.LeaveTypeId
+        }
+
+class StaffLeaveAssign(db.Model):
+    __tablename__ = 'StaffLeaveAssign'
+    
+    LeaveAssignId = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    UserId = db.Column(db.Integer, nullable=False)
+    DepartmentId = db.Column(db.Integer, nullable=False)
+    CampusId = db.Column(db.Integer)
+    CreatorId = db.Column(db.Integer)
+    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'LeaveAssignId': self.LeaveAssignId,
+            'UserId': self.UserId,
+            'DepartmentId': self.DepartmentId,
+            'CampusId': self.CampusId,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None
+        }
+
+class StaffLeaveRequestDateRanges(db.Model):
+    __tablename__ = 'StaffLeaveRequestDateRanges'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LeaveRequestId = db.Column(db.Integer)
+    Date = db.Column(db.DateTime)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'LeaveRequestId': self.LeaveRequestId,
+            'Date': self.Date.isoformat() if self.Date else None
+        }
+
 
 # ------- HISTORY -------
 
