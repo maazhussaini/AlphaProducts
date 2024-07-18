@@ -896,6 +896,64 @@ class InterviewSchedules(db.Model):
             "CampusId": self.CampusId
         }
 
+class InterviewEvaluation(db.Model):
+    __tablename__ = 'InterviewEvaluation'
+
+    InterviewEvaluation_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    InterviewEvaluation_ConsideredPosition = db.Column(db.String(100), nullable=False)
+    InterviewEvaluation_InterviewerId = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_JobApplicationFormId = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_WorkExperience = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_EducationTrainingProfQualifications = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_TechnicalCompetence = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_AppearanceMannerPersonality = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_SupervisoryLeadershipQualificationPotential = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_AttitudeStabilityMaturity = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_InterPersonalCommunicationSkills = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_AmbitionAndMotivation = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_ProblemSolvingSkillsAndAbility = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_OverAllRating = db.Column(db.Integer, nullable=False)
+    InterviewEvaluation_Hire = db.Column(db.Boolean, nullable=False)
+    InterviewEvaluation_NotHire = db.Column(db.Boolean, nullable=False)
+    InterviewEvaluation_FurtherInterview = db.Column(db.Boolean, nullable=False)
+    InterviewEvaluation_Shortlisted = db.Column(db.Boolean, nullable=False)
+    InterviewEvaluation_Other = db.Column(db.Boolean, nullable=False)
+    InterviewEvaluation_Comments = db.Column(db.String(500), nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer)
+    UpdatedDate = db.Column(db.DateTime)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'InterviewEvaluation_Id': self.InterviewEvaluation_Id,
+            'InterviewEvaluation_ConsideredPosition': self.InterviewEvaluation_ConsideredPosition,
+            'InterviewEvaluation_InterviewerId': self.InterviewEvaluation_InterviewerId,
+            'InterviewEvaluation_JobApplicationFormId': self.InterviewEvaluation_JobApplicationFormId,
+            'InterviewEvaluation_WorkExperience': self.InterviewEvaluation_WorkExperience,
+            'InterviewEvaluation_EducationTrainingProfQualifications': self.InterviewEvaluation_EducationTrainingProfQualifications,
+            'InterviewEvaluation_TechnicalCompetence': self.InterviewEvaluation_TechnicalCompetence,
+            'InterviewEvaluation_AppearanceMannerPersonality': self.InterviewEvaluation_AppearanceMannerPersonality,
+            'InterviewEvaluation_SupervisoryLeadershipQualificationPotential': self.InterviewEvaluation_SupervisoryLeadershipQualificationPotential,
+            'InterviewEvaluation_AttitudeStabilityMaturity': self.InterviewEvaluation_AttitudeStabilityMaturity,
+            'InterviewEvaluation_InterPersonalCommunicationSkills': self.InterviewEvaluation_InterPersonalCommunicationSkills,
+            'InterviewEvaluation_AmbitionAndMotivation': self.InterviewEvaluation_AmbitionAndMotivation,
+            'InterviewEvaluation_ProblemSolvingSkillsAndAbility': self.InterviewEvaluation_ProblemSolvingSkillsAndAbility,
+            'InterviewEvaluation_OverAllRating': self.InterviewEvaluation_OverAllRating,
+            'InterviewEvaluation_Hire': self.InterviewEvaluation_Hire,
+            'InterviewEvaluation_NotHire': self.InterviewEvaluation_NotHire,
+            'InterviewEvaluation_FurtherInterview': self.InterviewEvaluation_FurtherInterview,
+            'InterviewEvaluation_Shortlisted': self.InterviewEvaluation_Shortlisted,
+            'InterviewEvaluation_Other': self.InterviewEvaluation_Other,
+            'InterviewEvaluation_Comments': self.InterviewEvaluation_Comments,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat(),
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
 class DeductionHead(db.Model):
     __tablename__ = 'DeductionHead'
     DeductionHead_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -1841,6 +1899,8 @@ class PayrollClose(db.Model):
             'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
             'InActive': self.InActive
         }
+
+
 
 # ------- LEAVE -------
 
