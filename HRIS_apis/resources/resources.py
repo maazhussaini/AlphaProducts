@@ -161,6 +161,8 @@ class JobApplicationFormResource(Resource):
         args = parser.parse_args()
 
         try:
+            
+            """
             # Validate inputs
             if JobApplicationForm.validate_phone_number(args['Cell_phone']):
                 raise ValueError("Invalid phone number format.")
@@ -170,7 +172,7 @@ class JobApplicationFormResource(Resource):
                 raise ValueError("Invalid email format.")
             if args['Passport_number'] and not JobApplicationForm.validate_passport_number(args['Passport_number']):
                 raise ValueError("Invalid passport number format.")
-
+            """
             employment_duration_from = datetime.strptime(args['Employment_duration_from'], '%Y-%m-%d') if args['Employment_duration_from'] else None
             employment_duration_to = datetime.strptime(args['Employment_duration_to'], '%Y-%m-%d') if args['Employment_duration_to'] else None
 
