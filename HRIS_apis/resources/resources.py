@@ -126,7 +126,7 @@ class JobApplicationFormResource(Resource):
         parser.add_argument('Cnic', required=True)
         parser.add_argument('Passport_number')
         parser.add_argument('Dob', required=True)
-        parser.add_argument('Age', required=True, type=int)
+        parser.add_argument('Age', required=True, type=str)
         parser.add_argument('Gender', required=True)
         parser.add_argument('Cell_phone', required=True)
         parser.add_argument('Alternate_number')
