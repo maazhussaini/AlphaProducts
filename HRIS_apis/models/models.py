@@ -721,7 +721,7 @@ class JobApplicationForm(db.Model):
     Cnic = db.Column(db.String(13), nullable=False)
     Passport_number = db.Column(db.String(13), nullable=True)
     Dob = db.Column(db.Date, nullable=False)
-    Age = db.Column(db.String(50), nullable=False)
+    Age = db.Column(db.String(100), nullable=False)
     Gender = db.Column(db.String(10), nullable=False)
     Cell_phone = db.Column(db.String(11), nullable=False)
     Alternate_number = db.Column(db.String(11), nullable=True)
