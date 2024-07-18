@@ -9,6 +9,12 @@ from sqlalchemy import and_
 import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
+from werkzeug.utils import secure_filename
+
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -154,25 +160,34 @@ class JobApplicationFormResource(Resource):
         parser.add_argument('Section')
         parser.add_argument('Subject')
         parser.add_argument('Expected_salary', required=True)
-        parser.add_argument('Cv_path', required=True)
-        parser.add_argument('CoverLetter_Path')
         parser.add_argument('Status', type=bool)
-
         args = parser.parse_args()
 
         try:
+            # Handle file uploads
+            if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
+                return {"error": "CV and Cover Letter files are required"}, 400
             
-            """
-            # Validate inputs
-            if JobApplicationForm.validate_phone_number(args['Cell_phone']):
-                raise ValueError("Invalid phone number format.")
-            if JobApplicationForm.validate_cnic(args['Cnic']):
-                raise ValueError("Invalid CNIC format.")
-            if args['Email'] and JobApplicationForm.validate_email(args['Email']):
-                raise ValueError("Invalid email format.")
-            if args['Passport_number'] and not JobApplicationForm.validate_passport_number(args['Passport_number']):
-                raise ValueError("Invalid passport number format.")
-            """
+            cv_file = request.files['Cv_path']
+            cover_letter_file = request.files['CoverLetter_Path']
+            
+            if cv_file.filename == '' or cover_letter_file.filename == '':
+                return {"error": "No selected file"}, 400
+            
+            if cv_file and allowed_file(cv_file.filename):
+                cv_filename = secure_filename(cv_file.filename)
+                cv_path = os.path.join(app.config['UPLOAD_FOLDER'], cv_filename)
+                cv_file.save(cv_path)
+            else:
+                return {"error": "CV file type not allowed"}, 400
+            
+            if cover_letter_file and allowed_file(cover_letter_file.filename):
+                cover_letter_filename = secure_filename(cover_letter_file.filename)
+                cover_letter_path = os.path.join(app.config['UPLOAD_FOLDER'], cover_letter_filename)
+                cover_letter_file.save(cover_letter_path)
+            else:
+                return {"error": "Cover Letter file type not allowed"}, 400
+
             employment_duration_from = datetime.strptime(args['Employment_duration_from'], '%Y-%m-%d') if args['Employment_duration_from'] else None
             employment_duration_to = datetime.strptime(args['Employment_duration_to'], '%Y-%m-%d') if args['Employment_duration_to'] else None
 
@@ -205,15 +220,15 @@ class JobApplicationFormResource(Resource):
                 Reason_for_leaving=args['Reason_for_leaving'],
                 Last_drawn_gross_salary=args['Last_drawn_gross_salary'],
                 Benefits_if_any=args['Benefits_if_any'],
-                JobApplied_For = args['JobApplied_For'],
+                JobApplied_For=args['JobApplied_For'],
                 Preferred_campus=args['Preferred_campus'],
                 Preferred_location=args['Preferred_location'],
                 Preferred_job_type=args['Preferred_job_type'],
                 Section=args['Section'],
                 Subject=args['Subject'],
                 Expected_salary=args['Expected_salary'],
-                Cv_path=args['Cv_path'],
-                CoverLetter_Path=args['CoverLetter_Path'],
+                Cv_path=cv_path,
+                CoverLetter_Path=cover_letter_path,
                 Status=args['Status']
             )
 
@@ -227,13 +242,12 @@ class JobApplicationFormResource(Resource):
             job_application_form.Initial_id = str(args['Cnic']) + '-' + str(job_application_form.Id)
             db.session.commit()
             
-            return {'message': f'Job application form created successfully {str(args['Cnic'])}-{str(job_application_form.Id)}'}, 201
+            return {'message': f'Job application form created successfully {str(args["Cnic"])}-{str(job_application_form.Id)}'}, 201
         except ValueError as e:
             return {'error': 'Validation Error', 'message': str(e)}, 400
         except Exception as e:
             db.session.rollback()
             return {'error': 'Internal Server Error', 'message': str(e)}, 500
-
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('Initial_id')
