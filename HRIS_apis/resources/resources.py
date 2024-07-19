@@ -20,10 +20,25 @@ UPLOAD_FOLDER = 'uploads/'
 class TestingData(Resource):
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('data', type=dict)
+        parser.add_argument('data', type=dict, location='json')
         args = parser.parse_args()
         
+        # Print parsed JSON data
         print(args['data'])
+        
+        # Handle file upload
+        CV_file = request.files.get('CV_path')
+        if CV_file:
+            # Save the file or perform any file-related operations here
+            if CV_file.filename == '':
+                return {"error": "No selected file"}, 400
+            
+            cv_filename = secure_filename(CV_file.filename)
+            cv_path = os.path.join(UPLOAD_FOLDER, cv_filename)
+            CV_file.save(cv_path)
+            print('File uploaded successfully')
+        
+        return {"message": "Data received"}, 200
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -266,8 +281,11 @@ class JobApplicationFormResource(Resource):
     
     
     def post(self):
-        if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
-            return {"error": "CV and Cover Letter files are required"}, 400
+        
+        # if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
+        #     return {"error": "CV and Cover Letter files are required"}, 400
+        if 'Cv_path' not in request.files:
+            return {"error": "CV file are required"}, 400
 
         cv_file = request.files['Cv_path']
         cover_letter_file = request.files['CoverLetter_Path']
