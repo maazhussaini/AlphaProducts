@@ -262,7 +262,10 @@ class JobApplicationFormResource(Resource):
         cv_file = request.files['Cv_path']
         cover_letter_file = request.files['CoverLetter_Path']
 
-        if cv_file.filename == '' or cover_letter_file.filename == '':
+        # if cv_file.filename == '' or cover_letter_file.filename == '':
+            # return {"error": "No selected file"}, 400
+        
+        if cv_file.filename == '':
             return {"error": "No selected file"}, 400
 
         if cv_file and self.allowed_file(cv_file.filename):
@@ -270,14 +273,17 @@ class JobApplicationFormResource(Resource):
             cv_path = os.path.join(UPLOAD_FOLDER, cv_filename)
             cv_file.save(cv_path)
         else:
-            return {"error": "CV file type not allowed"}, 400
+            return {
+                "status": "error"
+                "message": "CV file type not allowed"}, 400
 
         if cover_letter_file and self.allowed_file(cover_letter_file.filename):
             cover_letter_filename = secure_filename(cover_letter_file.filename)
             cover_letter_path = os.path.join(UPLOAD_FOLDER, cover_letter_filename)
             cover_letter_file.save(cover_letter_path)
-        else:
-            return {"error": "Cover Letter file type not allowed"}, 400
+        # else:
+        #     return {"status": "error"
+        #         "message": "Cover Letter file type not allowed"}, 400
 
         # Parse JSON data from the 'data' field
         # Parse JSON data from the 'data' field
