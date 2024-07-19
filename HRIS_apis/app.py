@@ -40,7 +40,7 @@ def create_app():
     db.init_app(app)
     
     from routes.routes import register_routes
-    
+    # CORS(app, resources={r"/api/*": {"origins": "*"}})
     register_routes(app)
     
     return app
