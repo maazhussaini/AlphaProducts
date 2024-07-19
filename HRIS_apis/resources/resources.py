@@ -334,7 +334,7 @@ class JobApplicationFormResource(Resource):
                 Subject=data.get('Subject'),
                 Expected_salary=data.get('Expected_salary'),
                 Cv_path="cv_path",
-                CoverLetter_Path=cover_letter_path,
+                CoverLetter_Path="cover_letter_path",
                 Status=data.get('Status')
             )
             print(temp)
@@ -375,7 +375,7 @@ class JobApplicationFormResource(Resource):
                 Subject=data.get('Subject'),
                 Expected_salary=data.get('Expected_salary'),
                 Cv_path="cv_path",
-                CoverLetter_Path=cover_letter_path,
+                CoverLetter_Path="cover_letter_path",
                 Status=data.get('Status')
             )
 
