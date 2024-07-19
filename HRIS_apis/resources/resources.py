@@ -16,6 +16,12 @@ from flask_cors import CORS
 ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
 UPLOAD_FOLDER = 'uploads/'
 
+
+class TestingData(Resource):
+    def post(self):
+        data = json.loads(request.form.get('data'))
+        print(data)
+
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
         def default(self, obj):
@@ -257,8 +263,8 @@ class JobApplicationFormResource(Resource):
     
     
     def post(self):
-        # if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
-        #     return {"error": "CV and Cover Letter files are required"}, 400
+        if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
+            return {"error": "CV and Cover Letter files are required"}, 400
 
         cv_file = request.files['Cv_path']
         cover_letter_file = request.files['CoverLetter_Path']
@@ -266,8 +272,8 @@ class JobApplicationFormResource(Resource):
         # if cv_file.filename == '' or cover_letter_file.filename == '':
             # return {"error": "No selected file"}, 400
         
-        # if cv_file.filename == '':
-        #     return {"error": "No selected file"}, 400
+        if cv_file.filename == '':
+            return {"error": "No selected file"}, 400
 
         if cv_file and self.allowed_file(cv_file.filename):
             cv_filename = secure_filename(cv_file.filename)
@@ -297,49 +303,6 @@ class JobApplicationFormResource(Resource):
             employment_duration_from = datetime.strptime(data.get('Employment_duration_from'), '%Y-%m-%d') if data.get('Employment_duration_from') else None
             employment_duration_to = datetime.strptime(data.get('Employment_duration_to'), '%Y-%m-%d') if data.get('Employment_duration_to') else None
 
-            print(data, "\n\n\n")
-            temp = tuple(
-                Initial_id=data.get('Initial_id'),
-                First_name=data.get('First_name'),
-                Last_name=data.get('Last_name'),
-                Father_name=data.get('Father_name'),
-                Cnic=data.get('Cnic'),
-                Passport_number=data.get('Passport_number'),
-                Dob=datetime.strptime(data.get('Dob'), '%Y-%m-%d'),
-                Age=data.get('Age'),
-                Gender=data.get('Gender'),
-                Cell_phone=data.get('Cell_phone'),
-                Alternate_number=data.get('Alternate_number'),
-                Email=data.get('Email'),
-                Residence=data.get('Residence'),
-                Education_level=data.get('Education_level'),
-                Education_level_others=data.get('Education_level_others'),
-                Degree=data.get('Degree'),
-                Specialization=data.get('Specialization'),
-                Institute=data.get('Institute'),
-                Fresh=data.get('Fresh'),
-                Experienced=data.get('Experienced'),
-                Total_years_of_experience=data.get('Total_years_of_experience'),
-                Name_of_last_employer=data.get('Name_of_last_employer'),
-                Employment_duration_from=employment_duration_from,
-                Employment_duration_to=employment_duration_to,
-                Designation=data.get('Designation'),
-                Reason_for_leaving=data.get('Reason_for_leaving'),
-                Last_drawn_gross_salary=data.get('Last_drawn_gross_salary'),
-                Benefits_if_any=data.get('Benefits_if_any'),
-                JobApplied_For=data.get('JobApplied_For'),
-                Preferred_campus=data.get('Preferred_campus'),
-                Preferred_location=data.get('Preferred_location'),
-                Preferred_job_type=data.get('Preferred_job_type'),
-                Section=data.get('Section'),
-                Subject=data.get('Subject'),
-                Expected_salary=data.get('Expected_salary'),
-                Cv_path="cv_path",
-                CoverLetter_Path="cover_letter_path",
-                Status=data.get('Status')
-            )
-            print(temp)
-            """
             job_application_form = JobApplicationForm(
                 Initial_id=data.get('Initial_id'),
                 First_name=data.get('First_name'),
@@ -376,8 +339,8 @@ class JobApplicationFormResource(Resource):
                 Section=data.get('Section'),
                 Subject=data.get('Subject'),
                 Expected_salary=data.get('Expected_salary'),
-                Cv_path="cv_path",
-                CoverLetter_Path="cover_letter_path",
+                Cv_path=cv_path,
+                CoverLetter_Path=cover_letter_path,
                 Status=data.get('Status')
             )
 
@@ -391,7 +354,7 @@ class JobApplicationFormResource(Resource):
 
             job_application_form.Initial_id = str(data.get('Cnic')) + '-' + str(job_application_form.Id)
             db.session.commit()
-            """
+            
             return {"status": "success",
                 "message": f'Job application form created successfully {str(data["Cnic"])}-{str(job_application_form.Id)}'}, 201
         except ValueError as e:
