@@ -257,8 +257,8 @@ class JobApplicationFormResource(Resource):
     
     
     def post(self):
-        if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
-            return {"error": "CV and Cover Letter files are required"}, 400
+        # if 'Cv_path' not in request.files or 'CoverLetter_Path' not in request.files:
+        #     return {"error": "CV and Cover Letter files are required"}, 400
 
         cv_file = request.files['Cv_path']
         cover_letter_file = request.files['CoverLetter_Path']
