@@ -1,5 +1,6 @@
 from flask_restful import Api
 from flask import Blueprint
+from flask_cors import CORS
 from resources.resources import (
     JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
