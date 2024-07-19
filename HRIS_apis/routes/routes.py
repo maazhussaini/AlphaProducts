@@ -27,8 +27,8 @@ def register_routes(app):
     api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
     api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
     
-    api.add_resource(JobApplicationFormResource, '/job_application_forms', '/job_application_forms/<int:id>')
-    api.add_resource(NewJoinerApprovalResource, '/new_joiner_approvals', '/new_joiner_approvals/<int:id>')
+    api.add_resource(JobApplicationFormResource, '/jobApplicationForm', '/jobApplicationForm/<int:id>')
+    api.add_resource(NewJoinerApprovalResource, '/newJoinerApproval', '/newJoinerApproval/<int:id>')
     api.add_resource(InterviewSchedulesResource, '/interviewSchedules', '/interviewSchedules/<int:id>')
     
     api.add_resource(DeductionHeadResource, '/deductionHead', '/deductionHead/<int:id>')
