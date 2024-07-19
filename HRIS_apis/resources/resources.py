@@ -19,7 +19,7 @@ UPLOAD_FOLDER = 'uploads/'
 
 class TestingData(Resource):
     def post(self):
-        data = json.loads(request.form.get('data'))
+        data = request.form.get('data')
         print(data)
 
 class DateTimeEncoder(json.JSONEncoder):
