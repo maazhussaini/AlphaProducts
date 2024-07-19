@@ -338,6 +338,7 @@ class JobApplicationFormResource(Resource):
                 Status=data.get('Status')
             )
             print(temp)
+            """
             job_application_form = JobApplicationForm(
                 Initial_id=data.get('Initial_id'),
                 First_name=data.get('First_name'),
@@ -389,7 +390,7 @@ class JobApplicationFormResource(Resource):
 
             job_application_form.Initial_id = str(data.get('Cnic')) + '-' + str(job_application_form.Id)
             db.session.commit()
-            
+            """
             return {"status": "success",
                 "message": f'Job application form created successfully {str(data["Cnic"])}-{str(job_application_form.Id)}'}, 201
         except ValueError as e:
