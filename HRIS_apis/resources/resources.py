@@ -297,6 +297,7 @@ class JobApplicationFormResource(Resource):
             employment_duration_from = datetime.strptime(data.get('Employment_duration_from'), '%Y-%m-%d') if data.get('Employment_duration_from') else None
             employment_duration_to = datetime.strptime(data.get('Employment_duration_to'), '%Y-%m-%d') if data.get('Employment_duration_to') else None
 
+            print(data, "\n\n\n")
             temp = tuple(
                 Initial_id=data.get('Initial_id'),
                 First_name=data.get('First_name'),
