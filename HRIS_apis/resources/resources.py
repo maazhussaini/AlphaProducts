@@ -273,8 +273,7 @@ class JobApplicationFormResource(Resource):
             cv_path = os.path.join(UPLOAD_FOLDER, cv_filename)
             cv_file.save(cv_path)
         else:
-            return {
-                "status": "error"
+            return {"status": "error",
                 "message": "CV file type not allowed"}, 400
 
         if cover_letter_file and self.allowed_file(cover_letter_file.filename):
@@ -290,7 +289,8 @@ class JobApplicationFormResource(Resource):
         try:
             data = json.loads(request.form.get('data'))
         except json.JSONDecodeError as e:
-            return {'error': 'JSON Decode Error', 'message': str(e)}, 400
+            return {"status": "error",
+                "message": 'JSON Decode Error', 'message': str(e)}, 400
         
         try:
             employment_duration_from = datetime.strptime(data.get('Employment_duration_from'), '%Y-%m-%d') if data.get('Employment_duration_from') else None
@@ -342,17 +342,21 @@ class JobApplicationFormResource(Resource):
 
             job_application_form = JobApplicationForm.query.get_or_404(job_application_form.Id)
             if not job_application_form:
-                return {'message': 'New joiner approval record not found'}, 404
+                return {"status": "error",
+                "message": 'New joiner approval record not found'}, 404
 
             job_application_form.Initial_id = str(data.get('Cnic')) + '-' + str(job_application_form.Id)
             db.session.commit()
             
-            return {'message': f'Job application form created successfully {str(data["Cnic"])}-{str(job_application_form.Id)}'}, 201
+            return {"status": "success",
+                "message": f'Job application form created successfully {str(data["Cnic"])}-{str(job_application_form.Id)}'}, 201
         except ValueError as e:
-            return {'error': 'Validation Error', 'message': str(e)}, 400
+            return {"status": "error",
+                "message": 'Validation Error', 'message': str(e)}, 400
         except Exception as e:
             db.session.rollback()
-            return {'error': 'Internal Server Error', 'message': str(e)}, 500
+            return {"status": "error",
+                "message": 'Internal Server Error', 'message': str(e)}, 500
     
     def put(self, id):
         parser = reqparse.RequestParser()
