@@ -19,8 +19,11 @@ UPLOAD_FOLDER = 'uploads/'
 
 class TestingData(Resource):
     def post(self):
-        data = request.form.get('data')
-        print(data)
+        parser = reqparse.RequestParser()
+        parser.add_argument('data', type=dict)
+        args = parser.parse_args()
+        
+        print(args['data'])
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
