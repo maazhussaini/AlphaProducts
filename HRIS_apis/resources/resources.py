@@ -4712,8 +4712,64 @@ class PayrollCloseResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+"""
+
 class EmailSendingResource(Resource):
     
+    def generate_dynamic_email(self, template, **kwargs):
+        
+        # Generates an email by replacing placeholders in the template with actual values.
+
+        # :param template: The email template with placeholders.
+        # :param kwargs: The key-value pairs to replace in the template.
+        # :return: The formatted email string.
+        
+        return template.format(**kwargs)
+
+    def get_email_template(self, id):
+        email = EmailStorageSystem.query.get(id)
+        if email is None:
+            abort(404, message=f"EmailStorageSystem {id} doesn't exist")
+        
+        return email.Email_Body
+
+    def post(self):
+        data = request.get_json()
+        template_id = data.get('template_id')
+        parameters = data.get('parameters', {})
+        recipients = data.get('recipients', [])
+        cc = data.get('cc', [])
+
+        if not template_id or not parameters or not recipients:
+            return {"error": "template_id, parameters, and recipients are required"}, 400
+
+        template = self.get_email_template(template_id)
+        if not template:
+            return {"error": "Template not found"}, 404
+
+        try:
+            email_content = self.generate_dynamic_email(template, **parameters)
+        except KeyError as e:
+            return {"error": f"Missing parameter: {e}"}, 400
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {e}"}, 500
+
+        try:
+            # Sending the email
+            msg = Message(subject="Your Subject",
+                        recipients=recipients,
+                        cc=cc,
+                        body=email_content)
+            mail.send(msg)
+            return {"message": "Email sent successfully"}, 200
+        except Exception as e:
+            return {"error": f"Failed to send email: {e}"}, 500
+
+"""
+
+
+class EmailSendingResource(Resource):
+
     def generate_dynamic_email(self, template, **kwargs):
         """
         Generates an email by replacing placeholders in the template with actual values.
@@ -4755,9 +4811,9 @@ class EmailSendingResource(Resource):
         try:
             # Sending the email
             msg = Message(subject="Your Subject",
-                        recipients=recipients,
-                        cc=cc,
-                        body=email_content)
+                          recipients=recipients,
+                          cc=cc,
+                          body=email_content)
             mail.send(msg)
             return {"message": "Email sent successfully"}, 200
         except Exception as e:

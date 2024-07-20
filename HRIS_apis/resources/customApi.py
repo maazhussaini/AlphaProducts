@@ -387,40 +387,46 @@ class DynamicDeleteResource(Resource):
             return {'status': 'error',
                 'message': str(e)}, 500
 
-
 class UploadFileResource(Resource):
     def post(self):
-        if 'file' not in request.files:
-            return {'message': 'No file part in the request'}, 400
+        try:
+            if 'file' not in request.files:
+                return {'message': 'No file part in the request'}, 400
 
-        files = request.files.getlist('file')
-        # file = request.files('file')
-        response_files = []
+            files = request.files.getlist('file')
+            # file = request.files('file')
+            response_files = []
 
-        for file in files:
-            if file.filename == '':
-                return {'message': 'No selected file'}, 400
+            for file in files:
+                if file.filename == '':
+                    return {'message': 'No selected file'}, 400
 
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-        
-            response_files.append(filename)
+                filename = secure_filename(file.filename)
+                
+                if not os.path.exists(UPLOAD_FOLDER):
+                    os.makedirs(UPLOAD_FOLDER)
+                
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+            
+                response_files.append(filename)
 
-        # Process other form data
-        form_data = request.form.to_dict()
+            # Process other form data
+            form_data = request.form.to_dict()
 
-        # Example of using form data
-        if form_data:
-            # name = form_data.get('name', 'N/A')
-            description = form_data.get('description', 'N/A')
-        else:
-            form_data = ""
-        
-        return {
-            'message': 'Files and form data received',
-            'files': response_files,
-            'form_data': form_data
-        }, 200
+            # Example of using form data
+            if form_data:
+                # name = form_data.get('name', 'N/A')
+                description = form_data.get('description', 'N/A')
+            else:
+                form_data = ""
+            
+            return {
+                'message': 'Files and form data received',
+                'files': response_files,
+                'form_data': form_data
+            }, 200
+        except Exception as e:
+            return {'message': 'An error occurred while processing the request', 'error': str(e)}, 500
 
 
 
