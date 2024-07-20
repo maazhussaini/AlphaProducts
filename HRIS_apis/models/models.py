@@ -1901,6 +1901,127 @@ class PayrollClose(db.Model):
         }
 
 
+class TeacherDemoEvaluation(db.Model):
+    __tablename__ = 'TeacherDemoEvaluation'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    JobApplicationFormId = db.Column(db.Integer, nullable=False)
+    InterviewerId = db.Column(db.Integer, nullable=False)
+    EvaluationDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    IntroductionGivenRating = db.Column(db.Integer, nullable=False)
+    IntroductionGivenComments = db.Column(db.String(200), nullable=True)
+    AttireAndAppearanceRating = db.Column(db.Integer, nullable=False)
+    AttireAndAppearanceComments = db.Column(db.String(200), nullable=True)
+    MovementDuringTeachingRating = db.Column(db.Integer, nullable=False)
+    MovementDuringTeachingComments = db.Column(db.String(200), nullable=True)
+    EyecontactWithStudentsRating = db.Column(db.Integer, nullable=False)
+    EyecontactWithStudentsComments = db.Column(db.String(200), nullable=True)
+    GestureAndPostureRating = db.Column(db.Integer, nullable=False)
+    GestureAndPostureComments = db.Column(db.String(200), nullable=True)
+    SpokeLoudlyAndClearlyRating = db.Column(db.Integer, nullable=False)
+    SpokeLoudlyAndClearlyComments = db.Column(db.String(200), nullable=True)
+    AgeAppropriateToneAndLanguageRating = db.Column(db.Integer, nullable=False)
+    AgeAppropriateToneAndLanguageComments = db.Column(db.String(200), nullable=True)
+    CommunicationRating = db.Column(db.Integer, nullable=False)
+    CommunicationComments = db.Column(db.String(200), nullable=True)
+    WithitnessRating = db.Column(db.Integer, nullable=False)
+    WithitnessComments = db.Column(db.String(200), nullable=True)
+    ArousedStudentInterestAndEncouragementRating = db.Column(db.Integer, nullable=False)
+    ArousedStudentInterestAndEncouragementComments = db.Column(db.String(200), nullable=True)
+    CreativityAndInnovationRating = db.Column(db.Integer, nullable=False)
+    CreativityAndInnovationComments = db.Column(db.String(200), nullable=True)
+    SubjectMatterKnowledgeRating = db.Column(db.Integer, nullable=False)
+    SubjectMatterKnowledgeComments = db.Column(db.String(200), nullable=True)
+    PresentedSubjectMatterClearlyRating = db.Column(db.Integer, nullable=False)
+    PresentedSubjectMatterClearlyComments = db.Column(db.String(200), nullable=True)
+    AppropriateMethodologyRating = db.Column(db.Integer, nullable=False)
+    AppropriateMethodologyComments = db.Column(db.String(200), nullable=True)
+    RespondedToStudentQueriesRating = db.Column(db.Integer, nullable=False)
+    RespondedToStudentQueriesComments = db.Column(db.String(200), nullable=True)
+    ClassControlRating = db.Column(db.Integer, nullable=False)
+    ClassControlComments = db.Column(db.String(200), nullable=True)
+    TimeManagementRating = db.Column(db.Integer, nullable=False)
+    TimeManagementComments = db.Column(db.String(200), nullable=True)
+    UsedSuitableWarmUpStrategyRating = db.Column(db.Integer, nullable=False)
+    UsedSuitableWarmUpStrategyComments = db.Column(db.String(200), nullable=True)
+    WasAbleToEffectivelySumUpLessonRating = db.Column(db.Integer, nullable=False)
+    WasAbleToEffectivelySumUpLessonComments = db.Column(db.String(200), nullable=True)
+    ConfidenceLevelExhibitedRating = db.Column(db.Integer, nullable=False)
+    ConfidenceLevelExhibitedComments = db.Column(db.String(200), nullable=True)
+    ShowedDynamismAndEnthusiasmRating = db.Column(db.Integer, nullable=False)
+    ShowedDynamismAndEnthusiasmComments = db.Column(db.String(200), nullable=True)
+    AdditionalComments = db.Column(db.String(1000), nullable=True)
+    Recommended = db.Column(db.Boolean, nullable=False)
+    FilePath = db.Column(db.String(100), nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<TeacherDemoEvaluation Id={self.Id}, JobApplicationFormId={self.JobApplicationFormId}, InterviewerId={self.InterviewerId}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'JobApplicationFormId': self.JobApplicationFormId,
+            'InterviewerId': self.InterviewerId,
+            'EvaluationDate': self.EvaluationDate,
+            'CampusId': self.CampusId,
+            'IntroductionGivenRating': self.IntroductionGivenRating,
+            'IntroductionGivenComments': self.IntroductionGivenComments,
+            'AttireAndAppearanceRating': self.AttireAndAppearanceRating,
+            'AttireAndAppearanceComments': self.AttireAndAppearanceComments,
+            'MovementDuringTeachingRating': self.MovementDuringTeachingRating,
+            'MovementDuringTeachingComments': self.MovementDuringTeachingComments,
+            'EyecontactWithStudentsRating': self.EyecontactWithStudentsRating,
+            'EyecontactWithStudentsComments': self.EyecontactWithStudentsComments,
+            'GestureAndPostureRating': self.GestureAndPostureRating,
+            'GestureAndPostureComments': self.GestureAndPostureComments,
+            'SpokeLoudlyAndClearlyRating': self.SpokeLoudlyAndClearlyRating,
+            'SpokeLoudlyAndClearlyComments': self.SpokeLoudlyAndClearlyComments,
+            'AgeAppropriateToneAndLanguageRating': self.AgeAppropriateToneAndLanguageRating,
+            'AgeAppropriateToneAndLanguageComments': self.AgeAppropriateToneAndLanguageComments,
+            'CommunicationRating': self.CommunicationRating,
+            'CommunicationComments': self.CommunicationComments,
+            'WithitnessRating': self.WithitnessRating,
+            'WithitnessComments': self.WithitnessComments,
+            'ArousedStudentInterestAndEncouragementRating': self.ArousedStudentInterestAndEncouragementRating,
+            'ArousedStudentInterestAndEncouragementComments': self.ArousedStudentInterestAndEncouragementComments,
+            'CreativityAndInnovationRating': self.CreativityAndInnovationRating,
+            'CreativityAndInnovationComments': self.CreativityAndInnovationComments,
+            'SubjectMatterKnowledgeRating': self.SubjectMatterKnowledgeRating,
+            'SubjectMatterKnowledgeComments': self.SubjectMatterKnowledgeComments,
+            'PresentedSubjectMatterClearlyRating': self.PresentedSubjectMatterClearlyRating,
+            'PresentedSubjectMatterClearlyComments': self.PresentedSubjectMatterClearlyComments,
+            'AppropriateMethodologyRating': self.AppropriateMethodologyRating,
+            'AppropriateMethodologyComments': self.AppropriateMethodologyComments,
+            'RespondedToStudentQueriesRating': self.RespondedToStudentQueriesRating,
+            'RespondedToStudentQueriesComments': self.RespondedToStudentQueriesComments,
+            'ClassControlRating': self.ClassControlRating,
+            'ClassControlComments': self.ClassControlComments,
+            'TimeManagementRating': self.TimeManagementRating,
+            'TimeManagementComments': self.TimeManagementComments,
+            'UsedSuitableWarmUpStrategyRating': self.UsedSuitableWarmUpStrategyRating,
+            'UsedSuitableWarmUpStrategyComments': self.UsedSuitableWarmUpStrategyComments,
+            'WasAbleToEffectivelySumUpLessonRating': self.WasAbleToEffectivelySumUpLessonRating,
+            'WasAbleToEffectivelySumUpLessonComments': self.WasAbleToEffectivelySumUpLessonComments,
+            'ConfidenceLevelExhibitedRating': self.ConfidenceLevelExhibitedRating,
+            'ConfidenceLevelExhibitedComments': self.ConfidenceLevelExhibitedComments,
+            'ShowedDynamismAndEnthusiasmRating': self.ShowedDynamismAndEnthusiasmRating,
+            'ShowedDynamismAndEnthusiasmComments': self.ShowedDynamismAndEnthusiasmComments,
+            'AdditionalComments': self.AdditionalComments,
+            'Recommended': self.Recommended,
+            'FilePath': self.FilePath,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
+
 
 # ------- LEAVE -------
 
