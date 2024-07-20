@@ -429,13 +429,13 @@ class UploadFileResource(Resource):
                 file.save(file_path)
                 uploaded_files.append((filename, file_path, key))
                 form_data[key] = file_path
-
+            
             if not uploaded_files:
                 return {'message': 'No selected files'}, 400
 
             # Insert records
             try:
-                records = [model_class(**item) for item in form_data]
+                records = model_class(**form_data)
                 db.session.bulk_save_objects(records)
                 db.session.commit()
                 return {'status': 'success',
