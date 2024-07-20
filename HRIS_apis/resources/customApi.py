@@ -430,10 +430,20 @@ class UploadFileResource(Resource):
                 uploaded_files.append((filename, file_path, key))
                 form_data[key] = file_path
             
-            form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
             if not uploaded_files:
                 return {'message': 'No selected files'}, 400
 
+            # Convert boolean fields from 'true'/'false' to True/False
+            for key, value in form_data.items():
+                try:
+                    if value.lower() == 'true':
+                        form_data[key] = True
+                    elif value.lower() == 'false':
+                        form_data[key] = False
+                except:
+                    pass
+            
+            form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
             # Insert records
             try:
                 form_data.pop("Table_Name")
