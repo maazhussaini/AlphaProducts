@@ -10,7 +10,7 @@ from resources.resources import (
 )
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
-    DynamicUpdateResource, DynamicInsertOrUpdateResource
+    DynamicUpdateResource, DynamicInsertOrUpdateResource, UploadFileResource
 )
 from resources.auth import UserLoginResource
 
@@ -29,6 +29,7 @@ def register_routes(app):
     api.add_resource(DynamicPostResource, '/dynamicPost')
     api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
     api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
+    api.add_resource(UploadFileResource, '/uploadFile')
     
     api.add_resource(JobApplicationFormResource, '/jobApplicationForm', '/jobApplicationForm/<int:id>')
     api.add_resource(NewJoinerApprovalResource, '/newJoinerApproval', '/newJoinerApproval/<int:id>')

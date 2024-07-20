@@ -7,6 +7,11 @@ from sqlalchemy import and_
 from models.models import *
 import pyodbc
 from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.utils import secure_filename
+import os
+
+ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+UPLOAD_FOLDER = 'uploads/'
 
 def get_model_by_tablename(table_name):
     return globals().get(table_name)
@@ -263,6 +268,7 @@ class DynamicUpdateResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'status': 'error', 'message': str(e)}, 500
+
 class DynamicInsertOrUpdateResource(Resource):
     def post(self):
         data = request.get_json()
@@ -380,3 +386,60 @@ class DynamicDeleteResource(Resource):
             db.session.rollback()
             return {'status': 'error',
                 'message': str(e)}, 500
+
+
+class UploadFileResource(Resource):
+    def post(self):
+        if 'file' not in request.files:
+            return {'message': 'No file part in the request'}, 400
+
+        files = request.files.getlist('file')
+        # file = request.files('file')
+        response_files = []
+
+        for file in files:
+            if file.filename == '':
+                return {'message': 'No selected file'}, 400
+
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+        
+            response_files.append(filename)
+
+        # Process other form data
+        form_data = request.form.to_dict()
+
+        # Example of using form data
+        if form_data:
+            # name = form_data.get('name', 'N/A')
+            description = form_data.get('description', 'N/A')
+        else:
+            form_data = ""
+        
+        return {
+            'message': 'Files and form data received',
+            'files': response_files,
+            'form_data': form_data
+        }, 200
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
