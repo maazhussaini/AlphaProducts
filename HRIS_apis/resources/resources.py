@@ -4819,7 +4819,7 @@ class EmailSendingResource(Resource):
                           cc=cc,
                           body=email_content)
             mail.send(msg)
-            return {"message": "Email sent successfully"}, 200
+            return {"message": f"Email sent successfully to {recipients}"}, 200
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
 

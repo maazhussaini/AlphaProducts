@@ -430,6 +430,7 @@ class UploadFileResource(Resource):
                 uploaded_files.append((filename, file_path, key))
                 form_data[key] = file_path
             
+            form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
             if not uploaded_files:
                 return {'message': 'No selected files'}, 400
 
@@ -437,7 +438,7 @@ class UploadFileResource(Resource):
             try:
                 form_data.pop("Table_Name")
                 records = model_class(form_data)
-                db.session.bulk_save_objects(records)
+                db.session.add(records)
                 db.session.commit()
                 return {'status': 'success',
                     'message': f'{len(records)} records inserted into {form_data['Table_Name']} successfully'}, 201
