@@ -387,14 +387,12 @@ class DynamicDeleteResource(Resource):
 class UploadFileResource(Resource):
     def post(self):
         try:
-            
             ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
             MAIN_UPLOAD_FOLDER = 'uploads\\'
             
             if not request.files:
                 return {'message': 'No file part in the request'}, 400
 
-            
             # Process other form data
             form_data = request.form.to_dict()
             
@@ -424,7 +422,6 @@ class UploadFileResource(Resource):
                 if not os.path.exists(UPLOAD_FOLDER):
                     os.makedirs(UPLOAD_FOLDER)
                 
-                
                 file_path = os.path.join(UPLOAD_FOLDER, filename)
                 file.save(file_path)
                 uploaded_files.append((filename, file_path, key))
@@ -446,12 +443,13 @@ class UploadFileResource(Resource):
             form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
             # Insert records
             try:
+                Table_Name = form_data['Table_Name']
                 form_data.pop("Table_Name")
                 record = model_class(**form_data)
                 db.session.add(record)
                 db.session.commit()
                 return {'status': 'success',
-                    'message': f'Records inserted into {form_data['Table_Name']} successfully'}, 201
+                    'message': f'Records inserted into {Table_Name} successfully'}, 201
             except SQLAlchemyError as e:
                 db.session.rollback()
                 return {'status': 'error',
