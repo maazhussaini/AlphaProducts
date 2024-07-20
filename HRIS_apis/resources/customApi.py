@@ -10,9 +10,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 import os
 
-ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-UPLOAD_FOLDER = 'uploads/'
-
 def get_model_by_tablename(table_name):
     return globals().get(table_name)
 
@@ -390,44 +387,59 @@ class DynamicDeleteResource(Resource):
 class UploadFileResource(Resource):
     def post(self):
         try:
-            if 'file' not in request.files:
+            
+            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+            MAIN_UPLOAD_FOLDER = 'uploads/'
+            
+            if not request.files:
                 return {'message': 'No file part in the request'}, 400
 
-            files = request.files.getlist('file')
-            # file = request.files('file')
-            response_files = []
-
-            for file in files:
+            
+            # Process other form data
+            form_data = request.form.to_dict()
+            
+            if not form_data.get('Table_Name'):
+                return {'status': 'error',
+                        'message': "table name required"}, 400
+            
+            MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '/' + form_data['Table_Name']
+            
+            uploaded_files = []
+            for key in request.files:
+                
+                file = request.files[key]
                 if file.filename == '':
-                    return {'message': 'No selected file'}, 400
+                    continue
 
+                # Secure the filename and save the file
                 filename = secure_filename(file.filename)
+                
+                UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '/' + key
                 
                 if not os.path.exists(UPLOAD_FOLDER):
                     os.makedirs(UPLOAD_FOLDER)
                 
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
-            
-                response_files.append(filename)
+                
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                uploaded_files.append((filename, file_path, key))
 
-            # Process other form data
-            form_data = request.form.to_dict()
+            if not uploaded_files:
+                return {'message': 'No selected files'}, 400
 
-            # Example of using form data
-            if form_data:
-                # name = form_data.get('name', 'N/A')
-                description = form_data.get('description', 'N/A')
-            else:
-                form_data = ""
-            
+            # Save file information to the database
+            # for filename, file_path, file_type in uploaded_files:
+            #     document = Document(filename=filename, file_path=file_path, file_type=file_type, form_data=form_data)
+            #     db.session.add(document)
+            # db.session.commit()
+
             return {
                 'message': 'Files and form data received',
-                'files': response_files,
+                'files': [{file[2]: file[0]} for file in uploaded_files],
                 'form_data': form_data
             }, 200
         except Exception as e:
-            return {'message': 'An error occurred while processing the request', 'error': str(e)}, 500
-
+            return {'status': 'error', 'message': str(e)}, 500
 
 
 
