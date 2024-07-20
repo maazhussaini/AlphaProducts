@@ -437,8 +437,8 @@ class UploadFileResource(Resource):
             # Insert records
             try:
                 form_data.pop("Table_Name")
-                records = [model_class(**form_data)]
-                db.session.bulk_save_objects(records)
+                record = model_class(**form_data)
+                db.session.add(record)
                 db.session.commit()
                 return {'status': 'success',
                     'message': f'{len(records)} records inserted into {form_data['Table_Name']} successfully'}, 201
