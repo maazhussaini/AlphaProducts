@@ -919,7 +919,7 @@ class InterviewEvaluation(db.Model):
     InterviewEvaluation_Shortlisted = db.Column(db.Boolean, nullable=False)
     InterviewEvaluation_Other = db.Column(db.Boolean, nullable=False)
     InterviewEvaluation_Comments = db.Column(db.String(500), nullable=False)
-    FilePath = db.Column(db.String(200), nullable=False)
+    InterviewEvaluation_FilePath = db.Column(db.String(200), nullable=False)
     CreatedBy = db.Column(db.Integer, nullable=False)
     CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer)
@@ -948,6 +948,7 @@ class InterviewEvaluation(db.Model):
             'InterviewEvaluation_Shortlisted': self.InterviewEvaluation_Shortlisted,
             'InterviewEvaluation_Other': self.InterviewEvaluation_Other,
             'InterviewEvaluation_Comments': self.InterviewEvaluation_Comments,
+            "InterviewEvaluation_FilePath": self.InterviewEvaluation_FilePath,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate.isoformat(),
             'UpdatedBy': self.UpdatedBy,
