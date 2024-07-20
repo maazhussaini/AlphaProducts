@@ -389,7 +389,7 @@ class UploadFileResource(Resource):
         try:
             
             ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-            MAIN_UPLOAD_FOLDER = 'uploads/'
+            MAIN_UPLOAD_FOLDER = 'uploads\\'
             
             if not request.files:
                 return {'message': 'No file part in the request'}, 400
@@ -402,7 +402,12 @@ class UploadFileResource(Resource):
                 return {'status': 'error',
                         'message': "table name required"}, 400
             
-            MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '/' + form_data['Table_Name']
+            model_class = get_model_by_tablename(form_data.get('Table_Name'))
+            if not model_class:
+                return {'status': 'error',
+                    'message': f'Table {form_data.get('Table_Name')} does not exist'}, 400
+            
+            MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
             
             uploaded_files = []
             for key in request.files:
@@ -414,7 +419,7 @@ class UploadFileResource(Resource):
                 # Secure the filename and save the file
                 filename = secure_filename(file.filename)
                 
-                UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '/' + key
+                UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
                 
                 if not os.path.exists(UPLOAD_FOLDER):
                     os.makedirs(UPLOAD_FOLDER)
@@ -423,21 +428,26 @@ class UploadFileResource(Resource):
                 file_path = os.path.join(UPLOAD_FOLDER, filename)
                 file.save(file_path)
                 uploaded_files.append((filename, file_path, key))
+                form_data[key] = file_path
 
             if not uploaded_files:
                 return {'message': 'No selected files'}, 400
 
-            # Save file information to the database
-            # for filename, file_path, file_type in uploaded_files:
-            #     document = Document(filename=filename, file_path=file_path, file_type=file_type, form_data=form_data)
-            #     db.session.add(document)
-            # db.session.commit()
-
-            return {
-                'message': 'Files and form data received',
-                'files': [{file[2]: file[0]} for file in uploaded_files],
-                'form_data': form_data
-            }, 200
+            # Insert records
+            try:
+                records = [model_class(**item) for item in form_data]
+                db.session.bulk_save_objects(records)
+                db.session.commit()
+                return {'status': 'success',
+                    'message': f'{len(records)} records inserted into {form_data['Table_Name']} successfully'}, 201
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                return {'status': 'error',
+                    'message': str(e)}, 500
+            except Exception as e:
+                db.session.rollback()
+                return {'status': 'error',
+                    'message': str(e)}, 500
         except Exception as e:
             return {'status': 'error', 'message': str(e)}, 500
 
