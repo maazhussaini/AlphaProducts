@@ -12,6 +12,9 @@ from flask_mail import Message
 from werkzeug.utils import secure_filename
 import os
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
 UPLOAD_FOLDER = 'uploads/'
@@ -4811,6 +4814,7 @@ class EmailSendingResource(Resource):
         try:
             # Sending the email
             msg = Message(subject="Your Subject",
+                          sender= os.environ.get('MAIL_USERNAME'),
                           recipients=recipients,
                           cc=cc,
                           body=email_content)
