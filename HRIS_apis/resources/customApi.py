@@ -451,7 +451,7 @@ class UploadFileResource(Resource):
                 db.session.add(record)
                 db.session.commit()
                 return {'status': 'success',
-                    'message': f'{len(record)} records inserted into {form_data['Table_Name']} successfully'}, 201
+                    'message': f'Records inserted into {form_data['Table_Name']} successfully'}, 201
             except SQLAlchemyError as e:
                 db.session.rollback()
                 return {'status': 'error',
