@@ -2122,7 +2122,38 @@ class StaffGraceTime(db.Model):
             'InActive': self.InActive
         }
 
+class SpecialApprovalForm(db.Model):
+    __tablename__ = 'SpecialApprovalForm'
 
+    SpecialApprovalForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SpecialApprovalForm_StaffId = db.Column(db.Integer, nullable=False)
+    SpecialApprovalForm_FromDate = db.Column(db.DateTime, nullable=False)
+    SpecialApprovalForm_ToDate = db.Column(db.DateTime, nullable=False)
+    SpecialApprovalForm_Reason = db.Column(db.String(200), nullable=False)
+    SpecialApprovalForm_ApprovedBy = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=True)
+
+    def __repr__(self):
+        return f"<SpecialApprovalForm Id={self.SpecialApprovalForm_Id}, StaffId={self.SpecialApprovalForm_StaffId}>"
+
+    def to_dict(self):
+        return {
+            'SpecialApprovalForm_Id': self.SpecialApprovalForm_Id,
+            'SpecialApprovalForm_StaffId': self.SpecialApprovalForm_StaffId,
+            'SpecialApprovalForm_FromDate': self.SpecialApprovalForm_FromDate,
+            'SpecialApprovalForm_ToDate': self.SpecialApprovalForm_ToDate,
+            'SpecialApprovalForm_Reason': self.SpecialApprovalForm_Reason,
+            'SpecialApprovalForm_ApprovedBy': self.SpecialApprovalForm_ApprovedBy,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
 
 # ------- LEAVE -------
 
