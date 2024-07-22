@@ -712,85 +712,76 @@ class JobApplicationForms(db.Model):
     __tablename__ = 'JobApplicationForms'
 
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Initial_id = db.Column(db.String(80), nullable=False)
-
-    # Personal Information
-    First_name = db.Column(db.String(80), nullable=False)
-    Last_name = db.Column(db.String(80), nullable=False)
-    Father_name = db.Column(db.String(80), nullable=False)
-    Cnic = db.Column(db.String(13), nullable=False)
-    Passport_number = db.Column(db.String(13), nullable=True)
-    Dob = db.Column(db.Date, nullable=False)
-    Age = db.Column(db.String(100), nullable=False)
-    Gender = db.Column(db.String(10), nullable=False)
-    Cell_phone = db.Column(db.String(11), nullable=False)
-    Alternate_number = db.Column(db.String(11), nullable=True)
-    Email = db.Column(db.String(120), nullable=False)
-    Residence = db.Column(db.String(200), nullable=False)
-
-    # Qualification and Experience
-    Education_level = db.Column(db.String(80), nullable=True)
-    Education_level_others = db.Column(db.String(80))
-    Degree = db.Column(db.String(80), nullable=False)
-    Specialization = db.Column(db.String(80), nullable=False)
-    Institute = db.Column(db.String(80), nullable=False)
-
-    # Employment History
-    Fresh = db.Column(db.Boolean)
-    Experienced = db.Column(db.Boolean)
-    Total_years_of_experience = db.Column(db.String(50), nullable=True)
-    Name_of_last_employer = db.Column(db.String(80), nullable=True)
-    Employment_duration_from = db.Column(db.Date, nullable=True)
-    Employment_duration_to = db.Column(db.Date, nullable=True)
-    Designation = db.Column(db.String(80), nullable=True)
-    Reason_for_leaving = db.Column(db.String(200), nullable=True)
-    Last_drawn_gross_salary = db.Column(db.String(50), nullable=True)
-    Benefits_if_any = db.Column(db.String(200), nullable=True)
-
-    # Preference
-    JobApplied_For = db.Column(db.String(80), nullable=True)
-    Preferred_campus = db.Column(db.String(80), nullable=True)
-    Preferred_location = db.Column(db.String(80), nullable=True)
-    Preferred_job_type = db.Column(db.String(80), nullable=True)
-    Section = db.Column(db.String(80), nullable=True)
-    Subject = db.Column(db.String(80), nullable=True)
-    Expected_salary = db.Column(db.String(50))
-    Cv_path = db.Column(db.String(100))
-    CoverLetter_Path = db.Column(db.String(100), nullable=True)
-
-    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    Status = db.Column(db.Boolean, default=True)
+    Initial_ID = db.Column(db.String(250), nullable=True)
+    First_Name = db.Column(db.String(250), nullable=False)
+    Last_Name = db.Column(db.String(250), nullable=False)
+    Father_Name = db.Column(db.String(250), nullable=False)
+    CNIC = db.Column(db.String(250), nullable=True)
+    Passport_Number = db.Column(db.String(250), nullable=True)
+    DOB = db.Column(db.DateTime, nullable=True)
+    Age = db.Column(db.String(100), nullable=True)
+    Gender = db.Column(db.String(250), nullable=True)
+    Cell_Phone = db.Column(db.String(250), nullable=True)
+    Alternate_Number = db.Column(db.String(250), nullable=True)
+    Email = db.Column(db.String(250), nullable=True)
+    Residence = db.Column(db.String(500), nullable=True)
+    Education_Level = db.Column(db.String(250), nullable=True)
+    Education_Level_Others = db.Column(db.String(250), nullable=True)
+    Degree = db.Column(db.String(250), nullable=True)
+    Specialization = db.Column(db.String(250), nullable=True)
+    Institute = db.Column(db.String(250), nullable=True)
+    Fresh = db.Column(db.Boolean, nullable=True)
+    Experienced = db.Column(db.Boolean, nullable=True)
+    Total_Years_of_Experience = db.Column(db.String(250), nullable=True)
+    Name_of_Last_Employer = db.Column(db.String(250), nullable=True)
+    Employment_duration_from = db.Column(db.DateTime, nullable=True)
+    Employment_duration_to = db.Column(db.DateTime, nullable=True)
+    Designation = db.Column(db.String(250), nullable=True)
+    Reason_for_leaving = db.Column(db.String(250), nullable=True)
+    Last_drawn_gross_salary = db.Column(db.String(250), nullable=True)
+    Benefits_if_any = db.Column(db.String(250), nullable=True)
+    Preferred_campus = db.Column(db.String(250), nullable=True)
+    Preferred_location = db.Column(db.String(250), nullable=True)
+    Preferred_job_type = db.Column(db.String(250), nullable=True)
+    Section = db.Column(db.String(250), nullable=True)
+    Subject = db.Column(db.String(250), nullable=True)
+    Expected_salary = db.Column(db.String(250), nullable=True)
+    CV_Path = db.Column(db.String(250), nullable=True)
+    CoverLetter_Path = db.Column(db.String(250), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    Status = db.Column(db.Boolean, nullable=True)
+    JobApplied_For = db.Column(db.String(250), nullable=True)
 
     def __repr__(self):
-        return self.Id
+        return f"<JobApplicationForm Id={self.Id}, First_Name={self.First_Name}, Last_Name={self.Last_Name}>"
 
     def to_dict(self):
         return {
             'Id': self.Id,
-            'Initial_id': self.Initial_id,
-            'First_name': self.First_name,
-            'Last_name': self.Last_name,
-            'Father_name': self.Father_name,
-            'Cnic': self.Cnic,
-            'Passport_number': self.Passport_number,
-            'Dob': self.Dob.isoformat() if self.Dob else None,
+            'Initial_ID': self.Initial_ID,
+            'First_Name': self.First_Name,
+            'Last_Name': self.Last_Name,
+            'Father_Name': self.Father_Name,
+            'CNIC': self.CNIC,
+            'Passport_Number': self.Passport_Number,
+            'DOB': self.DOB,
             'Age': self.Age,
             'Gender': self.Gender,
-            'Cell_phone': self.Cell_phone,
-            'Alternate_number': self.Alternate_number,
+            'Cell_Phone': self.Cell_Phone,
+            'Alternate_Number': self.Alternate_Number,
             'Email': self.Email,
             'Residence': self.Residence,
-            'Education_level': self.Education_level,
-            'Education_level_others': self.Education_level_others,
+            'Education_Level': self.Education_Level,
+            'Education_Level_Others': self.Education_Level_Others,
             'Degree': self.Degree,
             'Specialization': self.Specialization,
             'Institute': self.Institute,
             'Fresh': self.Fresh,
             'Experienced': self.Experienced,
-            'Total_years_of_experience': self.Total_years_of_experience,
-            'Name_of_last_employer': self.Name_of_last_employer,
-            'Employment_duration_from': self.Employment_duration_from.isoformat() if self.Employment_duration_from else None,
-            'Employment_duration_to': self.Employment_duration_to.isoformat() if self.Employment_duration_to else None,
+            'Total_Years_of_Experience': self.Total_Years_of_Experience,
+            'Name_of_Last_Employer': self.Name_of_Last_Employer,
+            'Employment_duration_from': self.Employment_duration_from,
+            'Employment_duration_to': self.Employment_duration_to,
             'Designation': self.Designation,
             'Reason_for_leaving': self.Reason_for_leaving,
             'Last_drawn_gross_salary': self.Last_drawn_gross_salary,
@@ -801,10 +792,11 @@ class JobApplicationForms(db.Model):
             'Section': self.Section,
             'Subject': self.Subject,
             'Expected_salary': self.Expected_salary,
-            'Cv_path': self.Cv_path,
+            'CV_Path': self.CV_Path,
             'CoverLetter_Path': self.CoverLetter_Path,
-            'CreateDate': self.CreateDate.isoformat(),
+            'CreateDate': self.CreateDate,
             'Status': self.Status,
+            'JobApplied_For': self.JobApplied_For
         }
     
     @staticmethod

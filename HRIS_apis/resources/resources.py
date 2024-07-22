@@ -114,7 +114,7 @@ class JobApplicationFormResource(Resource):
             ]
             
             if id:
-                job_application_form = JobApplicationForm.query.get_or_404(id)
+                job_application_form = JobApplicationForms.query.get_or_404(id)
                 
                 return {
                     "data": [job_application_form.to_dict()],
@@ -124,7 +124,7 @@ class JobApplicationFormResource(Resource):
                     "columns": columns
                 }, 200
             else:
-                query = JobApplicationForm.query.order_by(JobApplicationForm.Id)
+                query = JobApplicationForms.query.order_by(JobApplicationForms.Id)
                 total = query.count()
 
                 # Apply pagination
@@ -327,7 +327,7 @@ class JobApplicationFormResource(Resource):
             employment_duration_from = datetime.strptime(data.get('Employment_duration_from'), '%Y-%m-%d') if data.get('Employment_duration_from') else None
             employment_duration_to = datetime.strptime(data.get('Employment_duration_to'), '%Y-%m-%d') if data.get('Employment_duration_to') else None
 
-            job_application_form = JobApplicationForm(
+            job_application_form = JobApplicationForms(
                 Initial_id=data.get('Initial_id'),
                 First_name=data.get('First_name'),
                 Last_name=data.get('Last_name'),
@@ -371,7 +371,7 @@ class JobApplicationFormResource(Resource):
             db.session.add(job_application_form)
             db.session.commit()
 
-            job_application_form = JobApplicationForm.query.get_or_404(job_application_form.Id)
+            job_application_form = JobApplicationForms.query.get_or_404(job_application_form.Id)
             if not job_application_form:
                 return {"status": "error",
                 "message": 'New joiner approval record not found'}, 404
@@ -432,16 +432,16 @@ class JobApplicationFormResource(Resource):
         args = parser.parse_args()
 
         try:
-            job_application_form = JobApplicationForm.query.get_or_404(id)
+            job_application_form = JobApplicationForms.query.get_or_404(id)
 
-            if args['Cell_phone'] and not JobApplicationForm.validate_phone_number(args['Cell_phone']):
-                raise ValueError("Invalid phone number format.")
-            if args['Cnic'] and not JobApplicationForm.validate_cnic(args['Cnic']):
-                raise ValueError("Invalid CNIC format.")
-            if args['Email'] and not JobApplicationForm.validate_email(args['Email']):
-                raise ValueError("Invalid email format.")
-            if args['Passport_number'] and not JobApplicationForm.validate_passport_number(args['Passport_number']):
-                raise ValueError("Invalid passport number format.")
+            # if args['Cell_phone'] and not JobApplicationForms.validate_phone_number(args['Cell_phone']):
+            #     raise ValueError("Invalid phone number format.")
+            # if args['Cnic'] and not JobApplicationForms.validate_cnic(args['Cnic']):
+            #     raise ValueError("Invalid CNIC format.")
+            # if args['Email'] and not JobApplicationForms.validate_email(args['Email']):
+            #     raise ValueError("Invalid email format.")
+            # if args['Passport_number'] and not JobApplicationForms.validate_passport_number(args['Passport_number']):
+            #     raise ValueError("Invalid passport number format.")
 
             employment_duration_from = datetime.strptime(args['Employment_duration_from'], '%Y-%m-%d') if args['Employment_duration_from'] else None
             employment_duration_to = datetime.strptime(args['Employment_duration_to'], '%Y-%m-%d') if args['Employment_duration_to'] else None
@@ -463,7 +463,7 @@ class JobApplicationFormResource(Resource):
 
     def delete(self, id):
         try:
-            job_application_form = JobApplicationForm.query.get_or_404(id)
+            job_application_form = JobApplicationForms.query.get_or_404(id)
             db.session.delete(job_application_form)
             db.session.commit()
             return {'message': 'Job application form deleted successfully'}, 200
