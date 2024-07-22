@@ -461,9 +461,7 @@ class UploadFileResource(Resource):
         except Exception as e:
             return {'status': 'error', 'message': str(e)}, 500
 
-
-    def put(self, record_id=None):
-        
+    def put(self, id):
         try:
             ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
             MAIN_UPLOAD_FOLDER = 'uploads\\'
@@ -516,21 +514,19 @@ class UploadFileResource(Resource):
             
             Table_Name = form_data['Table_Name']
             form_data.pop("Table_Name")
-            try:
-                history_table = form_data['History_Table']
-                form_data.pop("History_Table")
-            except:
-                pass
-            
+            history_table = ""
             
             # Find the record by id and update it with the provided data
             try:
-                record = db.session.query(model_class).get(record_id)
+                record = db.session.query(model_class).get(id)
                 if not record:
-                    return {'error': f'Record with id {record_id} not found in {Table_Name}'}, 404
+                    return {'error': f'Record with id {id} not found in {Table_Name}'}, 404
                 
                 try:
+                    history_table = form_data.get('History_Table')
+                    
                     if history_table:
+                        form_data.pop("History_Table")
                         history_model_class = globals().get(history_table)
                         
                         if not history_model_class:
@@ -571,7 +567,7 @@ class UploadFileResource(Resource):
                 if history_table:
                     return {'status': 'success', 'message': f'Record in {history_table} added successfully'}, 200
                 else:
-                    return {'status': 'success', 'message': f'Record in {Table_Name} with id {record_id} updated successfully'}, 200
+                    return {'status': 'success', 'message': f'Record in {Table_Name} with id {id} updated successfully'}, 200
             except SQLAlchemyError as e:
                 db.session.rollback()
                 return {'status': 'error', 'message': str(e)}, 500
