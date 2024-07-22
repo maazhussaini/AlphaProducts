@@ -708,7 +708,7 @@ class EduGroupStudent(db.Model):
 
 # --------------------------------------------------------------
 
-class JobApplicationForm(db.Model):
+class JobApplicationForms(db.Model):
     __tablename__ = 'JobApplicationForms'
 
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -1902,7 +1902,6 @@ class PayrollClose(db.Model):
             'InActive': self.InActive
         }
 
-
 class TeacherDemoEvaluation(db.Model):
     __tablename__ = 'TeacherDemoEvaluation'
 
@@ -2024,6 +2023,112 @@ class TeacherDemoEvaluation(db.Model):
             'InActive': self.InActive
         }
 
+class StaffOnDutyForm(db.Model):
+    __tablename__ = 'StaffOnDutyForm'
+
+    StaffOnDutyForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffOnDutyForm_StaffId = db.Column(db.Integer, nullable=False)
+    StaffOnDutyForm_Date = db.Column(db.DateTime, nullable=False)
+    StaffOnDutyForm_TimeIn = db.Column(db.Time, nullable=False)
+    StaffOnDutyForm_TimeOut = db.Column(db.Time, nullable=False)
+    StaffOnDutyForm_Task = db.Column(db.String(250), nullable=False)
+    StaffOnDutyForm_Remarks = db.Column(db.String(500), nullable=True)
+    StaffOnDutyForm_Location = db.Column(db.String(200), nullable=False)
+    StaffOnDutyForm_ApprovedBy = db.Column(db.Integer, nullable=True)
+    StaffOnDutyForm_ApprovedStatusId = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffOnDutyForm Id={self.StaffOnDutyForm_Id}, StaffId={self.StaffOnDutyForm_StaffId}, Date={self.StaffOnDutyForm_Date}>"
+
+    def to_dict(self):
+        return {
+            'StaffOnDutyForm_Id': self.StaffOnDutyForm_Id,
+            'StaffOnDutyForm_StaffId': self.StaffOnDutyForm_StaffId,
+            'StaffOnDutyForm_Date': self.StaffOnDutyForm_Date,
+            'StaffOnDutyForm_TimeIn': self.StaffOnDutyForm_TimeIn,
+            'StaffOnDutyForm_TimeOut': self.StaffOnDutyForm_TimeOut,
+            'StaffOnDutyForm_Task': self.StaffOnDutyForm_Task,
+            'StaffOnDutyForm_Remarks': self.StaffOnDutyForm_Remarks,
+            'StaffOnDutyForm_Location': self.StaffOnDutyForm_Location,
+            'StaffOnDutyForm_ApprovedBy': self.StaffOnDutyForm_ApprovedBy,
+            'StaffOnDutyForm_ApprovedStatusId': self.StaffOnDutyForm_ApprovedStatusId,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
+
+class StaffWaiverForm(db.Model):
+    __tablename__ = 'StaffWaiverForm'
+
+    StaffWaiverForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffWaiverForm_StaffId = db.Column(db.Integer, nullable=False)
+    StaffWaiverForm_Date = db.Column(db.DateTime, nullable=False)
+    StaffWaiverForm_TimeIn = db.Column(db.Time, nullable=False)
+    StaffWaiverForm_TimeOut = db.Column(db.Time, nullable=False)
+    StaffWaiverForm_Reason = db.Column(db.String(250), nullable=False)
+    StaffWaiverForm_ApprovedBy = db.Column(db.Integer, nullable=False)
+    StaffWaiverForm_ApprovedStatusId = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffWaiverForm Id={self.StaffWaiverForm_Id}, StaffId={self.StaffWaiverForm_StaffId}, Date={self.StaffWaiverForm_Date}>"
+
+    def to_dict(self):
+        return {
+            'StaffWaiverForm_Id': self.StaffWaiverForm_Id,
+            'StaffWaiverForm_StaffId': self.StaffWaiverForm_StaffId,
+            'StaffWaiverForm_Date': self.StaffWaiverForm_Date,
+            'StaffWaiverForm_TimeIn': self.StaffWaiverForm_TimeIn,
+            'StaffWaiverForm_TimeOut': self.StaffWaiverForm_TimeOut,
+            'StaffWaiverForm_Reason': self.StaffWaiverForm_Reason,
+            'StaffWaiverForm_ApprovedBy': self.StaffWaiverForm_ApprovedBy,
+            'StaffWaiverForm_ApprovedStatusId': self.StaffWaiverForm_ApprovedStatusId,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
+
+class StaffGraceTime(db.Model):
+    __tablename__ = 'StaffGraceTime'
+
+    StaffGraceTime_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffGraceTime_StaffId = db.Column(db.Integer, nullable=False)
+    StaffGraceTime_Date = db.Column(db.DateTime, nullable=False)
+    StaffGraceTime_Minutes = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffGraceTime Id={self.StaffGraceTime_Id}, StaffId={self.StaffGraceTime_StaffId}, Date={self.StaffGraceTime_Date}>"
+
+    def to_dict(self):
+        return {
+            'StaffGraceTime_Id': self.StaffGraceTime_Id,
+            'StaffGraceTime_StaffId': self.StaffGraceTime_StaffId,
+            'StaffGraceTime_Date': self.StaffGraceTime_Date,
+            'StaffGraceTime_Minutes': self.StaffGraceTime_Minutes,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
 
 # ------- LEAVE -------
 
