@@ -4788,7 +4788,7 @@ class EmailSendingResource(Resource):
         if email is None:
             abort(404, message=f"EmailStorageSystem {id} doesn't exist")
         
-        return email.Email_Body
+        return email.Email_Body, email.Email_Subject
 
     def post(self):
         data = request.get_json()
@@ -4800,7 +4800,7 @@ class EmailSendingResource(Resource):
         if not template_id or not parameters or not recipients:
             return {"error": "template_id, parameters, and recipients are required"}, 400
 
-        template = self.get_email_template(template_id)
+        template, subject = self.get_email_template(template_id)
         if not template:
             return {"error": "Template not found"}, 404
 
@@ -4813,11 +4813,13 @@ class EmailSendingResource(Resource):
 
         try:
             # Sending the email
-            msg = Message(subject="Your Subject",
+            msg = Message(subject=subject,
                           sender= os.environ.get('MAIL_USERNAME'),
                           recipients=recipients,
-                          cc=cc,
-                          body=email_content)
+                          cc=cc
+                        #   body=email_content
+                        )
+            msg.html = email_content
             mail.send(msg)
             return {"message": f"Email sent successfully to {recipients}"}, 200
         except Exception as e:
