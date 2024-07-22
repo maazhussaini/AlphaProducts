@@ -440,7 +440,7 @@ class UploadFileResource(Resource):
                 except:
                     pass
             
-            form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
+            # form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
             # Insert records
             try:
                 Table_Name = form_data['Table_Name']

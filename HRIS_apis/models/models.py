@@ -2122,6 +2122,8 @@ class StaffGraceTime(db.Model):
             'InActive': self.InActive
         }
 
+
+
 # ------- LEAVE -------
 
 class LeaveStatus(db.Model):
