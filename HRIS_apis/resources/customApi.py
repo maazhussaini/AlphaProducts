@@ -462,123 +462,130 @@ class UploadFileResource(Resource):
             return {'status': 'error', 'message': str(e)}, 500
 
     def put(self, id):
-        try:
-            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-            MAIN_UPLOAD_FOLDER = 'uploads\\'
-
-            # Process other form data
-            form_data = request.form.to_dict()
-            
-            if not form_data.get('Table_Name'):
-                return {'status': 'error',
-                        'message': "table name required"}, 400
-            
-            model_class = get_model_by_tablename(form_data.get('Table_Name'))
-            
-            if not model_class:
-                return {'status': 'error',
-                    'message': f'Table {form_data.get('Table_Name')} does not exist'}, 400
-            
-            MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
-            
-            if request.files:
-                for key in request.files:
-                    
-                    file = request.files[key]
-                    if file.filename == '':
-                        continue
-
-                    # Secure the filename and save the file
-                    filename = secure_filename(file.filename)
-                    
-                    UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
-                    
-                    if not os.path.exists(UPLOAD_FOLDER):
-                        os.makedirs(UPLOAD_FOLDER)
-                    
-                    file_path = os.path.join(UPLOAD_FOLDER, filename)
-                    file.save(file_path)
-                    form_data[key] = file_path
-
-            # Convert boolean fields from 'true'/'false' to True/False
-            for key, value in form_data.items():
-                try:
-                    if value.lower() == 'true':
-                        form_data[key] = True
-                    elif value.lower() == 'false':
-                        form_data[key] = False
-                except:
-                    pass
-            
-            form_data['UpdatedDate'] = datetime.utcnow()  # Add CreatedDate column
-            
-            Table_Name = form_data['Table_Name']
-            form_data.pop("Table_Name")
-            history_table = ""
-            
-            # Find the record by id and update it with the provided data
+        
+        if id:
             try:
-                record = db.session.query(model_class).get(id)
-                if not record:
-                    return {'error': f'Record with id {id} not found in {Table_Name}'}, 404
+                ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+                MAIN_UPLOAD_FOLDER = 'uploads\\'
+
+                # Process other form data
+                form_data = request.form.to_dict()
                 
+                if not form_data.get('Table_Name'):
+                    return {'status': 'error',
+                            'message': "table name required"}, 400
+                
+                model_class = get_model_by_tablename(form_data.get('Table_Name'))
+                
+                if not model_class:
+                    return {'status': 'error',
+                        'message': f'Table {form_data.get('Table_Name')} does not exist'}, 400
+                
+                MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
+                
+                if request.files:
+                    for key in request.files:
+                        
+                        file = request.files[key]
+                        if file.filename == '':
+                            continue
+
+                        # Secure the filename and save the file
+                        filename = secure_filename(file.filename)
+                        
+                        UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
+                        
+                        if not os.path.exists(UPLOAD_FOLDER):
+                            os.makedirs(UPLOAD_FOLDER)
+                        
+                        file_path = os.path.join(UPLOAD_FOLDER, filename)
+                        file.save(file_path)
+                        form_data[key] = file_path
+
+                # Convert boolean fields from 'true'/'false' to True/False
+                for key, value in form_data.items():
+                    try:
+                        if value.lower() == 'true':
+                            form_data[key] = True
+                        elif value.lower() == 'false':
+                            form_data[key] = False
+                    except:
+                        pass
+                
+                form_data['UpdatedDate'] = datetime.utcnow()  # Add CreatedDate column
+                
+                Table_Name = form_data['Table_Name']
+                form_data.pop("Table_Name")
+                history_table = ""
+                
+                # Find the record by id and update it with the provided data
                 try:
-                    history_table = form_data.get('History_Table')
+                    record = db.session.query(model_class).get(id)
+                    if not record:
+                        return {'error': f'Record with id {id} not found in {Table_Name}'}, 404
+                    
+                    try:
+                        history_table = form_data.get('History_Table')
+                        
+                        if history_table:
+                            form_data.pop("History_Table")
+                            history_model_class = globals().get(history_table)
+                            
+                            if not history_model_class:
+                                return {'status': 'error', 'message': f'History Table {history_table} does not exist'}, 400
+                            
+                            # Convert the record to a dictionary and insert into the history table
+                            history_data = record.__dict__.copy()
+                            
+                            history_data.pop('_sa_instance_state', None)  # Remove the SQLAlchemy instance state
+                            # history_data = {f'History_{key}': value for key, value in record.__dict__.items() if key not in ['_sa_instance_state', 'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive']}
+                            # Keys to exclude from prefixing
+                            exclude_keys = {'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive'}
+
+                            # Efficiently update dictionary
+                            updated_history_data = {
+                                (f'History_{key}' if key not in exclude_keys else key): value
+                                for key, value in history_data.items()
+                            }
+                            updated_history_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
+                            
+                            history_record = history_model_class(**updated_history_data)
+                            db.session.add(history_record)
+                            db.session.commit()
+
+                    except SQLAlchemyError as e:
+                        db.session.rollback()
+                        return {'status': 'error', 'message': str(e)}, 500
+                    except Exception as e:
+                        db.session.rollback()
+                        return {'status': 'error', 'message': str(e)}, 500
+                    
+                    for key, value in form_data.items():
+                        if hasattr(record, key):
+                            setattr(record, key, value)
+
+                    db.session.commit()
                     
                     if history_table:
-                        form_data.pop("History_Table")
-                        history_model_class = globals().get(history_table)
-                        
-                        if not history_model_class:
-                            return {'status': 'error', 'message': f'History Table {history_table} does not exist'}, 400
-                        
-                        # Convert the record to a dictionary and insert into the history table
-                        history_data = record.__dict__.copy()
-                        
-                        history_data.pop('_sa_instance_state', None)  # Remove the SQLAlchemy instance state
-                        # history_data = {f'History_{key}': value for key, value in record.__dict__.items() if key not in ['_sa_instance_state', 'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive']}
-                        # Keys to exclude from prefixing
-                        exclude_keys = {'CreatedDate', 'CreatedBy', 'UpdatedBy', 'UpdatedDate', 'InActive'}
-
-                        # Efficiently update dictionary
-                        updated_history_data = {
-                            (f'History_{key}' if key not in exclude_keys else key): value
-                            for key, value in history_data.items()
-                        }
-                        updated_history_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
-                        
-                        history_record = history_model_class(**updated_history_data)
-                        db.session.add(history_record)
-                        db.session.commit()
-
+                        return {'status': 'success', 'message': f'Record in {history_table} added successfully'}, 200
+                    else:
+                        return {'status': 'success', 'message': f'Record in {Table_Name} with id {id} updated successfully'}, 200
                 except SQLAlchemyError as e:
                     db.session.rollback()
                     return {'status': 'error', 'message': str(e)}, 500
                 except Exception as e:
                     db.session.rollback()
                     return {'status': 'error', 'message': str(e)}, 500
-                
-                for key, value in form_data.items():
-                    if hasattr(record, key):
-                        setattr(record, key, value)
-
-                db.session.commit()
-                
-                if history_table:
-                    return {'status': 'success', 'message': f'Record in {history_table} added successfully'}, 200
-                else:
-                    return {'status': 'success', 'message': f'Record in {Table_Name} with id {id} updated successfully'}, 200
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                return {'status': 'error', 'message': str(e)}, 500
+            
             except Exception as e:
-                db.session.rollback()
-                return {'status': 'error', 'message': str(e)}, 500
-        
-        except Exception as e:
-                db.session.rollback()
-                return {'status': 'error', 'message': str(e)}, 500
+                    db.session.rollback()
+                    return {'status': 'error', 'message': str(e)}, 500
 
+        else:
+            return {
+                "status": "error",
+                "message": "id not found at the endpoint"
+            }, 400
 
 
 
