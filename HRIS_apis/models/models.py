@@ -1946,6 +1946,8 @@ class TeacherDemoEvaluation(db.Model):
     ShowedDynamismAndEnthusiasmComments = db.Column(db.String(200), nullable=True)
     AdditionalComments = db.Column(db.String(1000), nullable=True)
     Recommended = db.Column(db.Boolean, nullable=False)
+    WritingOnBoardRating = db.Column(db.Integer, nullable=False)
+    WritingOnBoardComments = db.Column(db.String(200), nullable=True)
     FilePath = db.Column(db.String(100), nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=False)
     CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
