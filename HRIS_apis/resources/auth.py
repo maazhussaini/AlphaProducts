@@ -18,6 +18,8 @@ class UserLoginResource(Resource):
 
         user = Users.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
 
+        
+        # if user and user.Status:
         if user and user.Status:
             user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
                 .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
@@ -34,7 +36,7 @@ class UserLoginResource(Resource):
             
             access_token = create_access_token(identity=encrypted_username)
             user_details = {
-                'status': 'error',
+                'status': 'success',
                 'message': {
                     'access_token': access_token,
                     'user': {
@@ -53,7 +55,7 @@ class UserLoginResource(Resource):
             
             school_info = SchoolDetails.query.filter_by(status=True).first()
             if school_info:
-                user_details["user"]["SchoolDetails"].append({
+                user_details["message"]["user"]["SchoolDetails"].append({
                         "SchoolName": school_info.SchoolName,
                         "MobileNo": school_info.MobileNo,
                         "MiniLogo": school_info.MiniLogo,
@@ -63,10 +65,10 @@ class UserLoginResource(Resource):
             
             academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
             if academic_year:
-                user_details["user"]["CurrentAcademicYear"] = academic_year.to_dict()
+                user_details["message"]["user"]["CurrentAcademicYear"] = academic_year.to_dict()
             
             if user_type.UserTypeId == 7:
-                user_details["user"]["StudentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
+                user_details["message"]["user"]["StudentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
 
             return {"data": [user_details]}, 200
 
