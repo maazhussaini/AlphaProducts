@@ -70,6 +70,6 @@ class UserLoginResource(Resource):
             if user_type.UserTypeId == 7:
                 user_details["message"]["user"]["StudentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
 
-            return {"data": [user_details]}, 200
+            return {"data": user_details}, 200
 
         return jsonify({'error': 'Invalid username or password'}), 401
