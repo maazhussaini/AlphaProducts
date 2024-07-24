@@ -17,7 +17,7 @@ class UserLoginResource(Resource):
             data = request.get_json()
             if not data or 'username' not in data or 'password' not in data:
                 logger.warning("Missing username or password in request data")
-                return jsonify({'status':'error', 'message': 'Username and password are required'}), 400
+                return {'status':'error', 'message': 'Username and password are required'}, 400
 
             username = data.get('username').lower().strip()
             password = data.get('password').strip()
@@ -27,21 +27,21 @@ class UserLoginResource(Resource):
                 encrypted_password = encrypt(password)
             except Exception as e:
                 logger.error(f"Error encrypting username or password: {e}")
-                return jsonify({'status':'error', 'message': 'Encryption error'}), 500
+                return {'status':'error', 'message': 'Encryption error'}, 500
 
             try:
                 user = Users.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
-                return jsonify({'status':'error', 'message': 'Database error'}), 500
+                return {'status':'error', 'message': 'Database error'}, 500
 
             if not user:
                 logger.warning("Invalid username or password")
-                return jsonify({'status':'error', 'message': 'Invalid username or password'}), 401
+                return {'status':'error', 'message': 'Invalid username or password'}, 401
 
             if not user.Status:
                 logger.warning("User account is inactive")
-                return jsonify({'status':'error', 'message': 'Account is inactive'}), 403
+                return {'status':'error', 'message': 'Account is inactive'}, 403
 
             try:
                 user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
@@ -58,13 +58,13 @@ class UserLoginResource(Resource):
                 user_type = UserType.query.filter_by(UserTypeId=user.UserType_id).first()
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
-                return jsonify({'status':'error', 'message': 'Database error'}), 500
+                return {'status':'error', 'message': 'Database error'}, 500
 
             try:
                 access_token = create_access_token(identity=encrypted_username)
             except Exception as e:
                 logger.error(f"Error creating access token: {e}")
-                return jsonify({'status':'error', 'message': 'Token creation error'}), 500
+                return {'status':'error', 'message': 'Token creation error'}, 500
 
             user_details = {
                 'status': 'success',
@@ -103,11 +103,11 @@ class UserLoginResource(Resource):
                     user_details["message"]["user"]["StudentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
-                return jsonify({'status':'error', 'message': f'Database error: {e}'}), 500
+                return {'status':'error', 'message': f'Database error: {e}'}, 500
 
             return {"data": user_details}, 200
         except SQLAlchemyError as e:
             return {'status':'error', 'message': f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            return jsonify({'status':'error', 'message': f'Internal server error: {e}'}), 500
+            return {'status':'error', 'message': f'Internal server error: {e}'}, 500
