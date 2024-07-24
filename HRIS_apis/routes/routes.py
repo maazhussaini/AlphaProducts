@@ -6,7 +6,7 @@ from resources.resources import (
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
     StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
-    ScheduledAllowanceResource, StaffIncrementResource, EmailSendingResource, TestingData
+    ScheduledAllowanceResource, StaffIncrementResource, EmailSendingResource, UserDetails
 )
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
@@ -22,6 +22,7 @@ def register_routes(app):
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     
     api.add_resource(UserLoginResource, '/login')  # Register the authentication resource
+    api.add_resource(UserDetails, '/userDetails/<int:id>')
     
     ## Dynamic APIs
     api.add_resource(CallProcedureResource, '/callProcedure')
@@ -60,6 +61,4 @@ def register_routes(app):
     api.add_resource(AllowanceHeadResource, '/allowanceHead', '/allowanceHead/<int:id>')
     api.add_resource(OneTimeAllowanceResource, '/oneTimeAllowance', '/oneTimeAllowance/<int:id>')
     api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')
-    
-    api.add_resource(TestingData, '/testingData',)
     

@@ -139,6 +139,40 @@ class UserCampus(db.Model):
             "Status": self.Status
         }
 
+class country(db.Model):
+    __tablename__ = 'country'
+
+    country_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    country_code = db.Column(db.String(3), nullable=True)
+    country = db.Column(db.String(100), nullable=True)
+
+    def __repr__(self):
+        return f"<Country Id={self.country_id}, Code={self.country_code}, Name={self.country}>"
+
+    def to_dict(self):
+        return {
+            'country_id': self.country_id,
+            'country_code': self.country_code,
+            'country': self.country
+        }
+
+class cities(db.Model):
+    __tablename__ = 'cities'
+
+    cityId = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    city = db.Column(db.String(100), nullable=True)
+    country_id = db.Column(db.BigInteger, db.ForeignKey('country.country_id'), nullable=True)
+
+    def __repr__(self):
+        return f"<City Id={self.cityId}, Name={self.city}, CountryId={self.country_id}>"
+
+    def to_dict(self):
+        return {
+            'cityId': self.cityId,
+            'city': self.city,
+            'country_id': self.country_id
+        }
+
 class Role(db.Model):
     __tablename__ = 'ROLES'
 

@@ -13,35 +13,16 @@ from werkzeug.utils import secure_filename
 import os
 from flask_cors import CORS
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
 ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
 UPLOAD_FOLDER = 'uploads/'
 
-
-class TestingData(Resource):
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('data', type=dict, location='json')
-        args = parser.parse_args()
-        
-        # Print parsed JSON data
-        print(args['data'])
-        
-        # Handle file upload
-        CV_file = request.files.get('CV_path')
-        if CV_file:
-            # Save the file or perform any file-related operations here
-            if CV_file.filename == '':
-                return {"error": "No selected file"}, 400
-            
-            cv_filename = secure_filename(CV_file.filename)
-            cv_path = os.path.join(UPLOAD_FOLDER, cv_filename)
-            CV_file.save(cv_path)
-            print('File uploaded successfully')
-        
-        return {"message": "Data received"}, 200
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -4825,6 +4806,97 @@ class EmailSendingResource(Resource):
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
 
+class UserDetails(Resource):
+    
+    def post(self, id):
+        try:
+            try:
+                user = Users.query.get_or_404(id)
+            except SQLAlchemyError as e:
+                logger.error(f"Database query error: {e}")
+                return {"data": {'status': 400, 'message': 'Database error'}}, 500
+
+            if not user:
+                logger.warning("Invalid username or password")
+                return {"data": {'status': 400, 'message': 'Invalid username or password'}}, 401
+
+            if not user.Status:
+                logger.warning("User account is inactive")
+                return {"data": {'status': 400, 'message': 'Account is inactive'}}, 403
+            
+            # staff_info_alias = db.aliased(StaffInfo)
+
+            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == 10139).first()
+            countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
+            cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
+            
+            try:
+                user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                    .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
+
+                user_rights = db.session.query(FormDetails.Action, Form.Controller)\
+                    .join(FormDetailPermissions, FormDetails.Id == FormDetailPermissions.FormDetailId)\
+                    .join(Form, FormDetails.FormId == Form.FormId)\
+                    .join(Role, FormDetailPermissions.RoleId == Role.Role_id)\
+                    .join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                    .filter(LNK_USER_ROLE.User_Id == user.User_Id, FormDetailPermissions.Status == True)\
+                    .all()
+
+                user_type = UserType.query.filter_by(UserTypeId=user.UserType_id).first()
+            except SQLAlchemyError as e:
+                logger.error(f"Database query error: {e}")
+                return {"data": {'status': 400, 'message': 'Database error'}}, 500
+
+            user_details = {
+                'user': {
+                    'id': user.User_Id,
+                    'displayName': user.Firstname + " " + user.Lastname,
+                    'email': user.Email,
+                    'campusId': user.CampusId,
+                    'userType': user_type.UserTypeName if user_type else 'Unknown',
+                    'roles': [role.RoleName for role in user_roles],
+                    'city': cityName,
+                    'country': countryName,
+                    'isPublic': True,
+                    'address': staffInfo.PresentAddress if staffInfo else None,
+                    'phoneNumber': staffInfo.S_ContactNo,
+                    "photoURL": staffInfo.PhotoPath if staffInfo else None,
+                    'rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
+                    "schoolDetails": [],
+                    "currentAcademicYear": [],
+                    "studentCount": 0
+                }
+            }
+
+            try:
+                school_info = SchoolDetails.query.filter_by(status=True).first()
+                if school_info:
+                    user_details["user"]["schoolDetails"].append({
+                        "schoolName": school_info.SchoolName,
+                        "mobileNo": school_info.MobileNo,
+                        "miniLogo": school_info.MiniLogo,
+                        "reportLogo": school_info.ReportLogo,
+                        "address": school_info.Address
+                    })
+
+                academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+                if academic_year:
+                    user_details["user"]["currentAcademicYear"] = academic_year.to_dict()
+
+                if user_type and user_type.UserTypeId == 7:
+                    user_details["user"]["studentCount"] = StudentInfo.query.filter_by(UserId=user.User_Id, Stud_Active=True).count()
+            except SQLAlchemyError as e:
+                logger.error(f"Database query error: {e}")
+                return {"data": {'status': 400, 'message': f'Database error: {e}'}}, 500
+
+            return {"data": user_details, "status": 200}, 200
+        except SQLAlchemyError as e:
+            return {"data": {'status': 400, 'message': f"Database error occurred: {str(e)}"}}, 500
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            return {"data": {'status': 400, 'message': f'Internal server error: {e}'}}, 500
+
+
 # ------------------ LEAVE ----------------------
 
 
@@ -4848,298 +4920,3 @@ class StaffDetailsResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
-
-def unique_date_from_check():
-    staff_id = request.args.get('StaffID')
-    from_date = request.args.get('FromDate')
-    to_date = request.args.get('ToDate')
-    campus_id = get_campus_id_selected()
-    if db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.status == True, StaffLeaveRequest.CampusId == campus_id).filter(
-        StaffLeaveRequest.StaffId == staff_id,
-        StaffLeaveRequest.FromDate <= from_date,
-        StaffLeaveRequest.ToDate >= from_date).count() > 0:
-        return jsonify(0)
-    if from_date and to_date:
-        if db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.status == True, StaffLeaveRequest.CampusId == campus_id).filter(
-            StaffLeaveRequest.StaffId == staff_id,
-            StaffLeaveRequest.FromDate >= from_date,
-            StaffLeaveRequest.ToDate <= from_date).count() > 0:
-            return jsonify(2)
-        else:
-            return jsonify(1)
-    return jsonify(1)
-
-def unique_date_to_check():
-    staff_id = request.args.get('StaffID')
-    from_date = request.args.get('FromDate')
-    to_date = request.args.get('ToDate')
-    if db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.status == True).filter(
-        StaffLeaveRequest.StaffId == staff_id,
-        StaffLeaveRequest.FromDate <= to_date,
-        StaffLeaveRequest.ToDate >= to_date).count() > 0:
-        return jsonify(0)
-    if from_date and to_date:
-        if db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.status == True).filter(
-            StaffLeaveRequest.StaffId == staff_id,
-            StaffLeaveRequest.FromDate >= from_date,
-            StaffLeaveRequest.ToDate <= from_date).count() > 0:
-            return jsonify(2)
-        else:
-            return jsonify(1)
-    return jsonify(1)
-
-def check_present_detail_on_leave():
-    staff_id = request.args.get('StaffID')
-    from_date = request.args.get('FromDate')
-    to_date = request.args.get('ToDate')
-    get_employee_code = db.session.query(StaffAttendance).filter(
-        StaffAttendance.staff_Id == staff_id,
-        StaffAttendance.CreateDate >= from_date,
-        StaffAttendance.atd_status_Id == 1).all()
-    some_value = bool(get_employee_code)
-    return jsonify({'fileError': some_value})
-
-def show_check_maternity_paternity_detail():
-    staff_id = request.args.get('StaffID')
-    from_date = request.args.get('FromDate')
-    to_date = request.args.get('ToDate')
-    leave_type_id = request.args.get('LeaveTypeId')
-    if (leave_type_id == 5 or leave_type_id == 6) and ((from_date - datetime.today()).days < 30):
-        return jsonify(0)
-    else:
-        return jsonify(1)
-
-def show_annual_detail():
-    staff_id = request.args.get('StaffID')
-    from_date = request.args.get('FromDate')
-    to_date = request.args.get('ToDate')
-    leave_type_id = request.args.get('LeaveTypeId')
-    if leave_type_id == 3 and (from_date - datetime.today()).days < 10:
-        return jsonify(0)
-    else:
-        return jsonify(1)
-
-def index():
-    error = request.args.get('ERROR', None)
-    return render_template('index.html', error=error, leaves=get_login_staff_leaves())
-
-def get_staffs_leaves():
-    campus_id = get_campus_id_selected()
-    leaves = db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.status == True, StaffLeaveRequest.CampusId == campus_id).all()
-    return [leave.to_dict() for leave in leaves]
-
-def get_login_staff_leaves():
-    campus_id = get_campus_id_selected()
-    user_id = request.args.get('userId')  # This should be extracted from session or auth token
-    staff_id = request.args.get('StaffId')
-    leaves = db.session.query(StaffLeaveRequest).filter(
-        StaffLeaveRequest.status == True,
-        StaffLeaveRequest.CampusId == campus_id,
-        StaffLeaveRequest.StaffId == staff_id
-    ).all()
-    return [leave.to_dict() for leave in leaves]
-
-def create_leave_request():
-    if request.method == 'GET':
-        try:
-            error = request.args.get('ERROR', None)
-            academic_year = active_academic_year()
-            staff_id = request.args.get('StaffId')
-            if staff_id == 0:
-                return redirect(url_for('unauthorized'))
-            staff_salary_info = db.session.query(Salaries).filter(Salaries.EmployeeId == staff_id, Salaries.IsActive == True).first()
-            remaining_casual_leaves = staff_salary_info.RemainingCasualLeaves
-            remaining_sick_leaves = staff_salary_info.RemainingSickLeaves
-            remaining_annual_leaves = staff_salary_info.RemainingAnnualLeaves
-            leave_types = db.session.query(LeaveType).filter(~LeaveType.Id.in_([5, 4, 7])).all()
-            staff = db.session.query(StaffInfo).filter(StaffInfo.Staff_ID == staff_id).first()
-            leave_type_options = leave_types if staff.S_Gender != 2 else db.session.query(LeaveType).filter(~LeaveType.Id.in_([6, 4, 7])).all()
-            return render_template('create_leave_request.html', staff=staff, leave_type_options=leave_type_options, remaining_casual_leaves=remaining_casual_leaves, remaining_sick_leaves=remaining_sick_leaves, remaining_annual_leaves=remaining_annual_leaves, error=error)
-        except:
-            error = "The leave quota has not been created, please create it from the staff edit section. If you encounter any issues, please try again later."
-            return redirect(url_for('index', ERROR=error))
-
-    if request.method == 'POST':
-        try:
-            leave_request_data = request.form
-            # Implement validation logic here
-            check_attendance = db.session.query(StaffAttendanceTemp).filter(
-                StaffAttendanceTemp.staff_Id == leave_request_data['StaffId'],
-                StaffAttendanceTemp.time_In != None,
-                db.func.date(StaffAttendanceTemp.CreateDate) >= db.func.date(leave_request_data['FromDate']),
-                db.func.date(StaffAttendanceTemp.CreateDate) <= db.func.date(leave_request_data['ToDate'])
-            ).first()
-            if check_attendance:
-                error = f"Your leave request for between({leave_request_data['FromDate']}) to ({leave_request_data['ToDate']}) has not been approved. You were marked as Present in system on that day({check_attendance.CreateDate})."
-                return redirect(url_for('create_leave_request', ERROR=error))
-
-            # Check for duplicate leave
-            check_duplicate_leave = db.session.query(StaffLeaveRequest).filter(
-                StaffLeaveRequest.status == True,
-                StaffLeaveRequest.StaffId == leave_request_data['StaffId'],
-                StaffLeaveRequest.LeaveStatusId != 2,
-                (db.func.date(StaffLeaveRequest.FromDate) >= db.func.date(leave_request_data['FromDate']) &
-                 db.func.date(StaffLeaveRequest.FromDate) <= db.func.date(leave_request_data['ToDate'])) |
-                (db.func.date(StaffLeaveRequest.ToDate) >= db.func.date(leave_request_data['FromDate']) &
-                 db.func.date(StaffLeaveRequest.ToDate) <= db.func.date(leave_request_data['ToDate']))
-            ).first()
-            if check_duplicate_leave:
-                error = f"Your leave request, which is scheduled for the period between ({leave_request_data['FromDate']}) to ({leave_request_data['ToDate']}) has not been approved. This is because you already have an existing {check_duplicate_leave.LeaveType.LeaveTypeName} scheduled between ({check_duplicate_leave.FromDate}) to ({check_duplicate_leave.ToDate})."
-                return redirect(url_for('create_leave_request', ERROR=error))
-
-            # Implement other validations and logic here
-
-            new_leave_request = StaffLeaveRequest(
-                StaffId=leave_request_data['StaffId'],
-                FromDate=leave_request_data['FromDate'],
-                ToDate=leave_request_data['ToDate'],
-                Reason=leave_request_data['Reason'],
-                Remarks=leave_request_data['Remarks'],
-                LeaveStatusId=leave_request_data['LeaveStatusId'],
-                ApprovedBy=leave_request_data['ApprovedBy'],
-                LeaveApplicationPath=leave_request_data['LeaveApplicationPath'],
-                AcademicYearId=leave_request_data['AcademicYearId'],
-                status=True,
-                UpdaterId=leave_request_data['UpdaterId'],
-                UpdaterIP=leave_request_data['UpdaterIP'],
-                UpdaterTerminal=leave_request_data['UpdaterTerminal'],
-                UpdateDate=datetime.utcnow(),
-                CreatorId=leave_request_data['CreatorId'],
-                CreatorIP=leave_request_data['CreatorIP'],
-                CreatorTerminal=leave_request_data['CreatorTerminal'],
-                CreateDate=datetime.utcnow(),
-                CampusId=leave_request_data['CampusId'],
-                LeaveTypeId=leave_request_data['LeaveTypeId']
-            )
-            db.session.add(new_leave_request)
-            db.session.commit()
-            return redirect(url_for('index'))
-        except Exception as e:
-            error = str(e)
-            return redirect(url_for('index', ERROR=error))
-
-def staff_leave_date_range_entry():
-    from_date = request.form.get('From')
-    to_date = request.form.get('To')
-    db.session.execute("EXEC sp_StaffLeaveDateRangeEntry @From=:from_date, @To=:to_date", {'from_date': from_date, 'to_date': to_date})
-    db.session.commit()
-    return '', 204
-
-def edit_leave_request(id):
-    if request.method == 'GET':
-        leave_request = db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.Id == id, StaffLeaveRequest.status == True).first()
-        leave_type_options = db.session.query(LeaveType).all()
-        return render_template('edit_leave_request.html', leave_request=leave_request, leave_type_options=leave_type_options)
-
-    if request.method == 'POST':
-        leave_request_data = request.form
-        leave_request = db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.Id == leave_request_data['Id']).first()
-        leave_request.FromDate = leave_request_data['FromDate']
-        leave_request.ToDate = leave_request_data['ToDate']
-        leave_request.Reason = leave_request_data['Reason']
-        leave_request.LeaveApplicationPath = leave_request_data['LeaveApplicationPath']
-        leave_request.LeaveTypeId = leave_request_data['LeaveTypeId']
-        db.session.commit()
-        return redirect(url_for('index'))
-
-def delete_leave_request(id):
-    leave_request = db.session.query(StaffLeaveRequest).filter(StaffLeaveRequest.Id == id).first()
-    leave_request.status = False
-    db.session.commit()
-    return jsonify({'ErrorValue': 0})
-
-def check_duplicate_leave():
-    staff_id = request.form.get('StaffID')
-    from_date = request.form.get('FromDate')
-    to_date = request.form.get('ToDate')
-    is_edit = request.form.get('IsEdit')
-    request_submission = db.session.query(StaffLeaveRequest).filter(
-        StaffLeaveRequest.StaffId == staff_id,
-        StaffLeaveRequest.status == True,
-        (StaffLeaveRequest.FromDate <= from_date) & (StaffLeaveRequest.ToDate >= from_date) |
-        (StaffLeaveRequest.FromDate <= to_date) & (StaffLeaveRequest.ToDate >= to_date) |
-        (StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.ToDate <= to_date)
-    ).all()
-    if is_edit:
-        request_submission = [req for req in request_submission if req.Id != is_edit]
-    some_value = bool(request_submission)
-    return jsonify({'fileError': some_value})
-
-def staff_updated_leave_status():
-    staff_id = request.args.get('StaffId')
-    campus_id = get_campus_id_selected()
-    leave_requests = db.session.query(StaffLeaveRequest).filter(
-        StaffLeaveRequest.CampusId == campus_id,
-        StaffLeaveRequest.StaffId == staff_id,
-        StaffLeaveRequest.status == True
-    ).all()
-    if leave_requests:
-        max_leave_request = max(leave_requests, key=lambda x: x.Id)
-        max_leave_status = max_leave_request.LeaveStatusId
-        return jsonify(max_leave_status)
-    return jsonify(0)
-
-def popupleavequota(id):
-    staff_leave_quota_viewmodels = db.session.query(Salaries).filter(Salaries.EmployeeId == id).all()
-    for quota in staff_leave_quota_viewmodels:
-        quota.StaffName = db.session.query(StaffInfo).filter(StaffInfo.Staff_ID == quota.EmployeeId).first().S_Name
-    return render_template('_Leavequota.html', quotas=staff_leave_quota_viewmodels)
-
-def leave_update():
-    staff_id = request.args.get('StaffId')
-    from_date = request.args.get('fromDate')
-    to_date = request.args.get('toDate')
-    leave_type_options = db.session.query(LeaveType).filter(LeaveType.Id.in_([2, 3])).all()
-    return render_template('_LeaveUpdate.html', staff_id=staff_id, from_date=from_date, to_date=to_date, leave_type_options=leave_type_options)
-
-def leave_update_post():
-    status = request.form.get('Status')
-    staff_id = request.form.get('StaffId')
-    from_date = request.form.get('fromDate')
-    to_date = request.form.get('toDate')
-    user_id = request.form.get('UserId')
-    staff = db.session.query(StaffInfo).filter(StaffInfo.Staff_ID == staff_id).first()
-    salary_id = db.session.query(Salaries).filter(Salaries.EmployeeId == staff_id, Salaries.IsActive == True).first()
-
-    if status == 2:  # Sick Leave
-        staff_leaves = db.session.query(StaffLeaveRequest).filter(
-            StaffLeaveRequest.status == True,
-            StaffLeaveRequest.LeaveTypeId == 3,
-            StaffLeaveRequest.LeaveStatusId == 1,
-            StaffLeaveRequest.StaffId == staff_id,
-            (db.func.date(StaffLeaveRequest.FromDate) >= from_date) & (db.func.date(StaffLeaveRequest.FromDate) <= to_date) |
-            (db.func.date(StaffLeaveRequest.ToDate) >= from_date) & (db.func.date(StaffLeaveRequest.ToDate) <= to_date)
-        ).all()
-        leave_count = sum((leave.ToDate - leave.FromDate).days + 1 for leave in staff_leaves)
-        if salary_id.RemainingSickLeaves >= leave_count:
-            for leave in staff_leaves:
-                leave.LeaveTypeId = 2
-                db.session.commit()
-            salary_id.RemainingSickLeaves -= leave_count
-            salary_id.RemainingAnnualLeaves += leave_count
-            db.session.commit()
-        else:
-            status = f"You cannot update Sick for more leave than what remains available. This is because remaining sick leave is {salary_id.RemainingSickLeaves}."
-
-    if status == 3:  # Annual Leave
-        staff_leaves = db.session.query(StaffLeaveRequest).filter(
-            StaffLeaveRequest.status == True,
-            StaffLeaveRequest.LeaveTypeId == 2,
-            StaffLeaveRequest.LeaveStatusId == 1,
-            StaffLeaveRequest.StaffId == staff_id,
-            (db.func.date(StaffLeaveRequest.FromDate) >= from_date) & (db.func.date(StaffLeaveRequest.FromDate) <= to_date) |
-            (db.func.date(StaffLeaveRequest.ToDate) >= from_date) & (db.func.date(StaffLeaveRequest.ToDate) <= to_date)
-        ).all()
-        leave_count = sum((leave.ToDate - leave.FromDate).days + 1 for leave in staff_leaves)
-        if salary_id.RemainingAnnualLeaves >= leave_count:
-            for leave in staff_leaves:
-                leave.LeaveTypeId = 3
-                db.session.commit()
-            salary_id.RemainingSickLeaves += leave_count
-            salary_id.RemainingAnnualLeaves -= leave_count
-            db.session.commit()
-        else:
-            status = f"You cannot update Annual for more leave than what remains available. This is because remaining Annual leave is {salary_id.RemainingAnnualLeaves}."
-
-    return jsonify({'status': status})
-
