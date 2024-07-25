@@ -5,6 +5,7 @@ from flask import request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from resources.crypto_utils import encrypt
+from datetime import timedelta  # Import timedelta
 from models.models import (Users, UserCampus, StaffInfo, Role, LNK_USER_ROLE, FormDetails, 
                            FormDetailPermissions, Form, SchoolDetails, AcademicYear, UserType, 
                            StudentInfo, country, cities)
@@ -69,7 +70,7 @@ class UserLoginResource(Resource):
                 return {"data": {'status': 400, 'message': 'Database error'}}, 500
 
             try:
-                access_token = create_access_token(identity=encrypted_username)
+                access_token = create_access_token(identity=encrypted_username, expires_delta=timedelta(hours=2))
             except Exception as e:
                 logger.error(f"Error creating access token: {e}")
                 return {"data": {'status': 400, 'message': 'Token creation error'}}, 500
