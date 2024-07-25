@@ -1482,6 +1482,21 @@ class IARResource(Resource):
             )
             db.session.add(new_iar)
             db.session.commit()
+            try:
+                new_remark = IAR_Remarks(
+                    IAR_Id=new_iar.Id,
+                    remarks=args['Remarks'],
+                    status=args['Status_Check'],
+                    creatorId=args.get('CreatorId'),
+                    createDate=datetime.utcnow() + timedelta(hours=5)
+                )
+                db.session.add(new_remark)
+                db.session.commit()
+                return {"message": "IAR_Remarks created", "id": new_remark.id}, 201
+            except Exception as e:
+                db.session.rollback()
+                abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
+            
             return {"message": "IAR created", "id": new_iar.Id}, 200
         except ValueError as ve:
             db.session.rollback()
@@ -1522,6 +1537,21 @@ class IARResource(Resource):
                 iar.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
 
             db.session.commit()
+            try:
+                new_remark = IAR_Remarks(
+                    IAR_Id=iar.Id,
+                    remarks=args['Remarks'],
+                    status=args['Status_Check'],
+                    creatorId=args.get('CreatorId'),
+                    createDate=datetime.utcnow() + timedelta(hours=5)
+                )
+                db.session.add(new_remark)
+                db.session.commit()
+                return {"message": "IAR_Remarks created", "id": new_remark.id}, 201
+            except Exception as e:
+                db.session.rollback()
+                abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
+                
             return {"message": "IAR updated", "id": iar.Id}, 200
         except Exception as e:
             db.session.rollback()
@@ -4750,7 +4780,6 @@ class EmailSendingResource(Resource):
             return {"error": f"Failed to send email: {e}"}, 500
 
 """
-
 
 class EmailSendingResource(Resource):
 
