@@ -2191,6 +2191,31 @@ class SpecialApprovalForm(db.Model):
             'InActive': self.InActive
         }
 
+
+class FinalStatus(db.Model):
+    __tablename__ = 'FinalStatus'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Form_Id = db.Column(db.Integer, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    Remarks = db.Column(db.String(200), nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<FinalStatus Id={self.Id}, Form_Id={self.Form_Id}, Status={self.Status}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Form_Id': self.Form_Id,
+            'Status': self.Status,
+            'Remarks': self.Remarks,
+            'CreatorId': self.CreatorId,
+            'CreatedDate': self.CreatedDate
+        }
+
+
 # ------- LEAVE -------
 
 class LeaveStatus(db.Model):
