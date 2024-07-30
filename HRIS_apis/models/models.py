@@ -2191,7 +2191,6 @@ class SpecialApprovalForm(db.Model):
             'InActive': self.InActive
         }
 
-
 class FinalStatus(db.Model):
     __tablename__ = 'FinalStatus'
 
@@ -2215,7 +2214,32 @@ class FinalStatus(db.Model):
             'CreatedDate': self.CreatedDate
         }
 
+class CCHST(db.Model):
+    __tablename__ = 'CCHST'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    JobApplicationForm_Id = db.Column(db.Integer, nullable=False)
+    Status = db.Column(db.String(50), nullable=True)
+    Auto = db.Column(db.Boolean, nullable=True)
+    Manual = db.Column(db.Boolean, nullable=True)
+    Remarks = db.Column(db.String(200), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<CCHST Id={self.Id}, JobApplicationForm_Id={self.JobApplicationForm_Id}, Status={self.Status}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'JobApplicationForm_Id': self.JobApplicationForm_Id,
+            'Status': self.Status,
+            'Auto': self.Auto,
+            'Manual': self.Manual,
+            'Remarks': self.Remarks,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId
+        }
 # ------- LEAVE -------
 
 class LeaveStatus(db.Model):
