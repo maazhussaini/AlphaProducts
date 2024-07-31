@@ -41,6 +41,9 @@ def create_app():
     
     from routes.routes import register_routes
     # CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={
+        r"/api/*": {"origins": ["http://192.168.4.115:5000", "*"]}
+    })
     register_routes(app)
     
     return app
