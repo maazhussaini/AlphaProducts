@@ -2167,6 +2167,7 @@ class SpecialApprovalForm(db.Model):
     SpecialApprovalForm_ToDate = db.Column(db.DateTime, nullable=False)
     SpecialApprovalForm_Reason = db.Column(db.String(200), nullable=False)
     SpecialApprovalForm_ApprovedBy = db.Column(db.Integer, nullable=False)
+    SpecialApprovalForm_ApprovedStatusId = db.Column(db.Integer, nullable=False)
     CreatedBy = db.Column(db.Integer, nullable=False)
     CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
@@ -2184,6 +2185,7 @@ class SpecialApprovalForm(db.Model):
             'SpecialApprovalForm_ToDate': self.SpecialApprovalForm_ToDate,
             'SpecialApprovalForm_Reason': self.SpecialApprovalForm_Reason,
             'SpecialApprovalForm_ApprovedBy': self.SpecialApprovalForm_ApprovedBy,
+            'SpecialApprovalForm_ApprovedStatusId': self.SpecialApprovalForm_ApprovedStatusId,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
