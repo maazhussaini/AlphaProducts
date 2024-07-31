@@ -19,7 +19,10 @@ def register_routes(app):
     api = Api(api_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={
+        r"/api/*": {"origins": ["http://192.168.4.115:5000", "*"]}
+    })
     
     api.add_resource(UserLoginResource, '/login')  # Register the authentication resource
     api.add_resource(UserDetails, '/userDetails/<int:id>')
