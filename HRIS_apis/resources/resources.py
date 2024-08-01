@@ -1487,7 +1487,7 @@ class IARResource(Resource):
                 db.session.flush()
 
                 # Update related tables
-                self.updateRemarks(new_iar.Id, args)
+                # self.updateRemarks(new_iar.Id, args)
 
             # Commit the transaction
             db.session.commit()
