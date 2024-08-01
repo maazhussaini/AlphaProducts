@@ -1477,7 +1477,7 @@ class IARResource(Resource):
                 IAR_Type_Id=args['IAR_Type_Id'],
                 Status_Check=args['Status_Check'],
                 Remarks=args['Remarks'],
-                CreatorId=args.get('CreatorId'),
+                CreatorId=args['CreatorId'],
                 CreatedDate=datetime.utcnow() + timedelta(hours=5)
             )
             
@@ -1488,6 +1488,7 @@ class IARResource(Resource):
                 db.session.flush()
 
                 # Update related tables
+                # self.updateRemarks(new_iar.Id, args['Remarks'], args['Status_Check'], args['CreatorId'])
                 self.updateRemarks(new_iar.Id, args)
 
             # Commit the transaction
@@ -1506,10 +1507,10 @@ class IARResource(Resource):
         try:
             new_remark = IAR_Remarks(
                 IAR_Id=new_iar_id,
-                remarks=args['Remarks'],
-                status=args['Status_Check'],
-                creatorId=args['CreatorId'],
-                createDate=datetime.utcnow() + timedelta(hours=5)
+                Remarks=args['Remarks'],
+                Status=args['Status_Check'],
+                CreatorId=args['CreatorId'],
+                CreateDate=datetime.utcnow() + timedelta(hours=5)
             )
             print("new_remark")
             print(new_remark)
