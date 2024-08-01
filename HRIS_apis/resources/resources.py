@@ -1493,17 +1493,15 @@ class IARResource(Resource):
             
             # Start a database transaction
             with db.session.begin_nested():
+                
                 if form_exists:
                     db.session.commit()
                     self.updateRemarks(form_exists.Id, args)
                 else:
                     db.session.add(new_iar)
                     self.updateRemarks(new_iar.Id, args)
-                db.session.flush()
-
-                # Update related tables
-                # self.updateRemarks(new_iar.Id, args['Remarks'], args['Status_Check'], args['CreatorId'])
                 
+                db.session.flush()
 
             # Commit the transaction
             db.session.commit()
@@ -1519,6 +1517,7 @@ class IARResource(Resource):
 
     def updateRemarks(self, new_iar_id, args):
         try:
+            print(args['Remarks'], args['Status_Check'])
             new_remark = IAR_Remarks(
                 IAR_Id=new_iar_id,
                 Remarks=args['Remarks'],
