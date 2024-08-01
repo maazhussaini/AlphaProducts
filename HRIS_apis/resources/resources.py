@@ -1471,20 +1471,32 @@ class IARResource(Resource):
         parser.add_argument('CreatedDate', type=str, required=False)
         args = parser.parse_args()
 
-        try:
-            new_iar = IAR(
-                Form_Id=args['Form_Id'],
-                IAR_Type_Id=args['IAR_Type_Id'],
-                Status_Check=args['Status_Check'],
-                Remarks=args['Remarks'],
-                CreatorId=args['CreatorId'],
-                CreatedDate=datetime.utcnow() + timedelta(hours=5)
-            )
             
-            print(new_iar)
+        try:
+            form_exists = IAR.query.filter_by(Form_Id=args['Form_Id']).first()
+            if form_exists:
+                form_exists.IAR_Type_Id = args['IAR_Type_Id']
+                form_exists.Status_Check = args['Status_Check']
+                form_exists.Remarks = args['Remarks']
+                form_exists.CreatorId = args['CreatorId']
+                form_exists.CreatedDate = args['CreatedDate']
+            
+            else:
+                new_iar = IAR(
+                    Form_Id=args['Form_Id'],
+                    IAR_Type_Id=args['IAR_Type_Id'],
+                    Status_Check=args['Status_Check'],
+                    Remarks=args['Remarks'],
+                    CreatorId=args['CreatorId'],
+                    CreatedDate=datetime.utcnow() + timedelta(hours=5)
+                )
+            
             # Start a database transaction
             with db.session.begin_nested():
-                db.session.add(new_iar)
+                if form_exists:
+                    db.session.commit()
+                else:
+                    db.session.add(new_iar)
                 db.session.flush()
 
                 # Update related tables
