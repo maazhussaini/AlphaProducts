@@ -2225,6 +2225,7 @@ class CCHST(db.Model):
     Auto = db.Column(db.Boolean, nullable=True)
     Manual = db.Column(db.Boolean, nullable=True)
     Remarks = db.Column(db.String(200), nullable=True)
+    CCHST_TypeId = db.Column(db.Integer, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     CreatorId = db.Column(db.Integer, nullable=True)
 
@@ -2242,6 +2243,7 @@ class CCHST(db.Model):
             'CreateDate': self.CreateDate,
             'CreatorId': self.CreatorId
         }
+
 # ------- LEAVE -------
 
 class LeaveStatus(db.Model):
