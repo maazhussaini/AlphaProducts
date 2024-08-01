@@ -1497,7 +1497,7 @@ class IARResource(Resource):
             with db.session.begin_nested():
                 
                 if form_exists:
-                    db.session.commit()
+                    # db.session.commit()
                     print("FORM FOUND 2: ", form_exists.Id)
                     print(form_exists.Id, args['Remarks'], args['Status_Check'])
                     self.updateRemarks(form_exists.Id, args)
