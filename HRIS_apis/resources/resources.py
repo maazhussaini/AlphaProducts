@@ -1475,7 +1475,7 @@ class IARResource(Resource):
         try:
             form_exists = IAR.query.filter_by(Form_Id=args['Form_Id']).first()
             if form_exists:
-                print("FORM FOUND")
+                print("FORM FOUND: ", form_exists.Id)
                 form_exists.IAR_Type_Id = args['IAR_Type_Id']
                 form_exists.Status_Check = args['Status_Check']
                 form_exists.Remarks = args['Remarks']
@@ -1498,6 +1498,7 @@ class IARResource(Resource):
                 
                 if form_exists:
                     db.session.commit()
+                    print("FORM FOUND 2: ", form_exists.Id)
                     print(form_exists.Id, args['Remarks'], args['Status_Check'])
                     self.updateRemarks(form_exists.Id, args)
                 else:
