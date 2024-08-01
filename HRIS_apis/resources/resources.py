@@ -1496,7 +1496,7 @@ class IARResource(Resource):
                 "message": "IAR created and related tables updated successfully"}), 201
         except ValueError as ve:
             db.session.rollback()
-            return {"error": f"Value error: {str(ve)}"}, 400
+            return jsonify({"error": f"Value error: {str(ve)}"}), 400
         except TypeError as te:
             db.session.rollback()
             return jsonify({"error": f"Type error: {str(te)}"}), 400
