@@ -1496,6 +1496,7 @@ class IARResource(Resource):
                 
                 if form_exists:
                     db.session.commit()
+                    print(form_exists.Id, args['Remarks'], args['Status_Check'])
                     self.updateRemarks(form_exists.Id, args)
                 else:
                     db.session.add(new_iar)
