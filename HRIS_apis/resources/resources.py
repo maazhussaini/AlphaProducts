@@ -1507,13 +1507,15 @@ class IARResource(Resource):
                 IAR_Id=new_iar_id,
                 remarks=args['Remarks'],
                 status=args['Status_Check'],
-                creatorId=args.get('CreatorId'),
+                creatorId=args['CreatorId'],
                 createDate=datetime.utcnow() + timedelta(hours=5)
             )
+            print(new_remark)
             db.session.add(new_remark)
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
+
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('Form_Id', type=int, required=False)
