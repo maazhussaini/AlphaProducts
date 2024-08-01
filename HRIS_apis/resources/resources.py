@@ -1502,6 +1502,7 @@ class IARResource(Resource):
                     print(form_exists.Id, args['Remarks'], args['Status_Check'])
                     self.updateRemarks(form_exists.Id, args)
                 else:
+                    print("NOT FOUND 2")
                     db.session.add(new_iar)
                     self.updateRemarks(new_iar.Id, args)
                 
