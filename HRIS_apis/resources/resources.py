@@ -1482,13 +1482,14 @@ class IARResource(Resource):
             )
             
             # Start a database transaction
-            with db.session.begin_nested():
-                db.session.add(new_iar)
-                db.session.flush()
+            # with db.session.begin_nested():
+            #     db.session.add(new_iar)
+            #     db.session.flush()
 
                 # Update related tables
                 # self.updateRemarks(new_iar.Id, args)
 
+            db.session.add(new_iar)
             # Commit the transaction
             db.session.commit()
             
