@@ -1511,6 +1511,7 @@ class IARResource(Resource):
                 creatorId=args['CreatorId'],
                 createDate=datetime.utcnow() + timedelta(hours=5)
             )
+            print("new_remark")
             print(new_remark)
             db.session.add(new_remark)
         except Exception as e:
