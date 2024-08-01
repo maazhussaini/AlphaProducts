@@ -1492,7 +1492,8 @@ class IARResource(Resource):
             # Commit the transaction
             db.session.commit()
             
-            return {"message": "IAR created", "id": new_iar.Id}, 200
+            return {"status": "success",
+                "message": "IAR created and related tables updated successfully"}, 201
         except ValueError as ve:
             db.session.rollback()
             return {"error": f"Value error: {str(ve)}"}, 400
@@ -1513,8 +1514,7 @@ class IARResource(Resource):
                 createDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_remark)
-            db.session.commit()
-            return {"message": "IAR_Remarks created", "id": new_remark.id}, 201
+            # db.session.commit()
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
