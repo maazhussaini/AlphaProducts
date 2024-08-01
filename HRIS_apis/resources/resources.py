@@ -1504,9 +1504,10 @@ class IARResource(Resource):
                 else:
                     print("NOT FOUND 2")
                     db.session.add(new_iar)
+                    db.session.flush()
                     print(new_iar.Id)
                     self.updateRemarks(new_iar.Id, args)
-                    db.session.flush()
+                    
                 
                 
 
