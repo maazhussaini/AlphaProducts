@@ -2380,6 +2380,34 @@ class StaffLeaveRequestDateRanges(db.Model):
             'Date': self.Date.isoformat() if self.Date else None
         }
 
+class StaffLeavePolicy(db.Model):
+    __tablename__ = 'StaffLeavePolicy'
+
+    StaffLeavePolicy_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffLeavePolicy_Form = db.Column(db.String(50), nullable=False)
+    StaffLeavePolicy_SubmissionValidDays = db.Column(db.Integer, nullable=False)
+    StaffLeavePolicy_AvailValidityWithIn = db.Column(db.Integer, nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffLeavePolicy Id={self.StaffLeavePolicy_Id}, Form={self.StaffLeavePolicy_Form}>"
+
+    def to_dict(self):
+        return {
+            'StaffLeavePolicy_Id': self.StaffLeavePolicy_Id,
+            'StaffLeavePolicy_Form': self.StaffLeavePolicy_Form,
+            'StaffLeavePolicy_SubmissionValidDays': self.StaffLeavePolicy_SubmissionValidDays,
+            'StaffLeavePolicy_AvailValidityWithIn': self.StaffLeavePolicy_AvailValidityWithIn,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
 
 # ------- HISTORY -------
 
