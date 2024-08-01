@@ -1492,8 +1492,8 @@ class IARResource(Resource):
             # Commit the transaction
             db.session.commit()
             
-            return {"status": "success",
-                "message": "IAR created and related tables updated successfully"}, 201
+            return jsonify({"status": "success",
+                "message": "IAR created and related tables updated successfully"}), 201
         except ValueError as ve:
             db.session.rollback()
             return {"error": f"Value error: {str(ve)}"}, 400
