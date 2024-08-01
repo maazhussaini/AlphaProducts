@@ -1506,8 +1506,9 @@ class IARResource(Resource):
                     db.session.add(new_iar)
                     print(new_iar.Id)
                     self.updateRemarks(new_iar.Id, args)
+                    db.session.flush()
                 
-                db.session.flush()
+                
 
             # Commit the transaction
             db.session.commit()
