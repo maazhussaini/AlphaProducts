@@ -1475,6 +1475,7 @@ class IARResource(Resource):
         try:
             form_exists = IAR.query.filter_by(Form_Id=args['Form_Id']).first()
             if form_exists:
+                print("FORM FOUND")
                 form_exists.IAR_Type_Id = args['IAR_Type_Id']
                 form_exists.Status_Check = args['Status_Check']
                 form_exists.Remarks = args['Remarks']
@@ -1482,6 +1483,7 @@ class IARResource(Resource):
                 form_exists.CreatedDate = args['CreatedDate']
             
             else:
+                print("NOT FOUND")
                 new_iar = IAR(
                     Form_Id=args['Form_Id'],
                     IAR_Type_Id=args['IAR_Type_Id'],
