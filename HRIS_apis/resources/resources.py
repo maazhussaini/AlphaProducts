@@ -1481,6 +1481,7 @@ class IARResource(Resource):
                 CreatedDate=datetime.utcnow() + timedelta(hours=5)
             )
             
+            print(new_iar)
             # Start a database transaction
             # with db.session.begin_nested():
             #     db.session.add(new_iar)
@@ -1493,14 +1494,14 @@ class IARResource(Resource):
             # Commit the transaction
             db.session.commit()
             
-            return jsonify({"status": "success",
-                            "message": "IAR created and related tables updated successfully"}), 201
+            return {"status": "success",
+                    "message": "IAR created and related tables updated successfully"}, 201
         except (ValueError, TypeError) as ve:
             db.session.rollback()
-            return jsonify({"error": str(ve)}), 400
+            return {"error": str(ve)}, 400
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": f"Error creating IAR: {str(e)}"}), 400
+            return {"error": f"Error creating IAR: {str(e)}"}, 400
 
     def updateRemarks(self, new_iar_id, args):
         try:
