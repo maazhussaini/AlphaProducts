@@ -1493,17 +1493,14 @@ class IARResource(Resource):
             db.session.commit()
             
             return jsonify({"status": "success",
-                "message": "IAR created and related tables updated successfully"}), 201
-        except ValueError as ve:
+                            "message": "IAR created and related tables updated successfully"}), 201
+        except (ValueError, TypeError) as ve:
             db.session.rollback()
-            return jsonify({"error": f"Value error: {str(ve)}"}), 400
-        except TypeError as te:
-            db.session.rollback()
-            return jsonify({"error": f"Type error: {str(te)}"}), 400
+            return jsonify({"error": str(ve)}), 400
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": f"Error creating IAR: {str(e)}"}), 400
-    
+
     def updateRemarks(self, new_iar_id, args):
         try:
             new_remark = IAR_Remarks(
@@ -1514,11 +1511,9 @@ class IARResource(Resource):
                 createDate=datetime.utcnow() + timedelta(hours=5)
             )
             db.session.add(new_remark)
-            # db.session.commit()
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
-    
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('Form_Id', type=int, required=False)
