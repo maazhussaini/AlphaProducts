@@ -1495,13 +1495,15 @@ class IARResource(Resource):
             with db.session.begin_nested():
                 if form_exists:
                     db.session.commit()
+                    self.updateRemarks(form_exists.Id, args)
                 else:
                     db.session.add(new_iar)
+                    self.updateRemarks(new_iar.Id, args)
                 db.session.flush()
 
                 # Update related tables
                 # self.updateRemarks(new_iar.Id, args['Remarks'], args['Status_Check'], args['CreatorId'])
-                self.updateRemarks(new_iar.Id, args)
+                
 
             # Commit the transaction
             db.session.commit()
