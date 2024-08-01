@@ -1480,22 +1480,17 @@ class IARResource(Resource):
                 CreatorId=args.get('CreatorId'),
                 CreatedDate=datetime.utcnow() + timedelta(hours=5)
             )
-            db.session.add(new_iar)
+            
+            # Start a database transaction
+            with db.session.begin_nested():
+                db.session.add(new_iar)
+                db.session.flush()
+
+                # Update related tables
+                self.updateRemarks(new_iar.Id, args)
+
+            # Commit the transaction
             db.session.commit()
-            try:
-                new_remark = IAR_Remarks(
-                    IAR_Id=new_iar.Id,
-                    remarks=args['Remarks'],
-                    status=args['Status_Check'],
-                    creatorId=args.get('CreatorId'),
-                    createDate=datetime.utcnow() + timedelta(hours=5)
-                )
-                db.session.add(new_remark)
-                db.session.commit()
-                return {"message": "IAR_Remarks created", "id": new_remark.id}, 201
-            except Exception as e:
-                db.session.rollback()
-                abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
             
             return {"message": "IAR created", "id": new_iar.Id}, 200
         except ValueError as ve:
@@ -1507,7 +1502,23 @@ class IARResource(Resource):
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": f"Error creating IAR: {str(e)}"}), 400
-        
+    
+    def updateRemarks(self, new_iar_id, args):
+        try:
+            new_remark = IAR_Remarks(
+                IAR_Id=new_iar_id,
+                remarks=args['Remarks'],
+                status=args['Status_Check'],
+                creatorId=args.get('CreatorId'),
+                createDate=datetime.utcnow() + timedelta(hours=5)
+            )
+            db.session.add(new_remark)
+            db.session.commit()
+            return {"message": "IAR_Remarks created", "id": new_remark.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            abort(400, message=f"Error creating IAR_Remarks: {str(e)}")
+    
     def put(self, id):
         parser = reqparse.RequestParser()
         parser.add_argument('Form_Id', type=int, required=False)
