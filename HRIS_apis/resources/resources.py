@@ -2084,8 +2084,8 @@ class EmailStorageSystemResource(Resource):
                 email.Status = args['Status']
             if args['CreatorId'] is not None:
                 email.CreatorId = args['CreatorId']
-            if args['CreatedDate']:
-                email.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
+            # if args['CreatedDate']:
+            #     email.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
             if args['UpdatorId'] is not None:
                 email.UpdatorId = args['UpdatorId']
             
