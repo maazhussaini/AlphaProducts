@@ -2082,7 +2082,7 @@ class EmailStorageSystemResource(Resource):
                 email.Email_Body = args['Email_Body']
             if args['Status'] is not None:
                 email.Status = args['Status']
-            if args['CZeatorId'] is not None:
+            if args['CreatorId'] is not None:
                 email.CreatorId = args['CreatorId']
             if args['CreatedDate']:
                 email.CreatedDate = datetime.strptime(args['CreatedDate'], '%Y-%m-%d %H:%M:%S')
