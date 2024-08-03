@@ -2051,7 +2051,7 @@ class EmailStorageSystemResource(Resource):
             )
             db.session.add(new_email)
             db.session.commit()
-            return {"message": "EmailStorageSystem created", "Email_Id": new_email.Email_Id}, 201
+            return {"status": "success","message": "EmailStorageSystem created", "Email_Id": new_email.Email_Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating EmailStorageSystem: {str(e)}")
@@ -2089,12 +2089,13 @@ class EmailStorageSystemResource(Resource):
             if args['UpdatorId'] is not None:
                 email.UpdatorId = args['UpdatorId']
             
-            email.UpdatedDate = datetime.strptime(datetime.utcnow() + timedelta(hours=5), '%Y-%m-%d %H:%M:%S')
+            email.UpdatedDate = datetime.utcnow() + timedelta(hours=5)
             
             if args['EmailType'] is not None:
                 email.EmailType = args['EmailType']
             db.session.commit()
-            return {"message": "EmailStorageSystem updated", "Email_Id": email.Email_Id}, 200
+            return {"status": "success",
+                "message": "EmailStorageSystem updated", "Email_Id": email.Email_Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating EmailStorageSystem: {str(e)}")
