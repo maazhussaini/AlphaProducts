@@ -1366,38 +1366,41 @@ class StaffInfo(db.Model):
             'IsLateExempted': self.IsLateExempted
         }
 
-class StaffDepartment(db.Model):
+class StaffDepartments(db.Model):
     __tablename__ = 'StaffDepartments'
 
-    Id = db.Column(db.Integer, primary_key=True)
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     DepartmentName = db.Column(db.String(255), nullable=True)
-    Status = db.Column(db.Boolean, nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
     UpdaterId = db.Column(db.BigInteger, nullable=True)
     UpdaterIP = db.Column(db.String(20), nullable=True)
     UpdaterTerminal = db.Column(db.String(255), nullable=True)
-    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreatorIP = db.Column(db.String(20), nullable=True)
     CreatorTerminal = db.Column(db.String(255), nullable=True)
-    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     CampusId = db.Column(db.Integer, nullable=True)
     ManagerId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<StaffDepartments Id={self.Id}, DepartmentName={self.DepartmentName}>"
 
     def to_dict(self):
         return {
             'Id': self.Id,
             'DepartmentName': self.DepartmentName,
-            'Status': self.Status,
+            'status': self.status,
             'UpdaterId': self.UpdaterId,
             'UpdaterIP': self.UpdaterIP,
             'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdateDate': self.UpdateDate,
             'CreatorId': self.CreatorId,
             'CreatorIP': self.CreatorIP,
             'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreateDate': self.CreateDate,
             'CampusId': self.CampusId,
-            'ManagerId': self.ManagerId,
+            'ManagerId': self.ManagerId
         }
 
 class StaffDesignation(db.Model):
@@ -2290,6 +2293,39 @@ class CCHST(db.Model):
             'Remarks': self.Remarks,
             'CreateDate': self.CreateDate,
             'CreatorId': self.CreatorId
+        }
+
+class Shift(db.Model):
+    __tablename__ = 'Shifts'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Name = db.Column(db.String(100), nullable=False)
+    CreatedOn = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedOn = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=False)
+    DeletedOn = db.Column(db.DateTime, nullable=True)
+    CreatedByUserId = db.Column(db.Integer, nullable=False)
+    UpdatedByUserId = db.Column(db.Integer, nullable=True)
+    DeletedByUserId = db.Column(db.Integer, nullable=True)
+    IsDeleted = db.Column(db.Boolean, nullable=False)
+    IsScheduleCreated = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<Shift Id={self.Id}, Name={self.Name}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Name': self.Name,
+            'CreatedOn': self.CreatedOn,
+            'UpdatedOn': self.UpdatedOn,
+            'CampusId': self.CampusId,
+            'DeletedOn': self.DeletedOn,
+            'CreatedByUserId': self.CreatedByUserId,
+            'UpdatedByUserId': self.UpdatedByUserId,
+            'DeletedByUserId': self.DeletedByUserId,
+            'IsDeleted': self.IsDeleted,
+            'IsScheduleCreated': self.IsScheduleCreated
         }
 
 # ------- LEAVE -------
