@@ -1491,25 +1491,26 @@ class StaffTransfer(db.Model):
             'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None
         }
 
-class StaffShift(db.Model):
+class StaffShifts(db.Model):
     __tablename__ = 'StaffShifts'
-    StaffId = db.Column(db.Integer, primary_key=True)
-    ShiftId = db.Column(db.Integer, nullable=False)
+
+    StaffId = db.Column(db.Integer, primary_key=True, nullable=False)
+    ShiftId = db.Column(db.Integer, primary_key=True, nullable=False)
     CreatedOn = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    UpdatedOn = db.Column(db.DateTime)
+    UpdatedOn = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
     CreatedByUserId = db.Column(db.Integer, nullable=False)
-    UpdatedByUserId = db.Column(db.Integer)
-    CampusId = db.Column(db.Integer)
+    UpdatedByUserId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
-        return f'<StaffId {self.StaffId}>'
-    
+        return f"<StaffShift StaffId={self.StaffId}, ShiftId={self.ShiftId}>"
+
     def to_dict(self):
         return {
             'StaffId': self.StaffId,
             'ShiftId': self.ShiftId,
-            'CreatedOn': self.CreatedOn.isoformat() if self.CreatedOn else None,
-            'UpdatedOn': self.UpdatedOn.isoformat() if self.UpdatedOn else None,
+            'CreatedOn': self.CreatedOn,
+            'UpdatedOn': self.UpdatedOn,
             'CreatedByUserId': self.CreatedByUserId,
             'UpdatedByUserId': self.UpdatedByUserId,
             'CampusId': self.CampusId
