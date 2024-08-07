@@ -1400,6 +1400,45 @@ class StaffDepartment(db.Model):
             'ManagerId': self.ManagerId,
         }
 
+class StaffDesignation(db.Model):
+    __tablename__ = 'StaffDesignation'
+
+    Designation_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Designation_Name = db.Column(db.String(100), nullable=False)
+    IsForTeachingStaff = db.Column(db.Boolean, nullable=False)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+    DepartmentId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<StaffDesignation Id={self.Designation_ID}, Name={self.Designation_Name}>"
+
+    def to_dict(self):
+        return {
+            'Designation_ID': self.Designation_ID,
+            'Designation_Name': self.Designation_Name,
+            'IsForTeachingStaff': self.IsForTeachingStaff,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate,
+            'Status': self.Status,
+            'CampusId': self.CampusId,
+            'DepartmentId': self.DepartmentId
+        }
+
 class StaffTransfer(db.Model):
     __tablename__ = 'StaffTransfer'
 
