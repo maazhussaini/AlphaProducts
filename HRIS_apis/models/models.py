@@ -1138,6 +1138,7 @@ class EmailStorageSystem(db.Model):
     Email_Title = db.Column(db.String(100), nullable=True)
     Email_Subject = db.Column(db.String(250), nullable=True)
     Email_Body = db.Column(db.Text, nullable=True)
+    Email_Attachment = db.Column(db.String(250), nullable=True)
     Status = db.Column(db.Boolean, nullable=True)
     CreatorId = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True)
@@ -1188,88 +1189,94 @@ class AvailableJobs(db.Model):
 
 class StaffInfo(db.Model):
     __tablename__ = 'StaffInfo'
-    Staff_ID = db.Column(db.Integer, primary_key=True)
-    Personal_ID = db.Column(db.String(100))
+
+    Staff_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Personal_ID = db.Column(db.String(100), nullable=True)
     S_Name = db.Column(db.String(50), nullable=False)
-    S_FName = db.Column(db.String(100))
+    S_FName = db.Column(db.String(100), nullable=True)
     S_Gender = db.Column(db.Integer, nullable=False)
-    S_CNIC = db.Column(db.String(50))
-    S_Email = db.Column(db.String(250))
-    S_ContactNo = db.Column(db.String(50))
+    S_CNIC = db.Column(db.String(50), nullable=True)
+    S_Email = db.Column(db.String(250), nullable=True)
+    S_ContactNo = db.Column(db.String(50), nullable=True)
     S_DoB = db.Column(db.DateTime, nullable=False)
     S_JoiningDate = db.Column(db.DateTime, nullable=False)
-    S_firstJOrderNo = db.Column(db.String(50))
-    S_JoiningDesg = db.Column(db.Integer)
-    S_JoiningGrade = db.Column(db.Integer)
-    S_firstJPlace = db.Column(db.String(50))
-    S_PresentDesignation = db.Column(db.Integer)
-    S_PresentGrade = db.Column(db.Integer)
-    S_SchoolName = db.Column(db.String(100))
-    S_District = db.Column(db.String(50))
-    S_Union = db.Column(db.String(50))
-    S_WardNo = db.Column(db.String(50))
-    S_Village = db.Column(db.String(50))
+    S_firstJOrderNo = db.Column(db.String(50), nullable=True)
+    S_JoiningDesg = db.Column(db.Integer, nullable=True)
+    S_JoiningGrade = db.Column(db.Integer, nullable=True)
+    S_firstJPlace = db.Column(db.String(50), nullable=True)
+    S_PresentDesignation = db.Column(db.Integer, nullable=True)
+    S_PresentGrade = db.Column(db.Integer, nullable=True)
+    S_SchoolName = db.Column(db.String(100), nullable=True)
+    S_District = db.Column(db.String(50), nullable=True)
+    S_Union = db.Column(db.String(50), nullable=True)
+    S_WardNo = db.Column(db.String(50), nullable=True)
+    S_Village = db.Column(db.String(50), nullable=True)
     Designation_ID = db.Column(db.Integer, nullable=False)
-    Grade_ID = db.Column(db.Integer)
+    Grade_ID = db.Column(db.Integer, nullable=True)
     IsActive = db.Column(db.Boolean, nullable=False)
     IsNonTeacher = db.Column(db.Boolean, nullable=False)
-    S_Salary = db.Column(db.Float)
-    UpdaterId = db.Column(db.BigInteger)
-    UpdaterIP = db.Column(db.String(20))
-    UpdaterTerminal = db.Column(db.String(255))
-    UpdateDate = db.Column(db.DateTime)
-    CreatorId = db.Column(db.BigInteger)
-    CreatorIP = db.Column(db.String(20))
-    CreatorTerminal = db.Column(db.String(255))
-    CreateDate = db.Column(db.DateTime)
-    PhotoPath = db.Column(db.String(500))
+    S_Salary = db.Column(db.Float, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    PhotoPath = db.Column(db.String(500), nullable=True)
     IsDisable = db.Column(db.Boolean, nullable=False)
-    disableDetail = db.Column(db.String(255))
-    EOBI = db.Column(db.String(50))
-    ProbationPeriod = db.Column(db.Float)
-    ProbationEndDate = db.Column(db.DateTime)
+    disableDetail = db.Column(db.String(255), nullable=True)
+    EOBI = db.Column(db.String(50), nullable=True)
+    ProbationPeriod = db.Column(db.Float, nullable=True)
+    ProbationEndDate = db.Column(db.DateTime, nullable=True)
     IsPermanent = db.Column(db.Boolean, nullable=False)
-    IsTerminate = db.Column(db.Boolean)
-    DepartmentId = db.Column(db.Integer)
-    HouseNo = db.Column(db.String(255))
-    Street_Sector_BlockNo = db.Column(db.String(255))
-    AreaId = db.Column(db.BigInteger)
-    CityId = db.Column(db.BigInteger)
-    District = db.Column(db.String(50))
-    Province = db.Column(db.String(50))
-    CountryId = db.Column(db.BigInteger)
-    PresentAddress = db.Column(db.String(500))
-    TempAddress = db.Column(db.String(500))
-    Whatsapp = db.Column(db.String(20))
-    EmergencyContactName = db.Column(db.String(50))
-    EmergencyContactNo = db.Column(db.String(50))
-    HomeNo = db.Column(db.String(20))
-    Rent_Personal = db.Column(db.String(20))
-    MaritalStatus = db.Column(db.String(50))
-    AccountTitle = db.Column(db.String(50))
-    AccountNo = db.Column(db.String(50))
-    BankName = db.Column(db.String(50))
-    Branch = db.Column(db.String(50))
-    IsFatherName = db.Column(db.Boolean)
-    FHWName = db.Column(db.String(50))
-    FHWCNIC = db.Column(db.String(20))
-    FWHDOB = db.Column(db.DateTime)
-    CampusId = db.Column(db.Integer)
+    IsTerminate = db.Column(db.Boolean, nullable=True)
+    DepartmentId = db.Column(db.Integer, nullable=True)
+    HouseNo = db.Column(db.String(255), nullable=True)
+    Street_Sector_BlockNo = db.Column(db.String(255), nullable=True)
+    AreaId = db.Column(db.BigInteger, nullable=True)
+    CityId = db.Column(db.BigInteger, nullable=True)
+    District = db.Column(db.String(50), nullable=True)
+    Province = db.Column(db.String(50), nullable=True)
+    CountryId = db.Column(db.BigInteger, nullable=True)
+    PresentAddress = db.Column(db.String(500), nullable=True)
+    TempAddress = db.Column(db.String(500), nullable=True)
+    Whatsapp = db.Column(db.String(20), nullable=True)
+    EmergencyContactName = db.Column(db.String(50), nullable=True)
+    EmergencyContactNo = db.Column(db.String(50), nullable=True)
+    HomeNo = db.Column(db.String(20), nullable=True)
+    Rent_Personal = db.Column(db.String(20), nullable=True)
+    MaritalStatus = db.Column(db.String(50), nullable=True)
+    AccountTitle = db.Column(db.String(50), nullable=True)
+    AccountNo = db.Column(db.String(50), nullable=True)
+    BankName = db.Column(db.String(50), nullable=True)
+    Branch = db.Column(db.String(50), nullable=True)
+    IsFatherName = db.Column(db.Boolean, nullable=True)
+    FHWName = db.Column(db.String(50), nullable=True)
+    FHWCNIC = db.Column(db.String(20), nullable=True)
+    FWHDOB = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
     BarcodeId = db.Column(db.String(50), nullable=False)
     IsAppearLive = db.Column(db.Boolean, nullable=False)
-    Category = db.Column(db.Integer)
-    FId = db.Column(db.Integer)
-    Initials = db.Column(db.String(50))
-    IsSalaryOn = db.Column(db.Boolean)
-    EmpId = db.Column(db.Integer)
-    IsAEN = db.Column(db.Integer)
-    ReportingOfficerId = db.Column(db.Integer)
-    FileNumber = db.Column(db.Integer)
-    FileLocation = db.Column(db.String(255))
-    IsExit = db.Column(db.Boolean)
-    Grace_In = db.Column(db.Integer)
-    Grace_Out = db.Column(db.Integer)
-    ShiftType = db.Column(db.Integer)
+    Category = db.Column(db.Integer, nullable=True)
+    FId = db.Column(db.Integer, nullable=True)
+    Initials = db.Column(db.String(50), nullable=True)
+    IsSalaryOn = db.Column(db.Boolean, nullable=True)
+    EmpId = db.Column(db.Integer, nullable=True)
+    IsAEN = db.Column(db.Integer, nullable=True)
+    ReportingOfficerId = db.Column(db.Integer, nullable=True)
+    FileNumber = db.Column(db.Integer, nullable=True)
+    FileLocation = db.Column(db.String(255), nullable=True)
+    IsExit = db.Column(db.Boolean, nullable=True)
+    Grace_In = db.Column(db.Integer, nullable=True)
+    Grace_Out = db.Column(db.Integer, nullable=True)
+    ShiftType = db.Column(db.Integer, nullable=True)
+    IsMonthlyScheduleUpdate = db.Column(db.Boolean, nullable=True)
+    IsLateExempted = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffInfo Id={self.Staff_ID}, Name={self.S_Name}>"
 
     def to_dict(self):
         return {
@@ -1281,8 +1288,8 @@ class StaffInfo(db.Model):
             'S_CNIC': self.S_CNIC,
             'S_Email': self.S_Email,
             'S_ContactNo': self.S_ContactNo,
-            'S_DoB': self.S_DoB.isoformat() if self.S_DoB else None,
-            'S_JoiningDate': self.S_JoiningDate.isoformat() if self.S_JoiningDate else None,
+            'S_DoB': self.S_DoB,
+            'S_JoiningDate': self.S_JoiningDate,
             'S_firstJOrderNo': self.S_firstJOrderNo,
             'S_JoiningDesg': self.S_JoiningDesg,
             'S_JoiningGrade': self.S_JoiningGrade,
@@ -1302,17 +1309,17 @@ class StaffInfo(db.Model):
             'UpdaterId': self.UpdaterId,
             'UpdaterIP': self.UpdaterIP,
             'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdateDate': self.UpdateDate,
             'CreatorId': self.CreatorId,
             'CreatorIP': self.CreatorIP,
             'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreateDate': self.CreateDate,
             'PhotoPath': self.PhotoPath,
             'IsDisable': self.IsDisable,
             'disableDetail': self.disableDetail,
             'EOBI': self.EOBI,
             'ProbationPeriod': self.ProbationPeriod,
-            'ProbationEndDate': self.ProbationEndDate.isoformat() if self.ProbationEndDate else None,
+            'ProbationEndDate': self.ProbationEndDate,
             'IsPermanent': self.IsPermanent,
             'IsTerminate': self.IsTerminate,
             'DepartmentId': self.DepartmentId,
@@ -1338,7 +1345,7 @@ class StaffInfo(db.Model):
             'IsFatherName': self.IsFatherName,
             'FHWName': self.FHWName,
             'FHWCNIC': self.FHWCNIC,
-            'FWHDOB': self.FWHDOB.isoformat() if self.FWHDOB else None,
+            'FWHDOB': self.FWHDOB,
             'CampusId': self.CampusId,
             'BarcodeId': self.BarcodeId,
             'IsAppearLive': self.IsAppearLive,
@@ -1354,7 +1361,9 @@ class StaffInfo(db.Model):
             'IsExit': self.IsExit,
             'Grace_In': self.Grace_In,
             'Grace_Out': self.Grace_Out,
-            'ShiftType': self.ShiftType
+            'ShiftType': self.ShiftType,
+            'IsMonthlyScheduleUpdate': self.IsMonthlyScheduleUpdate,
+            'IsLateExempted': self.IsLateExempted
         }
 
 class StaffDepartment(db.Model):
