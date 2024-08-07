@@ -2295,7 +2295,7 @@ class CCHST(db.Model):
             'CreatorId': self.CreatorId
         }
 
-class Shift(db.Model):
+class Shifts(db.Model):
     __tablename__ = 'Shifts'
 
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -2328,6 +2328,38 @@ class Shift(db.Model):
             'IsScheduleCreated': self.IsScheduleCreated
         }
 
+class ShiftSchedules(db.Model):
+    __tablename__ = 'ShiftSchedules'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Day = db.Column(db.Integer, nullable=False)
+    TimeIn = db.Column(db.Time, nullable=False)
+    TimeOut = db.Column(db.Time, nullable=False)
+    IsHoliday = db.Column(db.Boolean, nullable=False)
+    ShiftId = db.Column(db.Integer, nullable=False)
+    CreatedOn = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedOn = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=False)
+    CreatedByUserId = db.Column(db.Integer, nullable=False)
+    UpdatedByUserId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<ShiftSchedule Id={self.Id}, Day={self.Day}, ShiftId={self.ShiftId}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Day': self.Day,
+            'TimeIn': self.TimeIn,
+            'TimeOut': self.TimeOut,
+            'IsHoliday': self.IsHoliday,
+            'ShiftId': self.ShiftId,
+            'CreatedOn': self.CreatedOn,
+            'UpdatedOn': self.UpdatedOn,
+            'CampusId': self.CampusId,
+            'CreatedByUserId': self.CreatedByUserId,
+            'UpdatedByUserId': self.UpdatedByUserId
+        }
 # ------- LEAVE -------
 
 class LeaveStatus(db.Model):
