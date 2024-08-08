@@ -3272,7 +3272,24 @@ class Report(db.Model):
             'Report_Name': self.Report_Name
         }
 
+class ReportFilter(db.Model):
+    __tablename__ = 'ReportFilter'
 
+    ReportFilter_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ReportFilter_ReportId = db.Column(db.Integer, nullable=False)
+    ReportFilter_Field = db.Column(db.String(200), nullable=False)
+    ReportFilter_FieldText = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return f"<ReportFilter Id={self.ReportFilter_Id}, ReportId={self.ReportFilter_ReportId}, Field={self.ReportFilter_Field}>"
+
+    def to_dict(self):
+        return {
+            'ReportFilter_Id': self.ReportFilter_Id,
+            'ReportFilter_ReportId': self.ReportFilter_ReportId,
+            'ReportFilter_Field': self.ReportFilter_Field,
+            'ReportFilter_FieldText': self.ReportFilter_FieldText
+        }
 
 
 
