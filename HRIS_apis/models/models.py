@@ -3257,7 +3257,20 @@ class StudentFeeStructureDeletedHistory(db.Model):
             'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None
         }
 
+class Report(db.Model):
+    __tablename__ = 'Report'
 
+    Report_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Report_Name = db.Column(db.String(500), nullable=False)
+
+    def __repr__(self):
+        return f"<Report Id={self.Report_Id}, Name={self.Report_Name}>"
+
+    def to_dict(self):
+        return {
+            'Report_Id': self.Report_Id,
+            'Report_Name': self.Report_Name
+        }
 
 
 
