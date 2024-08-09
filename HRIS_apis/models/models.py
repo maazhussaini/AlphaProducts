@@ -3262,14 +3262,16 @@ class Report(db.Model):
 
     Report_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Report_Name = db.Column(db.String(500), nullable=False)
-
+    Report_SPName  = db.Column(db.String(500), nullable=False)
+    
     def __repr__(self):
         return f"<Report Id={self.Report_Id}, Name={self.Report_Name}>"
 
     def to_dict(self):
         return {
             'Report_Id': self.Report_Id,
-            'Report_Name': self.Report_Name
+            'Report_Name': self.Report_Name,
+            'Report_SPName': self.Report_SPName
         }
 
 class ReportFilter(db.Model):
