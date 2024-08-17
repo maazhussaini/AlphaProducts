@@ -1138,7 +1138,6 @@ class EmailStorageSystem(db.Model):
     Email_Title = db.Column(db.String(100), nullable=True)
     Email_Subject = db.Column(db.String(250), nullable=True)
     Email_Body = db.Column(db.Text, nullable=True)
-    Email_Attachment = db.Column(db.String(250), nullable=True)
     Status = db.Column(db.Boolean, nullable=True)
     CreatorId = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True)
