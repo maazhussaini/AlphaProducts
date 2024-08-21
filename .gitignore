@@ -5,6 +5,8 @@
 __pycache__/
 uploads/
 
+pyenv/
+
 # Ignore document files
 *.pdf
 *.docx

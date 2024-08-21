@@ -1,6 +1,7 @@
 from app import create_app
+from waitress import serve
 
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug = True)
+    serve(app,host='192.168.4.115',port=8200)
