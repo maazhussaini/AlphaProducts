@@ -3061,7 +3061,7 @@ class StaffTransferResource(Resource):
         Updates the StaffShift table with the new campus ID and sets the UpdatedOn date.
         """
         try:
-            staff_shift = StaffShift.query.filter_by(StaffId=staff_id).first()
+            staff_shift = StaffShifts.query.filter_by(StaffId=staff_id).first()
             
             if staff_shift:
                 staff_shift.CampusId = to_campus_id
@@ -3227,12 +3227,12 @@ class StaffShiftResource(Resource):
     def get(self, staff_id=None):
         try:
             if staff_id:
-                staff_shift = StaffShift.query.get(staff_id)
+                staff_shift = StaffShifts.query.get(staff_id)
                 if staff_shift is None:
                     return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
                 return staff_shift.to_dict(), 200
             else:
-                staff_shifts = StaffShift.query.all()
+                staff_shifts = StaffShifts.query.all()
                 return [shift.to_dict() for shift in staff_shifts], 200
         except SQLAlchemyError as e:
             return {"error": f"Database error occurred: {str(e)}"}, 500
@@ -3251,7 +3251,7 @@ class StaffShiftResource(Resource):
         args = parser.parse_args()
 
         try:
-            new_shift = StaffShift(
+            new_shift = StaffShifts(
                 StaffId=args['StaffId'],
                 ShiftId=args['ShiftId'],
                 CreatedOn=args['CreatedOn'],
@@ -3281,9 +3281,9 @@ class StaffShiftResource(Resource):
         args = parser.parse_args()
 
         try:
-            staff_shift = StaffShift.query.get(staff_id)
+            staff_shift = StaffShifts.query.get(staff_id)
             if staff_shift is None:
-                return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
+                return {"message": f"StaffShifts with StaffId {staff_id} not found"}, 404
 
             if args['ShiftId'] is not None:
                 staff_shift.ShiftId = args['ShiftId']
@@ -3299,7 +3299,7 @@ class StaffShiftResource(Resource):
                 staff_shift.CampusId = args['CampusId']
 
             db.session.commit()
-            return {"message": "StaffShift updated successfully", "StaffId": staff_shift.StaffId}, 200
+            return {"message": "StaffShifts updated successfully", "StaffId": staff_shift.StaffId}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": f"Database error occurred: {str(e)}"}, 500
@@ -3309,13 +3309,13 @@ class StaffShiftResource(Resource):
 
     def delete(self, staff_id):
         try:
-            staff_shift = StaffShift.query.get(staff_id)
+            staff_shift = StaffShifts.query.get(staff_id)
             if staff_shift is None:
-                return {"message": f"StaffShift with StaffId {staff_id} not found"}, 404
+                return {"message": f"StaffShifts with StaffId {staff_id} not found"}, 404
 
             db.session.delete(staff_shift)
             db.session.commit()
-            return {"message": "StaffShift deleted successfully"}, 200
+            return {"message": "StaffShifts deleted successfully"}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": f"Database error occurred: {str(e)}"}, 500

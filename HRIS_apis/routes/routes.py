@@ -6,7 +6,7 @@ from resources.resources import (
     OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
     EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
     StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
-    ScheduledAllowanceResource, StaffIncrementResource, EmailSendingResource, UserDetails
+    ScheduledAllowanceResource, StaffIncrementResource, EmailSendingResource, UserDetails, StaffShiftResource
 )
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
@@ -57,6 +57,7 @@ def register_routes(app):
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
+    api.add_resource(StaffShiftResource, '/staffShift', '/staffIncrement/<int:id>')
     
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
     api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')
