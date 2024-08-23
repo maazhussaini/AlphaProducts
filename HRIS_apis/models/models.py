@@ -2455,35 +2455,38 @@ class LeaveType(db.Model):
 
 class StaffLeaveRequest(db.Model):
     __tablename__ = 'StaffLeaveRequest'
-    
+
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     StaffId = db.Column(db.Integer, nullable=False)
     FromDate = db.Column(db.Date, nullable=False)
     ToDate = db.Column(db.Date, nullable=False)
     Reason = db.Column(db.String(255), nullable=False)
-    Remarks = db.Column(db.String(255))
+    Remarks = db.Column(db.String(255), nullable=True)
     LeaveStatusId = db.Column(db.Integer, nullable=False)
-    ApprovedBy = db.Column(db.Integer)
-    LeaveApplicationPath = db.Column(db.String(255))
-    AcademicYearId = db.Column(db.Integer)
+    ApprovedBy = db.Column(db.Integer, nullable=True)
+    LeaveApplicationPath = db.Column(db.String(255), nullable=True)
+    AcademicYearId = db.Column(db.Integer, nullable=True)
     status = db.Column(db.Boolean, nullable=False)
-    UpdaterId = db.Column(db.BigInteger)
-    UpdaterIP = db.Column(db.String(20))
-    UpdaterTerminal = db.Column(db.String(255))
-    UpdateDate = db.Column(db.DateTime)
-    CreatorId = db.Column(db.BigInteger)
-    CreatorIP = db.Column(db.String(20))
-    CreatorTerminal = db.Column(db.String(255))
-    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
-    CampusId = db.Column(db.Integer)
-    LeaveTypeId = db.Column(db.Integer)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    CampusId = db.Column(db.Integer, nullable=True)
+    LeaveTypeId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<StaffLeaveRequest Id={self.Id}, StaffId={self.StaffId}, FromDate={self.FromDate}, ToDate={self.ToDate}>"
 
     def to_dict(self):
         return {
             'Id': self.Id,
             'StaffId': self.StaffId,
-            'FromDate': self.FromDate.isoformat(),
-            'ToDate': self.ToDate.isoformat(),
+            'FromDate': self.FromDate,
+            'ToDate': self.ToDate,
             'Reason': self.Reason,
             'Remarks': self.Remarks,
             'LeaveStatusId': self.LeaveStatusId,
@@ -2494,11 +2497,11 @@ class StaffLeaveRequest(db.Model):
             'UpdaterId': self.UpdaterId,
             'UpdaterIP': self.UpdaterIP,
             'UpdaterTerminal': self.UpdaterTerminal,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdateDate': self.UpdateDate,
             'CreatorId': self.CreatorId,
             'CreatorIP': self.CreatorIP,
             'CreatorTerminal': self.CreatorTerminal,
-            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreateDate': self.CreateDate,
             'CampusId': self.CampusId,
             'LeaveTypeId': self.LeaveTypeId
         }

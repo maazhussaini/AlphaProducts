@@ -14,6 +14,7 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
+from exceptions import *
 
 load_dotenv()
 
@@ -4572,6 +4573,108 @@ class StaffSeparationResource(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'error': str(e)}, 500
+
+class StaffLeaveRequestResource(Resource):
+    
+    def post(self):
+        try:
+            leave_request_data = request.json
+            
+            # Validate input
+            if not leave_request_data:
+                raise ValueError("No input data provided")
+            
+            # Extract data
+            staff_id = leave_request_data.get('StaffId')
+            from_date = leave_request_data.get('FromDate')
+            to_date = leave_request_data.get('ToDate')
+            leave_type_id = leave_request_data.get('LeaveTypeId')
+
+            if not (staff_id and from_date and to_date and leave_type_id):
+                raise ValueError("Missing required fields")
+
+            # Check Attendance within the date range
+            check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
+                StaffAttendanceTemp.staff_Id == staff_id,
+                StaffAttendanceTemp.time_In.isnot(None),
+                StaffAttendanceTemp.CreateDate >= from_date,
+                StaffAttendanceTemp.CreateDate <= to_date
+            ).first()
+
+            if check_attendance:
+                raise AttendanceConflictError(
+                    f"Your leave request from {from_date} to {to_date} has not been approved. "
+                    f"You were marked as Present on {check_attendance.CreateDate}."
+                )
+
+            # Check for duplicate leave
+            check_duplicate_leave = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
+                ((StaffLeaveRequest.ToDate >= from_date) & (StaffLeaveRequest.ToDate <= to_date))
+            ).first()
+
+            if check_duplicate_leave:
+                raise DuplicateLeaveError(
+                    f"Your leave request from {from_date} to {to_date} has not been approved. "
+                    "You already have an existing leave scheduled."
+                )
+
+            # Additional business logic and validations go here...
+
+            # Example of file handling with advanced error handling
+            file = request.files.get('file')
+            if file:
+                try:
+                    file_path = os.path.join('Files/Leaves', f"{staff_id}_{file.filename}")
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    file.save(file_path)
+                    leave_request_data['LeaveApplicationPath'] = f"{staff_id}_{file.filename}"
+                except IOError as e:
+                    logger.error(f"File handling error: {str(e)}")
+                    raise LeaveRequestError("Failed to save leave application file.")
+
+            # Create leave request record
+            leave_request = StaffLeaveRequest(**leave_request_data)
+            db.session.add(leave_request)
+            db.session.commit()
+
+            # Perform any additional actions or data updates...
+
+            return redirect(url_for('index'))
+
+        except AttendanceConflictError as e:
+            logger.warning(f"Attendance conflict for staff ID {staff_id}: {e.message}")
+            return jsonify({'error': e.message}), 409
+
+        except DuplicateLeaveError as e:
+            logger.warning(f"Duplicate leave request for staff ID {staff_id}: {e.message}")
+            return jsonify({'error': e.message}), 409
+
+        except InvalidLeaveDateError as e:
+            logger.warning(f"Invalid date range for staff ID {staff_id}: {e.message}")
+            return jsonify({'error': e.message}), 400
+
+        except InsufficientLeaveError as e:
+            logger.warning(f"Insufficient leave balance for staff ID {staff_id}: {e.message}")
+            return jsonify({'error': e.message}), 400
+
+        except ValueError as e:
+            logger.error(f"Validation error: {str(e)}")
+            return jsonify({'error': str(e)}), 400
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': 'A database error occurred, please try again later.'}), 500
+
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': 'An unexpected error occurred, please try again later.'}), 500
 
 class SalaryTransferDetailsResource(Resource):
     def get(self, transfer_id=None):
