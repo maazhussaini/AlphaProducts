@@ -1515,6 +1515,77 @@ class StaffShifts(db.Model):
             'CampusId': self.CampusId
         }
 
+class StaffAttendanceTemp(db.Model):
+    __tablename__ = 'StaffAttendanceTemp'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    staff_Atd_Shd_Id = db.Column(db.Integer, nullable=True)
+    atd_status_Id = db.Column(db.Integer, nullable=False)
+    staff_Id = db.Column(db.Integer, nullable=True)
+    time_In = db.Column(db.Time, nullable=True)
+    time_Out = db.Column(db.Time, nullable=True)
+    MarkFrom = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    ShiftCode = db.Column(db.String(10), nullable=True)
+    IsPaid = db.Column(db.Boolean, nullable=True)
+    IsLateIn = db.Column(db.Boolean, nullable=False)
+    IsEarlyOut = db.Column(db.Boolean, nullable=False)
+    Remarks = db.Column(db.Text, nullable=True)
+    GenralOTime = db.Column(db.Integer, nullable=True)
+    LateHour = db.Column(db.Integer, nullable=True)
+    EarlyHour = db.Column(db.Integer, nullable=True)
+    WorkHour = db.Column(db.Integer, nullable=True)
+    OffOTime = db.Column(db.Integer, nullable=True)
+    GazOtime = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=False)
+    IsNonTeacher = db.Column(db.Boolean, nullable=True)
+    IsUpdatedOnLive = db.Column(db.Integer, nullable=False)
+    IsNonOffical = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<StaffAttendanceTemp Id={self.Id}, staff_Id={self.staff_Id}, time_In={self.time_In}, time_Out={self.time_Out}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'staff_Atd_Shd_Id': self.staff_Atd_Shd_Id,
+            'atd_status_Id': self.atd_status_Id,
+            'staff_Id': self.staff_Id,
+            'time_In': self.time_In,
+            'time_Out': self.time_Out,
+            'MarkFrom': self.MarkFrom,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate,
+            'ShiftCode': self.ShiftCode,
+            'IsPaid': self.IsPaid,
+            'IsLateIn': self.IsLateIn,
+            'IsEarlyOut': self.IsEarlyOut,
+            'Remarks': self.Remarks,
+            'GenralOTime': self.GenralOTime,
+            'LateHour': self.LateHour,
+            'EarlyHour': self.EarlyHour,
+            'WorkHour': self.WorkHour,
+            'OffOTime': self.OffOTime,
+            'GazOtime': self.GazOtime,
+            'CampusId': self.CampusId,
+            'IsNonTeacher': self.IsNonTeacher,
+            'IsUpdatedOnLive': self.IsUpdatedOnLive,
+            'IsNonOffical': self.IsNonOffical
+        }
+
 class Salaries(db.Model):
     __tablename__ = 'Salaries'
     Id = db.Column(db.Integer, primary_key=True)
