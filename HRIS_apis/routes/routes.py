@@ -21,7 +21,8 @@ def register_routes(app):
     
     # CORS(app, resources={r"/api/*": {"origins": "*"}})
     CORS(app, resources={
-        r"/api/*": {"origins": ["http://192.168.4.115:5000", "*"]}
+        # r"/api/*": {"origins": ["http://192.168.4.115:5000", "*"]}
+        r"/api/*": {"origins": ["http://192.168.4.115:8200", "*"]}
     })
     
     api.add_resource(UserLoginResource, '/login')  # Register the authentication resource
@@ -57,7 +58,8 @@ def register_routes(app):
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
-    api.add_resource(StaffShiftResource, '/staffShift', '/staffIncrement/<int:id>')
+    # api.add_resource(StaffShiftResource, '/staffShift', '/staffShift/<int:id>')
+    api.add_resource(StaffShiftResource, '/staffShift/<int:staff_id>/<int:shift_id>')
     
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
     api.add_resource(MarkDayOffHRsResource, '/MarkDayOffHRs', '/MarkDayOffHRs/<int:id>')

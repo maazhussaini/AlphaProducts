@@ -3262,66 +3262,70 @@ class StaffShiftResource(Resource):
             )
             db.session.add(new_shift)
             db.session.commit()
-            return {"message": "StaffShift created successfully", "StaffId": new_shift.StaffId}, 201
+            return {"status": "success",
+                    "message": "StaffShift created successfully", "StaffId": new_shift.StaffId}, 201
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"An unexpected error occurred: {str(e)}"}, 500
 
-    def put(self, staff_id):
+    def put(self, staff_id, shift_id):
         parser = reqparse.RequestParser()
-        parser.add_argument('ShiftId', type=int, required=False)
-        parser.add_argument('CreatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
+        parser.add_argument('ShiftId', type=int, required=True)
         parser.add_argument('UpdatedOn', type=lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S'), required=False)
-        parser.add_argument('CreatedByUserId', type=int, required=False)
         parser.add_argument('UpdatedByUserId', type=int, required=False)
-        parser.add_argument('CampusId', type=int, required=False)
         args = parser.parse_args()
 
         try:
-            staff_shift = StaffShifts.query.get(staff_id)
+            # Retrieve the record using the composite key
+            staff_shift = StaffShifts.query.get((staff_id, shift_id))
             if staff_shift is None:
-                return {"message": f"StaffShifts with StaffId {staff_id} not found"}, 404
+                return {"status": "error",
+                        "message": f"StaffShifts with StaffId {staff_id} and ShiftId {shift_id} not found"}, 404
 
-            if args['ShiftId'] is not None:
-                staff_shift.ShiftId = args['ShiftId']
-            if args['CreatedOn'] is not None:
-                staff_shift.CreatedOn = args['CreatedOn']
+            # Update the record with provided data
             if args['UpdatedOn'] is not None:
                 staff_shift.UpdatedOn = args['UpdatedOn']
-            if args['CreatedByUserId'] is not None:
-                staff_shift.CreatedByUserId = args['CreatedByUserId']
+            if args['ShiftId'] is not None:
+                staff_shift.ShiftId = args['ShiftId']
             if args['UpdatedByUserId'] is not None:
                 staff_shift.UpdatedByUserId = args['UpdatedByUserId']
-            if args['CampusId'] is not None:
-                staff_shift.CampusId = args['CampusId']
-
+            
             db.session.commit()
-            return {"message": "StaffShifts updated successfully", "StaffId": staff_shift.StaffId}, 200
+            return {"status": "success",
+                    "message": "StaffShifts updated successfully", "StaffId": staff_shift.StaffId, "ShiftId": staff_shift.ShiftId}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"An unexpected error occurred: {str(e)}"}, 500
 
-    def delete(self, staff_id):
+    def delete(self, staff_id, shift_id):
         try:
-            staff_shift = StaffShifts.query.get(staff_id)
+            staff_shift = StaffShifts.query.get((staff_id, shift_id))
             if staff_shift is None:
-                return {"message": f"StaffShifts with StaffId {staff_id} not found"}, 404
+                return {"status": "error",
+                        "message": f"StaffShifts with StaffId {staff_id} and ShiftId {shift_id} not found"}, 404
 
             db.session.delete(staff_shift)
             db.session.commit()
-            return {"message": "StaffShifts deleted successfully"}, 200
+            return {"status": "success",
+                    "message": "StaffShifts deleted successfully"}, 200
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {"error": f"Database error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"Database error occurred: {str(e)}"}, 500
         except Exception as e:
             db.session.rollback()
-            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+            return {"status": "error",
+                    "message": f"An unexpected error occurred: {str(e)}"}, 500
 
 class SalaryResource(Resource):
     
