@@ -1,13 +1,7 @@
 from flask_restful import Api
 from flask import Blueprint
 from flask_cors import CORS, cross_origin
-from resources.resources import (
-    JobApplicationFormResource, NewJoinerApprovalResource, InterviewSchedulesResource, DeductionHeadResource, 
-    OneTimeDeductionResource, ScheduledDeductionResource, IARResource, IARRemarksResource , IARTypesResource, 
-    EmailStorageSystemResource, EmailTypesResource, AvailableJobsResource, StaffInfoResource, StaffDepartmentResource,
-    StaffTransferResource, MarkDayOffDepsResource, MarkDayOffHRsResource, AllowanceHeadResource, OneTimeAllowanceResource,
-    ScheduledAllowanceResource, StaffIncrementResource, EmailSendingResource, UserDetails, StaffShiftResource
-)
+from resources.resources import *
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
     DynamicUpdateResource, DynamicInsertOrUpdateResource, UploadFileResource
@@ -58,7 +52,7 @@ def register_routes(app):
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
-    # api.add_resource(StaffShiftResource, '/staffShift', '/staffShift/<int:id>')
+    api.add_resource(StaffLeaveRequestResource, '/staffLeaveRequest')
     api.add_resource(StaffShiftResource, '/staffShift/<int:staff_id>/<int:shift_id>')
     
     api.add_resource(MarkDayOffDepsResource, '/markDayOffDeps', '/markDayOffDeps/<int:id>')
