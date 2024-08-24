@@ -4631,9 +4631,9 @@ class StaffLeaveRequestResource(Resource):
                 )}, 409
 
             # Retrieve current academic year and other relevant data
-            academic_year = get_active_academic_year()
+            academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
             leave_days = (to_date - from_date).days + 1
-            check_remaining_leave = db.session.query(Salary).filter_by(EmployeeId=staff_id, IsActive=True).first()
+            check_remaining_leave = db.session.query(Salaries).filter_by(EmployeeId=staff_id, IsActive=True).first()
 
             # Check Reason is not null
             if not leave_request_data.get('Reason'):
@@ -4658,7 +4658,7 @@ class StaffLeaveRequestResource(Resource):
 
             # Casual leave checks
             if leave_type_id == 1:
-                casual_leave_count = check_casual_leave(staff_id, leave_type_id, from_date, to_date, academic_year)
+                casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, academic_year)
                 
                 if leave_days != 1:
                     return {"status": "error", "message": "The allocation for casual leave is limited to one day per month."}, 400
@@ -4752,6 +4752,59 @@ class StaffLeaveRequestResource(Resource):
             db.session.rollback()
             raise e
 
+    def check_casual_leave(self, staff_id, leave_type_id, from_date, to_date, month_data=None):
+        """
+        Function to check how many casual leaves have been taken by the staff member
+        within the selected month or based on specific month data if provided.
+        
+        Args:
+        staff_id (int): ID of the staff member.
+        leave_type_id (int): Type ID of the leave.
+        from_date (datetime): Start date of the leave request.
+        to_date (datetime): End date of the leave request.
+        month_data (dict): Optional dictionary containing month information, e.g., start and end dates.
+        
+        Returns:
+        int: The count of casual leaves taken by the staff member in the specified month.
+        """
+        casual_leave_count = 0
+
+        # If month data is provided, use it for filtering
+        if month_data:
+            casual_leave_count = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveTypeId == leave_type_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                (
+                    (StaffLeaveRequest.FromDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.FromDate <= month_data['EndDate'])
+                ) |
+                (
+                    (StaffLeaveRequest.ToDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.ToDate <= month_data['EndDate'])
+                )
+            ).count()
+        else:
+            # Filter based on the month of the FromDate and ToDate
+            casual_leave_count = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveTypeId == leave_type_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                (
+                    (StaffLeaveRequest.FromDate.month == from_date.month) &
+                    (StaffLeaveRequest.FromDate.year == from_date.year)
+                ) |
+                (
+                    (StaffLeaveRequest.ToDate.month == to_date.month) &
+                    (StaffLeaveRequest.ToDate.year == to_date.year)
+                )
+            ).count()
+
+        return casual_leave_count
+
+    
 class SalaryTransferDetailsResource(Resource):
     def get(self, transfer_id=None):
         if transfer_id:

@@ -7,6 +7,29 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+class AcademicYear(db.Model):
+    __tablename__ = 'AcademicYear'
+
+    academic_year_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    academic_year = db.Column(db.String(10), nullable=True)
+    status = db.Column(db.Boolean, nullable=False)
+    startDate = db.Column(db.DateTime, nullable=False)
+    endDate = db.Column(db.DateTime, nullable=False)
+    IsActive = db.Column(db.Boolean, nullable=False)
+
+    def __repr__(self):
+        return f"<AcademicYear Id={self.academic_year_Id}, Year={self.academic_year}>"
+
+    def to_dict(self):
+        return {
+            'academic_year_Id': self.academic_year_Id,
+            'academic_year': self.academic_year,
+            'status': self.status,
+            'startDate': self.startDate,
+            'endDate': self.endDate,
+            'IsActive': self.IsActive
+        }
+
 class Users(db.Model):
     __tablename__ = 'USERS'
 
@@ -704,25 +727,6 @@ class StudentInfo(db.Model):
             "UserId": self.UserId,
             "ParentUserId": self.ParentUserId,
             "Student_IdNew": self.Student_IdNew
-        }
-
-class AcademicYear(db.Model):
-    __tablename__ = 'AcademicYear'
-    academic_year_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    academic_year = db.Column(db.String(10))
-    status = db.Column(db.Boolean, nullable=False)
-    startDate = db.Column(db.DateTime, nullable=False)
-    endDate = db.Column(db.DateTime, nullable=False)
-    IsActive = db.Column(db.Boolean, nullable=False)
-
-    def to_dict(self):
-        return {
-            "academic_year_Id": self.academic_year_Id,
-            "academic_year": self.academic_year,
-            "status": self.status,
-            "startDate": self.startDate.isoformat() if self.startDate else None,
-            "endDate": self.endDate.isoformat() if self.endDate else None,
-            "IsActive": self.IsActive
         }
 
 class EduGroupStudent(db.Model):
