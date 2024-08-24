@@ -4575,14 +4575,14 @@ class StaffSeparationResource(Resource):
             return {'error': str(e)}, 500
 
 class StaffLeaveRequestResource(Resource):
-    
+
     def post(self):
         try:
             leave_request_data = request.json
             
             # Validate input
             if not leave_request_data:
-                raise ValueError("No input data provided")
+                return {"status": "error", "message": "No input data provided"}, 400
             
             # Extract data
             staff_id = leave_request_data.get('StaffId')
@@ -4591,7 +4591,15 @@ class StaffLeaveRequestResource(Resource):
             leave_type_id = leave_request_data.get('LeaveTypeId')
 
             if not (staff_id and from_date and to_date and leave_type_id):
-                raise ValueError("Missing required fields")
+                return {"status": "error", "message": "Missing required fields"}, 400
+
+            # Convert string dates to datetime objects
+            from_date = datetime.strptime(from_date, "%Y-%m-%d")
+            to_date = datetime.strptime(to_date, "%Y-%m-%d")
+
+            # Check if ToDate is later than FromDate
+            if from_date > to_date:
+                return {"status": "error", "message": "The To Date must be later than the From Date."}, 400
 
             # Check Attendance within the date range
             check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
@@ -4602,12 +4610,12 @@ class StaffLeaveRequestResource(Resource):
             ).first()
 
             if check_attendance:
-                raise AttendanceConflictError(
-                    f"Your leave request from {from_date} to {to_date} has not been approved. "
-                    f"You were marked as Present on {check_attendance.CreateDate}."
-                )
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You were marked as Present on {check_attendance.CreateDate.strftime('%d-%b-%Y')}."
+                )}, 409
 
-            # Check for duplicate leave
+            # Check for duplicate leave in selected dates
             check_duplicate_leave = StaffLeaveRequest.query.filter(
                 StaffLeaveRequest.status.is_(True),
                 StaffLeaveRequest.StaffId == staff_id,
@@ -4617,64 +4625,132 @@ class StaffLeaveRequestResource(Resource):
             ).first()
 
             if check_duplicate_leave:
-                raise DuplicateLeaveError(
-                    f"Your leave request from {from_date} to {to_date} has not been approved. "
-                    "You already have an existing leave scheduled."
-                )
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You already have an existing leave scheduled."
+                )}, 409
 
-            # Additional business logic and validations go here...
+            # Retrieve current academic year and other relevant data
+            academic_year = get_active_academic_year()
+            leave_days = (to_date - from_date).days + 1
+            check_remaining_leave = db.session.query(Salary).filter_by(EmployeeId=staff_id, IsActive=True).first()
 
-            # Example of file handling with advanced error handling
-            file = request.files.get('file')
-            if file:
+            # Check Reason is not null
+            if not leave_request_data.get('Reason'):
+                return {"status": "error", "message": "A reason is required."}, 400
+
+            # For Maternity & Paternity checks once a year
+            if leave_type_id in [5, 6]:
+                check_leave = db.session.query(StaffLeaveRequest).filter(
+                    StaffLeaveRequest.status.is_(True),
+                    StaffLeaveRequest.LeaveTypeId == leave_type_id,
+                    StaffLeaveRequest.LeaveStatusId != 2,
+                    StaffLeaveRequest.StaffId == staff_id,
+                    StaffLeaveRequest.CreateDate >= academic_year.StartDate,
+                    StaffLeaveRequest.CreateDate <= academic_year.EndDate
+                ).count()
+
+                if check_leave > 0:
+                    leave_type_name = db.session.query(LeaveType).filter_by(Id=leave_type_id).first().LeaveTypeName
+                    return {"status": "error", "message": (
+                        f"For this particular type, you may apply only once a year for {leave_type_name}."
+                    )}, 409
+
+            # Casual leave checks
+            if leave_type_id == 1:
+                casual_leave_count = check_casual_leave(staff_id, leave_type_id, from_date, to_date, academic_year)
+                
+                if leave_days != 1:
+                    return {"status": "error", "message": "The allocation for casual leave is limited to one day per month."}, 400
+                elif check_remaining_leave.RemainingCasualLeaves < leave_days:
+                    return {"status": "error", "message": (
+                        f"You cannot apply for more leave than what remains available. "
+                        f"Your remaining casual leave is {check_remaining_leave.RemainingCasualLeaves}."
+                    )}, 409
+                elif casual_leave_count > 0:
+                    return {"status": "error", "message": "Already one Casual Leave exists in the selected month."}, 409
+
+            # Sick and Annual Leave checks
+            elif leave_type_id in [2, 3]:
+                if leave_type_id == 2 and check_remaining_leave.RemainingSickLeaves < leave_days:
+                    return {"status": "error", "message": (
+                        f"You cannot apply for more leave than what remains available. "
+                        f"Your remaining sick leave is {check_remaining_leave.RemainingSickLeaves}."
+                    )}, 409
+                elif leave_type_id == 3 and check_remaining_leave.RemainingAnnualLeaves < leave_days:
+                    return {"status": "error", "message": (
+                        f"You cannot apply for more leave than what remains available. "
+                        f"Your remaining annual leave is {check_remaining_leave.RemainingAnnualLeaves}."
+                    )}, 409
+
+            # Paternity and Maternity specific duration checks
+            elif leave_type_id == 6 and leave_days > 3:
+                return {"status": "error", "message": "For this type of leave, the maximum allowable duration is 3 days."}, 400
+            elif leave_type_id == 5 and leave_days > 30:
+                return {"status": "error", "message": "For this type of leave, the maximum allowable duration is 30 days."}, 400
+
+            # Handle file uploads
+            uploaded_files = []
+            if 'File' in request.files:
+                MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + "StaffLeave"
+                
                 try:
-                    file_path = os.path.join('Files/Leaves', f"{staff_id}_{file.filename}")
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                    file.save(file_path)
-                    leave_request_data['LeaveApplicationPath'] = f"{staff_id}_{file.filename}"
+                    for key in request.files:
+                        file = request.files[key]
+                        if file.filename == '':
+                            continue
+
+                        # Secure the filename and save the file
+                        filename = secure_filename(file.filename)
+                        
+                        UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, key)
+                        if not os.path.exists(UPLOAD_FOLDER):
+                            os.makedirs(UPLOAD_FOLDER)
+                        
+                        file_path = os.path.join(UPLOAD_FOLDER, filename)
+                        file.save(file_path)
+                        uploaded_files.append((filename, file_path, key))
+
+                    if not uploaded_files:
+                        return {"status": "error", "message": "No selected files"}, 400
+
                 except IOError as e:
                     logger.error(f"File handling error: {str(e)}")
-                    raise LeaveRequestError("Failed to save leave application file.")
+                    return {"status": "error", "message": "Failed to save leave application file."}, 500
 
-            # Create leave request record
-            leave_request = StaffLeaveRequest(**leave_request_data)
+            # If all checks pass, create the leave request
+            leave_request = StaffLeaveRequest(**leave_request_data, AcademicYearId=academic_year)
             db.session.add(leave_request)
             db.session.commit()
 
-            # Perform any additional actions or data updates...
+            # Log the leave date range
+            self.staff_leave_date_range_entry(from_date, to_date)
 
-            return redirect(url_for('index'))
-
-        except AttendanceConflictError as e:
-            logger.warning(f"Attendance conflict for staff ID {staff_id}: {e.message}")
-            return jsonify({'error': e.message}), 409
-
-        except DuplicateLeaveError as e:
-            logger.warning(f"Duplicate leave request for staff ID {staff_id}: {e.message}")
-            return jsonify({'error': e.message}), 409
-
-        except InvalidLeaveDateError as e:
-            logger.warning(f"Invalid date range for staff ID {staff_id}: {e.message}")
-            return jsonify({'error': e.message}), 400
-
-        except InsufficientLeaveError as e:
-            logger.warning(f"Insufficient leave balance for staff ID {staff_id}: {e.message}")
-            return jsonify({'error': e.message}), 400
-
-        except ValueError as e:
-            logger.error(f"Validation error: {str(e)}")
-            return jsonify({'error': str(e)}), 400
+            return {"status": "success", "message": "Leave request created successfully."}, 201
 
         except SQLAlchemyError as e:
             logger.error(f"Database error: {str(e)}")
             db.session.rollback()
-            return jsonify({'error': 'A database error occurred, please try again later.'}), 500
+            return {"status": "error", "message": "A database error occurred, please try again later."}, 500
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             db.session.rollback()
-            return jsonify({'error': 'An unexpected error occurred, please try again later.'}), 500
+            return {"status": "error", "message": "An unexpected error occurred, please try again later."}, 500
+    
+    def staff_leave_date_range_entry(self, from_date, to_date):
+        try:
+            # Convert the dates to string format if necessary
+            from_date_str = from_date.strftime('%Y-%m-%d')
+            to_date_str = to_date.strftime('%Y-%m-%d')
+            
+            # Execute the stored procedure
+            sql = text("EXEC sp_StaffLeaveDateRangeEntry :from_date, :to_date")
+            db.session.execute(sql, {'from_date': from_date_str, 'to_date': to_date_str})
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e
 
 class SalaryTransferDetailsResource(Resource):
     def get(self, transfer_id=None):
