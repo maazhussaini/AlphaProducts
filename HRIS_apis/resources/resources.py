@@ -4578,7 +4578,13 @@ class StaffLeaveRequestResource(Resource):
 
     def post(self):
         try:
-            leave_request_data = request.form.to_dict()
+            # Determine the content type and extract the data accordingly
+            if request.content_type == 'application/json':
+                leave_request_data = request.json
+            elif request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
+                leave_request_data = request.form.to_dict()
+            else:
+                return {"status": "error", "message": "Unsupported Media Type"}, 415
             
             # Validate input
             if not leave_request_data:
