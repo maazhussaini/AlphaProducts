@@ -4578,7 +4578,7 @@ class StaffLeaveRequestResource(Resource):
 
     def post(self):
         try:
-            leave_request_data = request.json
+            leave_request_data = request.form.to_dict()
             
             # Validate input
             if not leave_request_data:
