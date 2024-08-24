@@ -15,6 +15,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
 from exceptions import *
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -4579,12 +4580,15 @@ class StaffLeaveRequestResource(Resource):
     def post(self):
         try:
             # Determine the content type and extract the data accordingly
-            if request.content_type == 'application/json':
+            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+            MAIN_UPLOAD_FOLDER = 'uploads\\'
+
+            if request.content_type.startswith('application/json'):
                 leave_request_data = request.json
-            elif request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
+            elif request.content_type.startswith('multipart/form-data'):
                 leave_request_data = request.form.to_dict()
             else:
-                return {"status": "error", "message": "Unsupported Media Type"}, 415
+                return {"status": "error", "message": f"Unsupported Media Type {request.content_type}"}, 415
             
             # Validate input
             if not leave_request_data:
@@ -4623,7 +4627,7 @@ class StaffLeaveRequestResource(Resource):
 
             # Check for duplicate leave in selected dates
             check_duplicate_leave = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.status == 1,
                 StaffLeaveRequest.StaffId == staff_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
                 ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
@@ -4638,12 +4642,14 @@ class StaffLeaveRequestResource(Resource):
 
             # Retrieve current academic year and other relevant data
             academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+            academic_year_id = academic_year.academic_year_Id if academic_year else None
+
             leave_days = (to_date - from_date).days + 1
             check_remaining_leave = db.session.query(Salaries).filter_by(EmployeeId=staff_id, IsActive=True).first()
 
             # Check Reason is not null
-            if not leave_request_data.get('Reason'):
-                return {"status": "error", "message": "A reason is required."}, 400
+            # if not leave_request_data.get('Reason'):
+            #     return {"status": "error", "message": "A reason is required."}, 400
 
             # For Maternity & Paternity checks once a year
             if leave_type_id in [5, 6]:
@@ -4724,15 +4730,42 @@ class StaffLeaveRequestResource(Resource):
                     logger.error(f"File handling error: {str(e)}")
                     return {"status": "error", "message": "Failed to save leave application file."}, 500
 
-            # If all checks pass, create the leave request
-            leave_request = StaffLeaveRequest(**leave_request_data, AcademicYearId=academic_year)
+            # Prepare the data for StaffLeaveRequest
+            leave_request_data['AcademicYearId'] = academic_year_id
+            leave_request_data['status'] = True  # Assuming 'True' should be stored as '1'
+            
+            # Create leave request record
+            leave_request = StaffLeaveRequest(
+                StaffId=staff_id,
+                FromDate=from_date,
+                ToDate=to_date,
+                Reason=leave_request_data.get('Reason'),
+                Remarks=leave_request_data.get('Remarks'),
+                LeaveStatusId=leave_request_data.get('LeaveStatusId'),
+                ApprovedBy=leave_request_data.get('ApprovedBy'),
+                LeaveApplicationPath=leave_request_data.get('LeaveApplicationPath'),
+                AcademicYearId=academic_year_id,  # Pass the actual ID, not the object
+                status=True,  # or whatever status logic you have
+                UpdaterId=leave_request_data.get('UpdaterId'),
+                UpdaterIP=leave_request_data.get('UpdaterIP'),
+                UpdaterTerminal=leave_request_data.get('UpdaterTerminal'),
+                UpdateDate=datetime.utcnow(),
+                CreatorId=leave_request_data.get('CreatorId'),
+                CreatorIP=leave_request_data.get('CreatorIP'),
+                CreatorTerminal=leave_request_data.get('CreatorTerminal'),
+                CreateDate=datetime.utcnow(),
+                CampusId=leave_request_data.get('CampusId'),
+                LeaveTypeId=leave_type_id
+            )
+            
+            # Add and commit the new record
             db.session.add(leave_request)
             db.session.commit()
 
             # Log the leave date range
             self.staff_leave_date_range_entry(from_date, to_date)
 
-            return {"status": "success", "message": "Leave request created successfully."}, 201
+            return {"status": "success"}, 201
 
         except SQLAlchemyError as e:
             logger.error(f"Database error: {str(e)}")

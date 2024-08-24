@@ -17,8 +17,8 @@ class AcademicYear(db.Model):
     endDate = db.Column(db.DateTime, nullable=False)
     IsActive = db.Column(db.Boolean, nullable=False)
 
-    def __repr__(self):
-        return f"<AcademicYear Id={self.academic_year_Id}, Year={self.academic_year}>"
+    # def __repr__(self):
+    #     return f"<AcademicYear Id={self.academic_year_Id}, Year={self.academic_year}>"
 
     def to_dict(self):
         return {
