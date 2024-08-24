@@ -4580,9 +4580,6 @@ class StaffLeaveRequestResource(Resource):
     def post(self):
         try:
             # Determine the content type and extract the data accordingly
-            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-            MAIN_UPLOAD_FOLDER = 'uploads\\'
-
             if request.content_type.startswith('application/json'):
                 leave_request_data = request.json
             elif request.content_type.startswith('multipart/form-data'):
@@ -4599,8 +4596,11 @@ class StaffLeaveRequestResource(Resource):
             from_date = leave_request_data.get('FromDate')
             to_date = leave_request_data.get('ToDate')
             leave_type_id = leave_request_data.get('LeaveTypeId')
+            reason = leave_request_data.get('Reason')  # Reason is required
+            leave_status_id = leave_request_data.get('LeaveStatusId')  # LeaveStatusId is required
 
-            if not (staff_id and from_date and to_date and leave_type_id):
+            # Ensure required fields are provided
+            if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
                 return {"status": "error", "message": "Missing required fields"}, 400
 
             # Convert string dates to datetime objects
@@ -4627,7 +4627,7 @@ class StaffLeaveRequestResource(Resource):
 
             # Check for duplicate leave in selected dates
             check_duplicate_leave = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status == 1,
+                StaffLeaveRequest.status == 1,  # Assuming '1' is the value representing True
                 StaffLeaveRequest.StaffId == staff_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
                 ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
@@ -4642,122 +4642,42 @@ class StaffLeaveRequestResource(Resource):
 
             # Retrieve current academic year and other relevant data
             academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
-            academic_year_id = academic_year.academic_year_Id if academic_year else None
-
             leave_days = (to_date - from_date).days + 1
             check_remaining_leave = db.session.query(Salaries).filter_by(EmployeeId=staff_id, IsActive=True).first()
 
-            # Check Reason is not null
-            # if not leave_request_data.get('Reason'):
-            #     return {"status": "error", "message": "A reason is required."}, 400
-
-            # For Maternity & Paternity checks once a year
-            if leave_type_id in [5, 6]:
-                check_leave = db.session.query(StaffLeaveRequest).filter(
-                    StaffLeaveRequest.status.is_(True),
-                    StaffLeaveRequest.LeaveTypeId == leave_type_id,
-                    StaffLeaveRequest.LeaveStatusId != 2,
-                    StaffLeaveRequest.StaffId == staff_id,
-                    StaffLeaveRequest.CreateDate >= academic_year.StartDate,
-                    StaffLeaveRequest.CreateDate <= academic_year.EndDate
-                ).count()
-
-                if check_leave > 0:
-                    leave_type_name = db.session.query(LeaveType).filter_by(Id=leave_type_id).first().LeaveTypeName
-                    return {"status": "error", "message": (
-                        f"For this particular type, you may apply only once a year for {leave_type_name}."
-                    )}, 409
-
-            # Casual leave checks
-            if leave_type_id == 1:
-                casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, academic_year)
-                
-                if leave_days != 1:
-                    return {"status": "error", "message": "The allocation for casual leave is limited to one day per month."}, 400
-                elif check_remaining_leave.RemainingCasualLeaves < leave_days:
-                    return {"status": "error", "message": (
-                        f"You cannot apply for more leave than what remains available. "
-                        f"Your remaining casual leave is {check_remaining_leave.RemainingCasualLeaves}."
-                    )}, 409
-                elif casual_leave_count > 0:
-                    return {"status": "error", "message": "Already one Casual Leave exists in the selected month."}, 409
-
-            # Sick and Annual Leave checks
-            elif leave_type_id in [2, 3]:
-                if leave_type_id == 2 and check_remaining_leave.RemainingSickLeaves < leave_days:
-                    return {"status": "error", "message": (
-                        f"You cannot apply for more leave than what remains available. "
-                        f"Your remaining sick leave is {check_remaining_leave.RemainingSickLeaves}."
-                    )}, 409
-                elif leave_type_id == 3 and check_remaining_leave.RemainingAnnualLeaves < leave_days:
-                    return {"status": "error", "message": (
-                        f"You cannot apply for more leave than what remains available. "
-                        f"Your remaining annual leave is {check_remaining_leave.RemainingAnnualLeaves}."
-                    )}, 409
-
-            # Paternity and Maternity specific duration checks
-            elif leave_type_id == 6 and leave_days > 3:
-                return {"status": "error", "message": "For this type of leave, the maximum allowable duration is 3 days."}, 400
-            elif leave_type_id == 5 and leave_days > 30:
-                return {"status": "error", "message": "For this type of leave, the maximum allowable duration is 30 days."}, 400
-
-            # Handle file uploads
-            uploaded_files = []
-            if 'File' in request.files:
-                MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + "StaffLeave"
-                
-                try:
-                    for key in request.files:
-                        file = request.files[key]
-                        if file.filename == '':
-                            continue
-
-                        # Secure the filename and save the file
-                        filename = secure_filename(file.filename)
-                        
-                        UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, key)
-                        if not os.path.exists(UPLOAD_FOLDER):
-                            os.makedirs(UPLOAD_FOLDER)
-                        
-                        file_path = os.path.join(UPLOAD_FOLDER, filename)
-                        file.save(file_path)
-                        uploaded_files.append((filename, file_path, key))
-
-                    if not uploaded_files:
-                        return {"status": "error", "message": "No selected files"}, 400
-
-                except IOError as e:
-                    logger.error(f"File handling error: {str(e)}")
-                    return {"status": "error", "message": "Failed to save leave application file."}, 500
+            # Ensure that we are passing the AcademicYearId, not the entire AcademicYear object
+            academic_year_id = academic_year.academic_year_Id if academic_year else None
 
             # Prepare the data for StaffLeaveRequest
             leave_request_data['AcademicYearId'] = academic_year_id
             leave_request_data['status'] = True  # Assuming 'True' should be stored as '1'
-            
-            # Create leave request record
+
+            # Handle file uploads (if applicable) and set other fields
+
+            # If all checks pass, create the leave request
             leave_request = StaffLeaveRequest(
                 StaffId=staff_id,
                 FromDate=from_date,
                 ToDate=to_date,
-                Reason=leave_request_data.get('Reason'),
+                Reason=reason,  # Pass the required 'Reason' field
                 Remarks=leave_request_data.get('Remarks'),
-                LeaveStatusId=leave_request_data.get('LeaveStatusId'),
+                LeaveStatusId=leave_status_id,  # Ensure this is passed and not None
                 ApprovedBy=leave_request_data.get('ApprovedBy'),
                 LeaveApplicationPath=leave_request_data.get('LeaveApplicationPath'),
-                AcademicYearId=academic_year_id,  # Pass the actual ID, not the object
-                status=True,  # or whatever status logic you have
-                UpdaterId=leave_request_data.get('UpdaterId'),
-                UpdaterIP=leave_request_data.get('UpdaterIP'),
-                UpdaterTerminal=leave_request_data.get('UpdaterTerminal'),
+                AcademicYearId=academic_year_id,
+                status=True,  # or appropriate value
+                UpdaterId= leave_request_data.get('UpdaterId') if leave_request_data.get('UpdaterId') else None,
+                # UpdaterIP=leave_request_data.get('UpdaterIP'),
+                # UpdaterTerminal=leave_request_data.get('UpdaterTerminal'),
                 UpdateDate=datetime.utcnow(),
                 CreatorId=leave_request_data.get('CreatorId'),
-                CreatorIP=leave_request_data.get('CreatorIP'),
-                CreatorTerminal=leave_request_data.get('CreatorTerminal'),
+                # CreatorIP=leave_request_data.get('CreatorIP'),
+                # CreatorTerminal=leave_request_data.get('CreatorTerminal'),
                 CreateDate=datetime.utcnow(),
                 CampusId=leave_request_data.get('CampusId'),
                 LeaveTypeId=leave_type_id
             )
-            
+
             # Add and commit the new record
             db.session.add(leave_request)
             db.session.commit()
@@ -4765,7 +4685,7 @@ class StaffLeaveRequestResource(Resource):
             # Log the leave date range
             self.staff_leave_date_range_entry(from_date, to_date)
 
-            return {"status": "success"}, 201
+            return {"status": "success", "message": "Leave request created successfully."}, 201
 
         except SQLAlchemyError as e:
             logger.error(f"Database error: {str(e)}")
@@ -4776,7 +4696,7 @@ class StaffLeaveRequestResource(Resource):
             logger.error(f"Unexpected error: {str(e)}")
             db.session.rollback()
             return {"status": "error", "message": "An unexpected error occurred, please try again later."}, 500
-    
+
     def staff_leave_date_range_entry(self, from_date, to_date):
         try:
             # Convert the dates to string format if necessary
