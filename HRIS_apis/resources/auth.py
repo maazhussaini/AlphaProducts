@@ -109,6 +109,7 @@ class UserLoginResource(Resource):
                     })
 
                 academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+                print(academic_year)
                 if academic_year:
                     user_details["user"]["currentAcademicYear"] = academic_year.to_dict()
 

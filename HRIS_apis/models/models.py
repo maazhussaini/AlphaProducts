@@ -25,8 +25,10 @@ class AcademicYear(db.Model):
             'academic_year_Id': self.academic_year_Id,
             'academic_year': self.academic_year,
             'status': self.status,
-            'startDate': self.startDate,
-            'endDate': self.endDate,
+            # 'startDate': self.startDate,
+            # 'endDate': self.endDate,
+            'startDate': self.startDate.isoformat() if self.startDate else None,
+            'endDate': self.endDate.isoformat() if self.endDate else None,
             'IsActive': self.IsActive
         }
 
