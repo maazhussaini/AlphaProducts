@@ -4798,9 +4798,9 @@ class StaffLeaveRequestResource(Resource):
             staff_id = leave_request_data.get('StaffId')
             from_date = leave_request_data.get('FromDate')
             to_date = leave_request_data.get('ToDate')
-            leave_type_id = leave_request_data.get('LeaveTypeId')
+            leave_type_id = int(leave_request_data.get('LeaveTypeId'))
             reason = leave_request_data.get('Reason')  # Reason is required
-            leave_status_id = leave_request_data.get('LeaveStatusId')  # LeaveStatusId is required
+            leave_status_id = int(leave_request_data.get('LeaveStatusId'))  # LeaveStatusId is required
 
             # Ensure required fields are provided
             if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
