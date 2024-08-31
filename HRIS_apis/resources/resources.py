@@ -5460,13 +5460,10 @@ class UserDetails(Resource):
                 logger.error(f"Database query error: {e}")
                 return {"data": {'status': 400, 'message': 'Database error'}}, 500
 
-            firstName = user.Firstname if user.Firstname else ''
-            lastName = user.Lastname if user.Lastname else ''
-            
             user_details = {
                 'user': {
                     'id': user.User_Id,
-                    'displayName': firstName + " " + lastName,
+                    'displayName': user.Firstname + " " + user.Lastname,
                     'email': user.Email,
                     'campusId': user.CampusId,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',

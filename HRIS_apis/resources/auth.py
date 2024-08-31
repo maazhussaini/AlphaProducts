@@ -75,14 +75,11 @@ class UserLoginResource(Resource):
                 logger.error(f"Error creating access token: {e}")
                 return {"data": {'status': 400, 'message': 'Token creation error'}}, 500
 
-            firstName = user.Firstname if user.Firstname else ''
-            lastName = user.Lastname if user.Lastname else ''
-            
             user_details = {
                 'accessToken': access_token,
                 'user': {
                     'id': user.User_Id,
-                    'displayName': firstName + " " + lastName,
+                    'displayName': user.Firstname + " " + user.Lastname,
                     'email': user.Email,
                     'campusId': user.CampusId,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
