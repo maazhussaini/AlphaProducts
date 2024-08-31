@@ -5074,7 +5074,8 @@ class StaffLeaveRequestResource(Resource):
         Returns:
         timedelta: The duration of employment.
         """
-        employment_start_date = db.session.query(Staff.employment_start_date).filter_by(StaffId=staff_id).first()
+        # employment_start_date = db.session.query(Staff.employment_start_date).filter_by(StaffId=staff_id).first()
+        employment_start_date = db.session.query(StaffInfo.S_JoiningDate).filter_by(Staff_ID=staff_id).first()
         if employment_start_date:
             return datetime.utcnow() - employment_start_date[0]
         return timedelta(days=0)
@@ -5112,8 +5113,17 @@ class StaffLeaveRequestResource(Resource):
         Returns:
         str: 'AEN' for AEN Staff, 'Campus' for Campus Staff.
         """
-        staff_group = db.session.query(Staff.group).filter_by(StaffId=staff_id).first()
-        return staff_group[0] if staff_group else None
+        # staff_group = db.session.query(Staff.group).filter_by(StaffId=staff_id).first()
+        staff_group = db.session.query(StaffInfo.IsAEN).filter_by(Staff_ID=staff_id).first()
+        
+        staff_group = staff_group[0] if staff_group else None
+        
+        try:
+            staff_group = "AEN" if staff_group == 1 else 'Campus'
+            
+            return staff_group
+        except:
+            return None
 
     def get_paternity_leave_taken(self, staff_id):
         """
