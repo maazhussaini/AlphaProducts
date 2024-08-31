@@ -4798,17 +4798,31 @@ class StaffLeaveRequestResource(Resource):
             staff_id = leave_request_data.get('StaffId')
             from_date = leave_request_data.get('FromDate')
             to_date = leave_request_data.get('ToDate')
-            leave_type_id = int(leave_request_data.get('LeaveTypeId'))
+            leave_type_id = leave_request_data.get('LeaveTypeId')
             reason = leave_request_data.get('Reason')  # Reason is required
-            leave_status_id = int(leave_request_data.get('LeaveStatusId'))  # LeaveStatusId is required
+            leave_status_id = leave_request_data.get('LeaveStatusId')  # LeaveStatusId is required
 
             # Ensure required fields are provided
             if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
                 return {"status": "error", "message": "Missing required fields"}, 400
 
+            try:
+                leave_type_id = int(leave_type_id)
+                leave_status_id = int(leave_status_id)
+            except ValueError:
+                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be integers"}, 400
+
             # Convert string dates to datetime objects
-            from_date = datetime.strptime(from_date, "%Y-%m-%d")
-            to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            try:
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            except ValueError:
+                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
+
+            
+            # Convert string dates to datetime objects
+            # from_date = datetime.strptime(from_date, "%Y-%m-%d")
+            # to_date = datetime.strptime(to_date, "%Y-%m-%d")
 
             # Check if ToDate is later than FromDate
             if from_date > to_date:
