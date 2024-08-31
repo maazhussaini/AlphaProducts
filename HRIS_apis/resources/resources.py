@@ -6,6 +6,7 @@ from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
+from sqlalchemy import extract
 import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
@@ -5001,12 +5002,12 @@ class StaffLeaveRequestResource(Resource):
                 StaffLeaveRequest.LeaveTypeId == leave_type_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
                 (
-                    (StaffLeaveRequest.FromDate >= month_data['StartDate']) &
-                    (StaffLeaveRequest.FromDate <= month_data['EndDate'])
+                    (extract('month', StaffLeaveRequest.FromDate) == from_date.month) &
+                    (extract('year', StaffLeaveRequest.FromDate) == from_date.year)
                 ) |
                 (
-                    (StaffLeaveRequest.ToDate >= month_data['StartDate']) &
-                    (StaffLeaveRequest.ToDate <= month_data['EndDate'])
+                    (extract('month', StaffLeaveRequest.ToDate) == to_date.month) &
+                    (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
                 )
             ).count()
         else:
