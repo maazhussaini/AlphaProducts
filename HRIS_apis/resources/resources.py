@@ -4816,6 +4816,13 @@ class StaffLeaveRequestResource(Resource):
             # Determine staff group (AEN or Campus Staff)
             staff_group = self.get_staff_group(staff_id)  # Custom method to determine the group
 
+            showData = [
+                staff_id, staff_group, from_date, to_date, leave_type_id, leave_status_id
+            ]
+            
+            print(showData)
+            logger.info(f"{showData}")
+            
             # Casual Leave Logic
             if leave_type_id == self.CASUAL_LEAVE_TYPE_ID:
                 # Check casual leave limits
