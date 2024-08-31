@@ -6,7 +6,6 @@ from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
-from sqlalchemy import extract
 import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
@@ -4768,12 +4767,12 @@ class StaffLeaveRequestResource(Resource):
 # New code for StaffLeaveRequestResource
 
 class StaffLeaveRequestResource(Resource):
-    CASUAL_LEAVE_TYPE_ID = 1
-    SICK_LEAVE_TYPE_ID = 2
-    MATERNITY_LEAVE_TYPE_ID = 3
-    PATERNITY_LEAVE_TYPE_ID = 4
-    ANNUAL_LEAVE_TYPE_ID = 5
-    COMPENSATORY_LEAVE_TYPE_ID = 6
+    CASUAL_LEAVE_TYPE_ID = "1"
+    SICK_LEAVE_TYPE_ID = "2"
+    MATERNITY_LEAVE_TYPE_ID = "3"
+    PATERNITY_LEAVE_TYPE_ID = "4"
+    ANNUAL_LEAVE_TYPE_ID = "5"
+    COMPENSATORY_LEAVE_TYPE_ID = "6"
 
     AEN_CASUAL_LEAVE_LIMIT = 2  # AEN: Max 2 casual leaves per month
     CAMPUS_CASUAL_LEAVE_LIMIT = 1  # Campus Staff: Max 1 casual leave per month
@@ -4806,23 +4805,9 @@ class StaffLeaveRequestResource(Resource):
             if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
                 return {"status": "error", "message": "Missing required fields"}, 400
 
-            try:
-                leave_type_id = int(leave_type_id)
-                leave_status_id = int(leave_status_id)
-            except ValueError:
-                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be integers"}, 400
-
             # Convert string dates to datetime objects
-            try:
-                from_date = datetime.strptime(from_date, "%Y-%m-%d")
-                to_date = datetime.strptime(to_date, "%Y-%m-%d")
-            except ValueError:
-                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
-
-            
-            # Convert string dates to datetime objects
-            # from_date = datetime.strptime(from_date, "%Y-%m-%d")
-            # to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            from_date = datetime.strptime(from_date, "%Y-%m-%d")
+            to_date = datetime.strptime(to_date, "%Y-%m-%d")
 
             # Check if ToDate is later than FromDate
             if from_date > to_date:
@@ -5016,12 +5001,12 @@ class StaffLeaveRequestResource(Resource):
                 StaffLeaveRequest.LeaveTypeId == leave_type_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
                 (
-                    (extract('month', StaffLeaveRequest.FromDate) == from_date.month) &
-                    (extract('year', StaffLeaveRequest.FromDate) == from_date.year)
+                    (StaffLeaveRequest.FromDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.FromDate <= month_data['EndDate'])
                 ) |
                 (
-                    (extract('month', StaffLeaveRequest.ToDate) == to_date.month) &
-                    (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
+                    (StaffLeaveRequest.ToDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.ToDate <= month_data['EndDate'])
                 )
             ).count()
         else:
