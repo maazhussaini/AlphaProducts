@@ -4832,6 +4832,11 @@ class StaffLeaveRequestResource(Resource):
                 monthly_casual_leave_limit = self.AEN_CASUAL_LEAVE_LIMIT if staff_group == 'AEN' else self.CAMPUS_CASUAL_LEAVE_LIMIT
                 monthly_casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, month_data)
                 
+                leave_days = (to_date - from_date).days + 1
+                
+                if leave_days >= monthly_casual_leave_limit:
+                    return {"status": "error", "message": f"Casual leave limit exceeded for the month (Max {monthly_casual_leave_limit})."}, 400
+                
                 if monthly_casual_leave_count >= monthly_casual_leave_limit:
                     return {"status": "error", "message": f"Casual leave limit exceeded for the month (Max {monthly_casual_leave_limit})."}, 400
 
