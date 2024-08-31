@@ -4984,7 +4984,7 @@ class StaffLeaveRequestResource(Resource):
         # If month data is provided, use it for filtering
         if month_data:
             casual_leave_count = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.status == 1,
                 StaffLeaveRequest.StaffId == staff_id,
                 StaffLeaveRequest.LeaveTypeId == leave_type_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
@@ -5000,7 +5000,7 @@ class StaffLeaveRequestResource(Resource):
         else:
             # Filter based on the month of the FromDate and ToDate
             casual_leave_count = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status.is_(True),
+                StaffLeaveRequest.status == 1,
                 StaffLeaveRequest.StaffId == staff_id,
                 StaffLeaveRequest.LeaveTypeId == leave_type_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
