@@ -6,6 +6,7 @@ from flask import jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
+from sqlalchemy import extract
 import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
@@ -4807,9 +4808,18 @@ class StaffLeaveRequestResource(Resource):
             if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
                 return {"status": "error", "message": "Missing required fields"}, 400
 
+            try:
+                leave_type_id = int(leave_type_id)
+                leave_status_id = int(leave_status_id)
+            except ValueError:
+                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be integers"}, 400
+
             # Convert string dates to datetime objects
-            from_date = datetime.strptime(from_date, "%Y-%m-%d")
-            to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            try:
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            except ValueError:
+                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
 
             # Check if ToDate is later than FromDate
             if from_date > to_date:
@@ -5014,19 +5024,19 @@ class StaffLeaveRequestResource(Resource):
                 )
             ).count()
         else:
-            # Filter based on the month of the FromDate and ToDate
+            # Filter based on the month of the FromDate and ToDate using `extract`
             casual_leave_count = StaffLeaveRequest.query.filter(
                 StaffLeaveRequest.status == 1,
                 StaffLeaveRequest.StaffId == staff_id,
                 StaffLeaveRequest.LeaveTypeId == leave_type_id,
                 StaffLeaveRequest.LeaveStatusId != 2,
                 (
-                    (StaffLeaveRequest.FromDate.month == from_date.month) &
-                    (StaffLeaveRequest.FromDate.year == from_date.year)
+                    (extract('month', StaffLeaveRequest.FromDate) == from_date.month) &
+                    (extract('year', StaffLeaveRequest.FromDate) == from_date.year)
                 ) |
                 (
-                    (StaffLeaveRequest.ToDate.month == to_date.month) &
-                    (StaffLeaveRequest.ToDate.year == to_date.year)
+                    (extract('month', StaffLeaveRequest.ToDate) == to_date.month) &
+                    (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
                 )
             ).count()
 
