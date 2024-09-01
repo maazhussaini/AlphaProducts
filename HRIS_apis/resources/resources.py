@@ -4767,12 +4767,12 @@ class StaffLeaveRequestResource(Resource):
 # New code for StaffLeaveRequestResource
 
 class StaffLeaveRequestResource(Resource):
-    CASUAL_LEAVE_TYPE_ID = "1"
-    SICK_LEAVE_TYPE_ID = "2"
-    MATERNITY_LEAVE_TYPE_ID = "3"
-    PATERNITY_LEAVE_TYPE_ID = "4"
-    ANNUAL_LEAVE_TYPE_ID = "5"
-    COMPENSATORY_LEAVE_TYPE_ID = "6"
+    CASUAL_LEAVE_TYPE_ID = 1
+    SICK_LEAVE_TYPE_ID = 2
+    MATERNITY_LEAVE_TYPE_ID = 3
+    PATERNITY_LEAVE_TYPE_ID = 4
+    ANNUAL_LEAVE_TYPE_ID = 5
+    COMPENSATORY_LEAVE_TYPE_ID = 6
 
     AEN_CASUAL_LEAVE_LIMIT = 2  # AEN: Max 2 casual leaves per month
     CAMPUS_CASUAL_LEAVE_LIMIT = 1  # Campus Staff: Max 1 casual leave per month
