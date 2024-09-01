@@ -4793,6 +4793,8 @@ class StaffLeaveRequestResource(Resource):
             if not leave_request_data:
                 return {"status": "error", "message": "No input data provided"}, 400
             
+            print(leave_request_data)
+            
             # Extract data
             staff_id = leave_request_data.get('StaffId')
             from_date = leave_request_data.get('FromDate')
