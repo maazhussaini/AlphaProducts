@@ -4823,12 +4823,14 @@ class StaffLeaveRequestResource(Resource):
             ]
             
             print(showData)
-            logger.info(f"{showData}")
             
             # Casual Leave Logic
             if leave_type_id == self.CASUAL_LEAVE_TYPE_ID:
                 # Check casual leave limits
                 casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date)
+                
+                print(leave_type_id, self.CASUAL_LEAVE_TYPE_ID)
+                print(casual_leave_count)
                 
                 if casual_leave_count >= 10:
                     return {"status": "error", "message": "Casual leave limit exceeded for the year."}, 400
