@@ -5075,6 +5075,11 @@ class StaffLeaveRequestResource(Resource):
             # Sick Leave Logic
             if leave_type_id == self.SICK_LEAVE_TYPE_ID:
                 sick_leave_count = self.check_sick_leave(staff_id, leave_type_id, from_date, to_date)
+                
+                leave_days = (to_date - from_date).days + 1
+                if leave_days > self.SICK_LEAVE_LIMIT:
+                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
+
                 if sick_leave_count > self.SICK_LEAVE_LIMIT:
                     return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
 
