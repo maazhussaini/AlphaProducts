@@ -3372,7 +3372,22 @@ class ReportFilter(db.Model):
             'ReportFilter_FieldText': self.ReportFilter_FieldText
         }
 
+class LeaveConfiguration(db.Model):
+    __tablename__ = 'LeaveConfiguration'
 
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key_name = db.Column(db.String(255), nullable=False, unique=True)
+    value = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<LeaveConfiguration id={self.id}, key_name={self.key_name}, value={self.value}>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'key_name': self.key_name,
+            'value': self.value
+        }
 
 
 
