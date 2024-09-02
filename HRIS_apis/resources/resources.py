@@ -5094,7 +5094,7 @@ class StaffLeaveRequestResource(Resource):
 
             if leave_type_id == self.PATERNITY_LEAVE_TYPE_ID:
                 paternity_leave_taken = self.get_paternity_leave_taken(staff_id)
-                if paternity_leave_taken >= 3:
+                if paternity_leave_taken > 3:
                     return {"status": "error", "message": "Paternity leave limit exceeded."}, 400
                 if (to_date - from_date).days + 1 > 3:
                     return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
