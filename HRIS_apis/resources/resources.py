@@ -5258,7 +5258,7 @@ class StaffLeaveRequestResource(Resource):
         int: The count of sick leaves taken by the staff member in the leave year.
         """
         sick_leave_count = StaffLeaveRequest.query.filter(
-            StaffLeaveRequest.status.is_(True),
+            StaffLeaveRequest.status == 1,
             StaffLeaveRequest.StaffId == staff_id,
             StaffLeaveRequest.LeaveTypeId == leave_type_id,
             StaffLeaveRequest.LeaveStatusId != 2,
@@ -5283,7 +5283,7 @@ class StaffLeaveRequestResource(Resource):
         int: The total number of annual leave days taken.
         """
         annual_leave_count = StaffLeaveRequest.query.filter(
-            StaffLeaveRequest.status.is_(True),
+            StaffLeaveRequest.status == 1,
             StaffLeaveRequest.StaffId == staff_id,
             StaffLeaveRequest.LeaveTypeId == self.ANNUAL_LEAVE_TYPE_ID,
             StaffLeaveRequest.AcademicYearId == academic_year_id
