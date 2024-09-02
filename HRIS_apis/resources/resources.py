@@ -5030,8 +5030,8 @@ class StaffLeaveRequestResource(Resource):
             # Casual Leave Logic
             if leave_type_id == self.CASUAL_LEAVE_TYPE_ID:
                 
-                a, b = self.check_leave(self, staff_id, leave_type_id)
-                print(a, b)
+                # a, b = self.check_leave(self, staff_id, leave_type_id)
+                # print(a, b)
                 
                 # Check casual leave limits
                 casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date)
