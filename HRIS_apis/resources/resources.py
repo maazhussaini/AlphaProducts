@@ -835,11 +835,17 @@ class InterviewSchedulesResource(Resource):
         parser.add_argument('CampusId', type=int, required=False)
         args = parser.parse_args()
 
+        
+        Date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
+        Time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
+        
+        print(Date, Time)
+        
         try:
             new_schedule = InterviewSchedules(
                 InterviewTypeId=args['InterviewTypeId'],
-                Date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
-                Time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
+                Date=Date,
+                Time=Time,
                 Venue=args['Venue'],
                 JobApplicationFormId=args['JobApplicationFormId'],
                 InterviewConductorId=args['InterviewConductorId'],
