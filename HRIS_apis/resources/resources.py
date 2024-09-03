@@ -5099,7 +5099,7 @@ class StaffLeaveRequestResource(Resource):
                     return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
 
             if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
-                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') ,from_date, to_date):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') , from_date=from_date, to_date=to_date):
                     return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
 
             check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
@@ -5269,7 +5269,7 @@ class StaffLeaveRequestResource(Resource):
                     return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
 
             if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
-                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId'), from_date, to_date):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId'), from_date=from_date, to_date=to_date):
                     return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
 
             check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
@@ -5545,7 +5545,7 @@ class StaffLeaveRequestTempResource(Resource):
                     return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
 
             if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
-                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') ,from_date, to_date):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') ,from_date=from_date, to_date=to_date):
                     return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
 
             check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
