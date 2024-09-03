@@ -5365,7 +5365,6 @@ class StaffLeaveRequestResource(Resource):
 
         return paternity_leave_count
 
-
 class StaffLeaveRequestTempResource(Resource):
     leave_config = {}
 
@@ -5477,7 +5476,7 @@ class StaffLeaveRequestTempResource(Resource):
                     return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
 
             if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
-                if not self.verify_compensatory_leave_eligibility(staff_id, from_date, to_date):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') ,from_date, to_date):
                     return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
 
             check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
@@ -5612,13 +5611,16 @@ class StaffLeaveRequestTempResource(Resource):
             return datetime.utcnow() - employment_start_date[0]
         return timedelta(days=0)
 
-    def verify_compensatory_leave_eligibility(self, staff_id, from_date, to_date):
-        worked_on_off_days = db.session.query(StaffAttendanceTemp).filter(
-            StaffAttendanceTemp.staff_Id == staff_id,
-            StaffAttendanceTemp.CreateDate >= from_date,
-            StaffAttendanceTemp.CreateDate <= to_date,
-            StaffAttendanceTemp.is_off_day == True
-        ).count()
+    def verify_compensatory_leave_eligibility(self, staff_id, CampusIds, from_date, to_date):
+        # Query to filter records between the given date range
+        worked_on_off_days = db.session.query(MarkDayOffDeps).filter(
+            MarkDayOffDeps.Staff_Id == staff_id,
+            MarkDayOffDeps.Date.between(from_date, to_date)).count()
+        
+        if not worked_on_off_days:
+            worked_on_off_days = db.session.query(MarkDayOffHRs).filter(
+                MarkDayOffHRs.CampusIds == CampusIds,
+                MarkDayOffHRs.Date.between(from_date, to_date)).count()
 
         return worked_on_off_days > 0
 
@@ -5650,7 +5652,6 @@ class StaffLeaveRequestTempResource(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             raise e
-
 
 #############
 
