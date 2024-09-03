@@ -4579,394 +4579,8 @@ class StaffSeparationResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
-"""
-
-class StaffLeaveRequestResource(Resource):
-    CASUAL_LEAVE_TYPE_ID = 1
-    SICK_LEAVE_TYPE_ID = 2
-    MATERNITY_LEAVE_TYPE_ID = 3
-    PATERNITY_LEAVE_TYPE_ID = 4
-    ANNUAL_LEAVE_TYPE_ID = 5
-    COMPENSATORY_LEAVE_TYPE_ID = 6
-
-    AEN_CASUAL_LEAVE_LIMIT = 2  # AEN: Max 2 casual leaves per month
-    CAMPUS_CASUAL_LEAVE_LIMIT = 1  # Campus Staff: Max 1 casual leave per month
-    ANNUAL_LEAVE_LIMIT = 24  # Annual leave limit
-    SICK_LEAVE_LIMIT = 8  # Sick leave limit per year
-
-    def post(self):
-        try:
-            # Determine the content type and extract the data accordingly
-            if request.content_type.startswith('application/json'):
-                leave_request_data = request.json
-            elif request.content_type.startswith('multipart/form-data'):
-                leave_request_data = request.form.to_dict()
-            else:
-                return {"status": "error", "message": f"Unsupported Media Type {request.content_type}"}, 415
-            
-            # Validate input
-            if not leave_request_data:
-                return {"status": "error", "message": "No input data provided"}, 400
-            
-            # Extract data
-            staff_id = leave_request_data.get('StaffId')
-            from_date = leave_request_data.get('FromDate')
-            to_date = leave_request_data.get('ToDate')
-            leave_type_id = leave_request_data.get('LeaveTypeId')
-            reason = leave_request_data.get('Reason')  # Reason is required
-            leave_status_id = leave_request_data.get('LeaveStatusId')  # LeaveStatusId is required
-
-            # Ensure required fields are provided
-            if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
-                return {"status": "error", "message": "Missing required fields"}, 400
-
-            # Convert leave_type_id and leave_status_id to integers, if they are not already
-            try:
-                leave_type_id = int(leave_type_id)
-                leave_status_id = int(leave_status_id)
-            except ValueError:
-                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be valid integers"}, 400
-
-            # Convert string dates to datetime objects
-            try:
-                from_date = datetime.strptime(from_date, "%Y-%m-%d")
-                to_date = datetime.strptime(to_date, "%Y-%m-%d")
-            except ValueError:
-                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
-
-            # Check if ToDate is later than FromDate
-            if from_date > to_date:
-                return {"status": "error", "message": f"The To Date must be later than the From Date."}, 400
-
-            # Determine staff group (AEN or Campus Staff)
-            staff_group = self.get_staff_group(staff_id)  # Custom method to determine the group
-
-            # Casual Leave Logic
-            if leave_type_id == self.CASUAL_LEAVE_TYPE_ID:
-                # Check casual leave limits
-                casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date)
-                if casual_leave_count >= 10:
-                    return {"status": "error", "message": "Casual leave limit exceeded for the year."}, 400
-
-                # Check monthly casual leave limit based on staff group
-                month_data = {
-                    'StartDate': from_date.replace(day=1),
-                    'EndDate': (from_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-                }
-                monthly_casual_leave_limit = self.AEN_CASUAL_LEAVE_LIMIT if staff_group == 'AEN' else self.CAMPUS_CASUAL_LEAVE_LIMIT
-                monthly_casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, month_data)
-                
-                leave_days = (to_date - from_date).days + 1
-                
-                if leave_days > monthly_casual_leave_limit or monthly_casual_leave_count >= monthly_casual_leave_limit:
-                    return {"status": "error", "message": f"Casual leave limit exceeded for the month (Max {monthly_casual_leave_limit})."}, 400
-
-            # Sick Leave Logic
-            if leave_type_id == self.SICK_LEAVE_TYPE_ID:
-                sick_leave_count = self.check_sick_leave(staff_id, leave_type_id, from_date, to_date)
-                
-                leave_days = (to_date - from_date).days + 1
-                if leave_days > self.SICK_LEAVE_LIMIT:
-                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
-
-                if sick_leave_count > self.SICK_LEAVE_LIMIT:
-                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
-
-            # Annual Leave Logic
-            academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
-            academic_year_id = academic_year.academic_year_Id if academic_year else None
-            if leave_type_id == self.ANNUAL_LEAVE_TYPE_ID:
-                total_annual_leave_taken = self.get_annual_leave_taken(staff_id, academic_year_id)
-                if total_annual_leave_taken + (to_date - from_date).days + 1 > self.ANNUAL_LEAVE_LIMIT:
-                    return {"status": "error", "message": "Annual leave limit exceeded."}, 400
-
-            # Maternity and Paternity Leave Logic
-            if leave_type_id == self.MATERNITY_LEAVE_TYPE_ID:
-                employment_duration = self.get_employment_duration(staff_id)
-                if employment_duration < timedelta(days=365):
-                    return {"status": "error", "message": "Not eligible for maternity leave."}, 400
-
-            if leave_type_id == self.PATERNITY_LEAVE_TYPE_ID:
-                paternity_leave_taken = self.get_paternity_leave_taken(staff_id)
-                if paternity_leave_taken > 3:
-                    return {"status": "error", "message": "Paternity leave limit exceeded."}, 400
-                if (to_date - from_date).days + 1 > 3:
-                    return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
-
-            # Compensatory Leave Logic
-            if leave_type_id == self.COMPENSATORY_LEAVE_TYPE_ID:
-                if not self.verify_compensatory_leave_eligibility(staff_id, from_date, to_date):
-                    return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
-
-            # Check Attendance within the date range
-            check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
-                StaffAttendanceTemp.staff_Id == staff_id,
-                StaffAttendanceTemp.time_In.isnot(None),
-                StaffAttendanceTemp.CreateDate >= from_date,
-                StaffAttendanceTemp.CreateDate <= to_date
-            ).first()
-
-            if check_attendance:
-                return {"status": "error", "message": (
-                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
-                    f"You were marked as Present on {check_attendance.CreateDate.strftime('%d-%b-%Y')}."
-                )}, 409
-
-            # Check for duplicate leave in selected dates
-            check_duplicate_leave = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status == 1,  # Assuming '1' is the value representing True
-                StaffLeaveRequest.StaffId == staff_id,
-                StaffLeaveRequest.LeaveStatusId != 2,
-                ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
-                ((StaffLeaveRequest.ToDate >= from_date) & (StaffLeaveRequest.ToDate <= to_date))
-            ).first()
-
-            if check_duplicate_leave:
-                return {"status": "error", "message": (
-                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
-                    f"You already have an existing leave scheduled."
-                )}, 409
-
-            # Prepare the data for StaffLeaveRequest
-            leave_days = (to_date - from_date).days + 1
-            leave_request_data['AcademicYearId'] = academic_year_id
-            leave_request_data['status'] = True  # Assuming 'True' should be stored as '1'
-
-            # If all checks pass, create the leave request
-            leave_request = StaffLeaveRequest(
-                StaffId=staff_id,
-                FromDate=from_date,
-                ToDate=to_date,
-                Reason=reason,  # Pass the required 'Reason' field
-                Remarks=leave_request_data.get('Remarks'),
-                LeaveStatusId=leave_status_id,  # Ensure this is passed and not None
-                ApprovedBy=leave_request_data.get('ApprovedBy'),
-                LeaveApplicationPath=leave_request_data.get('LeaveApplicationPath'),
-                AcademicYearId=academic_year_id,
-                status=True,  # or appropriate value
-                UpdaterId=leave_request_data.get('UpdaterId') if leave_request_data.get('UpdaterId') else None,
-                UpdateDate=datetime.utcnow(),
-                CreatorId=leave_request_data.get('CreatorId'),
-                CreateDate=datetime.utcnow(),
-                CampusId=leave_request_data.get('CampusId'),
-                LeaveTypeId=leave_type_id
-            )
-
-            # Add and commit the new record
-            db.session.add(leave_request)
-            db.session.commit()
-
-            # Log the leave date range
-            self.staff_leave_date_range_entry(from_date, to_date)
-
-            return {"status": "success", "message": "Leave request created successfully."}, 201
-
-        except SQLAlchemyError as e:
-            logger.error(f"Database error: {str(e)}")
-            db.session.rollback()
-            return {"status": "error", "message": "A database error occurred, please try again later."}, 500
-
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            db.session.rollback()
-            return {"status": "error", "message": "An unexpected error occurred, please try again later."}, 500
-    
-    def staff_leave_date_range_entry(self, from_date, to_date):
-        try:
-            # Convert the dates to string format if necessary
-            from_date_str = from_date.strftime('%Y-%m-%d')
-            to_date_str = to_date.strftime('%Y-%m-%d')
-            
-            # Execute the stored procedure
-            sql = text("EXEC sp_StaffLeaveDateRangeEntry :from_date, :to_date")
-            db.session.execute(sql, {'from_date': from_date_str, 'to_date': to_date_str})
-            db.session.commit()
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            raise e
-
-    def check_casual_leave(self, staff_id, leave_type_id, from_date, to_date, month_data=None):
-        
-        # Function to check how many casual leaves have been taken by the staff member
-        # within the selected month or based on specific month data if provided.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        # leave_type_id (int): Type ID of the leave.
-        # from_date (datetime): Start date of the leave request.
-        # to_date (datetime): End date of the leave request.
-        # month_data (dict): Optional dictionary containing month information, e.g., start and end dates.
-        
-        # Returns:
-        # int: The count of casual leaves taken by the staff member in the specified month.
-        
-        casual_leave_count = 0
-
-        # If month data is provided, use it for filtering
-        if month_data:
-            casual_leave_count = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status == 1,
-                StaffLeaveRequest.StaffId == staff_id,
-                StaffLeaveRequest.LeaveTypeId == leave_type_id,
-                StaffLeaveRequest.LeaveStatusId != 2,
-                (
-                    (StaffLeaveRequest.FromDate >= month_data['StartDate']) &
-                    (StaffLeaveRequest.FromDate <= month_data['EndDate'])
-                ) |
-                (
-                    (StaffLeaveRequest.ToDate >= month_data['StartDate']) &
-                    (StaffLeaveRequest.ToDate <= month_data['EndDate'])
-                )
-            ).count()
-        else:
-            # Filter based on the month of the FromDate and ToDate using `extract`
-            casual_leave_count = StaffLeaveRequest.query.filter(
-                StaffLeaveRequest.status == 1,
-                StaffLeaveRequest.StaffId == staff_id,
-                StaffLeaveRequest.LeaveTypeId == leave_type_id,
-                StaffLeaveRequest.LeaveStatusId != 2,
-                (
-                    (extract('month', StaffLeaveRequest.FromDate) == from_date.month) &
-                    (extract('year', StaffLeaveRequest.FromDate) == from_date.year)
-                ) |
-                (
-                    (extract('month', StaffLeaveRequest.ToDate) == to_date.month) &
-                    (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
-                )
-            ).count()
-
-        return casual_leave_count
-
-    def check_sick_leave(self, staff_id, leave_type_id, from_date, to_date):
-        
-        # Function to check how many sick leaves have been taken by the staff member
-        # within the leave year.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        # leave_type_id (int): Type ID of the leave.
-        # from_date (datetime): Start date of the leave request.
-        # to_date (datetime): End date of the leave request.
-        
-        # Returns:
-        # int: The count of sick leaves taken by the staff member in the leave year.
-        
-        sick_leave_count = StaffLeaveRequest.query.filter(
-            StaffLeaveRequest.status == 1,
-            StaffLeaveRequest.StaffId == staff_id,
-            StaffLeaveRequest.LeaveTypeId == leave_type_id,
-            StaffLeaveRequest.LeaveStatusId != 2,
-            (
-                (extract('year', StaffLeaveRequest.FromDate) == from_date.year) |
-                (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
-            )
-        ).count()
-
-        return sick_leave_count
-
-    def get_annual_leave_taken(self, staff_id, academic_year_id):
-        
-        # Function to calculate the total number of annual leave days taken by the staff member
-        # within the academic year.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        # academic_year_id (int): ID of the academic year.
-        
-        # Returns:
-        # int: The total number of annual leave days taken.
-        
-        
-        annual_leave_count = StaffLeaveRequest.query.filter(
-            StaffLeaveRequest.status == 1,
-            StaffLeaveRequest.StaffId == staff_id,
-            StaffLeaveRequest.LeaveTypeId == self.ANNUAL_LEAVE_TYPE_ID,
-            StaffLeaveRequest.AcademicYearId == academic_year_id
-        ).count()
-
-        return annual_leave_count
-
-    def get_employment_duration(self, staff_id):
-        
-        # Function to calculate the duration of employment for the staff member.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        
-        # Returns:
-        # timedelta: The duration of employment.
-        
-        
-        employment_start_date = db.session.query(StaffInfo.S_JoiningDate).filter_by(Staff_ID=staff_id).first()
-        if employment_start_date:
-            return datetime.utcnow() - employment_start_date[0]
-        return timedelta(days=0)
-
-    def verify_compensatory_leave_eligibility(self, staff_id, from_date, to_date):
-        
-        # Function to verify if the staff member is eligible for compensatory leave based on their work
-        # on scheduled off days.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        # from_date (datetime): Start date of the leave request.
-        # to_date (datetime): End date of the leave request.
-        
-        # Returns:
-        # bool: True if eligible, False otherwise.
-        
-        worked_on_off_days = db.session.query(StaffAttendanceTemp).filter(
-            StaffAttendanceTemp.staff_Id == staff_id,
-            StaffAttendanceTemp.CreateDate >= from_date,
-            StaffAttendanceTemp.CreateDate <= to_date,
-            StaffAttendanceTemp.is_off_day == True  # Assuming there is a flag for off days
-        ).count()
-
-        return worked_on_off_days > 0
-
-    def get_staff_group(self, staff_id):
-        
-        # Function to determine the group of the staff member (AEN or Campus Staff).
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        
-        # Returns:
-        # str: 'AEN' for AEN Staff, 'Campus' for Campus Staff.
-        
-        
-        staff_group = db.session.query(StaffInfo.IsAEN).filter_by(Staff_ID=staff_id).first()
-        
-        staff_group = staff_group[0] if staff_group else None
-        
-        try:
-            staff_group = "AEN" if staff_group == 1 else 'Campus'
-            return staff_group
-        except:
-            return None
-
-    def get_paternity_leave_taken(self, staff_id):
-        
-        # Function to calculate the number of paternity leaves taken by the staff member.
-        
-        # Args:
-        # staff_id (int): ID of the staff member.
-        
-        # Returns:
-        # int: The number of paternity leaves taken.
-        
-        paternity_leave_count = StaffLeaveRequest.query.filter(
-            StaffLeaveRequest.status == 1,
-            StaffLeaveRequest.StaffId == staff_id,
-            StaffLeaveRequest.LeaveTypeId == self.PATERNITY_LEAVE_TYPE_ID
-        ).count()
-
-        return paternity_leave_count
 
 """
-
-# New code for StaffLeaveRequestResource
-
 class StaffLeaveRequestResource(Resource):
     CASUAL_LEAVE_TYPE_ID = 1
     SICK_LEAVE_TYPE_ID = 2
@@ -5365,6 +4979,455 @@ class StaffLeaveRequestResource(Resource):
 
         return paternity_leave_count
 
+"""
+
+class StaffLeaveRequestResource(Resource):
+    leave_config = {}
+
+    @classmethod
+    def load_leave_config(cls):
+        # Load the leave configurations from the database
+        leave_configs = db.session.query(LeaveConfiguration).all()  # Load all configs from the database
+        cls.leave_config = {config.key_name: config.value for config in leave_configs}
+
+    def __init__(self):
+        if not self.leave_config:
+            self.load_leave_config()
+
+    def get_leave_type_id(self, key):
+        return int(self.leave_config.get(key, 0))  # Default to 0 if not found
+
+    def get_leave_limit(self, key):
+        return int(self.leave_config.get(key, 0))  # Default to 0 if not found
+
+    def post(self):
+        try:
+            if request.content_type.startswith('application/json'):
+                leave_request_data = request.json
+            elif request.content_type.startswith('multipart/form-data'):
+                leave_request_data = request.form.to_dict()
+            else:
+                return {"status": "error", "message": f"Unsupported Media Type {request.content_type}"}, 415
+
+            if not leave_request_data:
+                return {"status": "error", "message": "No input data provided"}, 400
+
+            staff_id = leave_request_data.get('StaffId')
+            from_date = leave_request_data.get('FromDate')
+            to_date = leave_request_data.get('ToDate')
+            leave_type_id = leave_request_data.get('LeaveTypeId')
+            reason = leave_request_data.get('Reason')
+            leave_status_id = leave_request_data.get('LeaveStatusId')
+
+            if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
+                return {"status": "error", "message": "Missing required fields"}, 400
+
+            try:
+                leave_type_id = int(leave_type_id)
+                leave_status_id = int(leave_status_id)
+            except ValueError:
+                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be valid integers"}, 400
+
+            try:
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            except ValueError:
+                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
+
+            if from_date > to_date:
+                return {"status": "error", "message": "The To Date must be later than the From Date."}, 400
+
+            staff_group = self.get_staff_group(staff_id)
+
+            # Apply leave type-specific validations and checks
+            if leave_type_id == self.get_leave_type_id('CASUAL_LEAVE_TYPE_ID'):
+                casual_leave_limit = self.get_leave_limit('CASUAL_LEAVE_YEARLY_LIMIT')
+
+                casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date)
+                if casual_leave_count >= casual_leave_limit:
+                    return {"status": "error", "message": "Casual leave limit exceeded for the year."}, 400
+
+                month_data = {
+                    'StartDate': from_date.replace(day=1),
+                    'EndDate': (from_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                }
+                monthly_casual_leave_limit = self.get_leave_limit('AEN_CASUAL_LEAVE_LIMIT') if staff_group == 'AEN' else self.get_leave_limit('CAMPUS_CASUAL_LEAVE_LIMIT')
+                monthly_casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, month_data)
+
+                leave_days = (to_date - from_date).days + 1
+
+                if leave_days > monthly_casual_leave_limit or monthly_casual_leave_count >= monthly_casual_leave_limit:
+                    return {"status": "error", "message": f"Casual leave limit exceeded for the month (Max {monthly_casual_leave_limit})."}, 400
+
+            if leave_type_id == self.get_leave_type_id('SICK_LEAVE_TYPE_ID'):
+                sick_leave_limit = self.get_leave_limit('SICK_LEAVE_LIMIT')
+
+                sick_leave_count = self.check_sick_leave(staff_id, leave_type_id, from_date, to_date)
+                leave_days = (to_date - from_date).days + 1
+
+                if leave_days > sick_leave_limit:
+                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
+
+                if sick_leave_count > sick_leave_limit:
+                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
+
+            academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+            academic_year_id = academic_year.academic_year_Id if academic_year else None
+            if leave_type_id == self.get_leave_type_id('ANNUAL_LEAVE_TYPE_ID'):
+                total_annual_leave_taken = self.get_annual_leave_taken(staff_id, academic_year_id)
+                annual_leave_limit = self.get_leave_limit('ANNUAL_LEAVE_LIMIT')
+
+                if total_annual_leave_taken + (to_date - from_date).days + 1 > annual_leave_limit:
+                    return {"status": "error", "message": "Annual leave limit exceeded."}, 400
+
+            if leave_type_id == self.get_leave_type_id('MATERNITY_LEAVE_TYPE_ID'):
+                employment_duration = self.get_employment_duration(staff_id)
+                if employment_duration < timedelta(days=365):
+                    return {"status": "error", "message": "Not eligible for maternity leave."}, 400
+
+            if leave_type_id == self.get_leave_type_id('PATERNITY_LEAVE_TYPE_ID'):
+                paternity_leave_taken = self.get_paternity_leave_taken(staff_id)
+                if paternity_leave_taken > 3:
+                    return {"status": "error", "message": "Paternity leave limit exceeded."}, 400
+                if (to_date - from_date).days + 1 > 3:
+                    return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
+
+            if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId') ,from_date, to_date):
+                    return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
+
+            check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
+                StaffAttendanceTemp.staff_Id == staff_id,
+                StaffAttendanceTemp.time_In.isnot(None),
+                StaffAttendanceTemp.CreateDate >= from_date,
+                StaffAttendanceTemp.CreateDate <= to_date
+            ).first()
+
+            if check_attendance:
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You were marked as Present on {check_attendance.CreateDate.strftime('%d-%b-%Y')}."
+                )}, 409
+
+            check_duplicate_leave = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status == 1,
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
+                ((StaffLeaveRequest.ToDate >= from_date) & (StaffLeaveRequest.ToDate <= to_date))
+            ).first()
+
+            if check_duplicate_leave:
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You already have an existing leave scheduled."
+                )}, 409
+
+            leave_days = (to_date - from_date).days + 1
+            leave_request_data['AcademicYearId'] = academic_year_id
+            leave_request_data['status'] = True
+
+            leave_request = StaffLeaveRequest(
+                StaffId=staff_id,
+                FromDate=from_date,
+                ToDate=to_date,
+                Reason=reason,
+                Remarks=leave_request_data.get('Remarks'),
+                LeaveStatusId=leave_status_id,
+                ApprovedBy=leave_request_data.get('ApprovedBy'),
+                LeaveApplicationPath=leave_request_data.get('LeaveApplicationPath'),
+                AcademicYearId=academic_year_id,
+                status=True,
+                UpdaterId=leave_request_data.get('UpdaterId') if leave_request_data.get('UpdaterId') else None,
+                UpdateDate=datetime.utcnow(),
+                CreatorId=leave_request_data.get('CreatorId'),
+                CreateDate=datetime.utcnow(),
+                CampusId=leave_request_data.get('CampusId'),
+                LeaveTypeId=leave_type_id
+            )
+
+            db.session.add(leave_request)
+            db.session.commit()
+
+            self.staff_leave_date_range_entry(from_date, to_date)
+
+            return {"status": "success", "message": "Leave request created successfully."}, 201
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error: {str(e)}")
+            db.session.rollback()
+            return {"status": "error", "message": "A database error occurred, please try again later."}, 500
+
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            db.session.rollback()
+            return {"status": "error", "message": "An unexpected error occurred, please try again later."}, 500
+
+    def put(self, leave_request_id):
+        try:
+            if request.content_type.startswith('application/json'):
+                leave_request_data = request.json
+            elif request.content_type.startswith('multipart/form-data'):
+                leave_request_data = request.form.to_dict()
+            else:
+                return {"status": "error", "message": f"Unsupported Media Type {request.content_type}"}, 415
+
+            if not leave_request_data:
+                return {"status": "error", "message": "No input data provided"}, 400
+
+            # Fetch the existing leave request
+            leave_request = StaffLeaveRequest.query.filter_by(LeaveRequestId=leave_request_id).first()
+
+            if not leave_request:
+                return {"status": "error", "message": "Leave request not found"}, 404
+
+            # Update only the fields that are present in the request data
+            staff_id = leave_request_data.get('StaffId', leave_request.StaffId)
+            from_date = leave_request_data.get('FromDate', leave_request.FromDate.strftime('%Y-%m-%d'))
+            to_date = leave_request_data.get('ToDate', leave_request.ToDate.strftime('%Y-%m-%d'))
+            leave_type_id = leave_request_data.get('LeaveTypeId', leave_request.LeaveTypeId)
+            reason = leave_request_data.get('Reason', leave_request.Reason)
+            leave_status_id = leave_request_data.get('LeaveStatusId', leave_request.LeaveStatusId)
+
+            if not (staff_id and from_date and to_date and leave_type_id and reason and leave_status_id):
+                return {"status": "error", "message": "Missing required fields"}, 400
+
+            try:
+                leave_type_id = int(leave_type_id)
+                leave_status_id = int(leave_status_id)
+            except ValueError:
+                return {"status": "error", "message": "LeaveTypeId and LeaveStatusId must be valid integers"}, 400
+
+            try:
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+            except ValueError:
+                return {"status": "error", "message": "Invalid date format. Dates must be in YYYY-MM-DD format."}, 400
+
+            if from_date > to_date:
+                return {"status": "error", "message": "The To Date must be later than the From Date."}, 400
+
+            staff_group = self.get_staff_group(staff_id)
+
+            # Apply leave type-specific validations and checks
+            if leave_type_id == self.get_leave_type_id('CASUAL_LEAVE_TYPE_ID'):
+                casual_leave_limit = self.get_leave_limit('CASUAL_LEAVE_YEARLY_LIMIT')
+
+                casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date)
+                if casual_leave_count >= casual_leave_limit:
+                    return {"status": "error", "message": "Casual leave limit exceeded for the year."}, 400
+
+                month_data = {
+                    'StartDate': from_date.replace(day=1),
+                    'EndDate': (from_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                }
+                monthly_casual_leave_limit = self.get_leave_limit('AEN_CASUAL_LEAVE_LIMIT') if staff_group == 'AEN' else self.get_leave_limit('CAMPUS_CASUAL_LEAVE_LIMIT')
+                monthly_casual_leave_count = self.check_casual_leave(staff_id, leave_type_id, from_date, to_date, month_data)
+
+                leave_days = (to_date - from_date).days + 1
+
+                if leave_days > monthly_casual_leave_limit or monthly_casual_leave_count >= monthly_casual_leave_limit:
+                    return {"status": "error", "message": f"Casual leave limit exceeded for the month (Max {monthly_casual_leave_limit})."}, 400
+
+            if leave_type_id == self.get_leave_type_id('SICK_LEAVE_TYPE_ID'):
+                sick_leave_limit = self.get_leave_limit('SICK_LEAVE_LIMIT')
+
+                sick_leave_count = self.check_sick_leave(staff_id, leave_type_id, from_date, to_date)
+                leave_days = (to_date - from_date).days + 1
+
+                if leave_days > sick_leave_limit:
+                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
+
+                if sick_leave_count > sick_leave_limit:
+                    return {"status": "error", "message": "Sick leave limit exceeded for the year."}, 400
+
+            academic_year = AcademicYear.query.filter_by(IsActive=True, status=True).first()
+            academic_year_id = academic_year.academic_year_Id if academic_year else None
+            if leave_type_id == self.get_leave_type_id('ANNUAL_LEAVE_TYPE_ID'):
+                total_annual_leave_taken = self.get_annual_leave_taken(staff_id, academic_year_id)
+                annual_leave_limit = self.get_leave_limit('ANNUAL_LEAVE_LIMIT')
+
+                if total_annual_leave_taken + (to_date - from_date).days + 1 > annual_leave_limit:
+                    return {"status": "error", "message": "Annual leave limit exceeded."}, 400
+
+            if leave_type_id == self.get_leave_type_id('MATERNITY_LEAVE_TYPE_ID'):
+                employment_duration = self.get_employment_duration(staff_id)
+                if employment_duration < timedelta(days=365):
+                    return {"status": "error", "message": "Not eligible for maternity leave."}, 400
+
+            if leave_type_id == self.get_leave_type_id('PATERNITY_LEAVE_TYPE_ID'):
+                paternity_leave_taken = self.get_paternity_leave_taken(staff_id)
+                if paternity_leave_taken > 3:
+                    return {"status": "error", "message": "Paternity leave limit exceeded."}, 400
+                if (to_date - from_date).days + 1 > 3:
+                    return {"status": "error", "message": "Paternity leave cannot exceed 3 days."}, 400
+
+            if leave_type_id == self.get_leave_type_id('COMPENSATORY_LEAVE_TYPE_ID'):
+                if not self.verify_compensatory_leave_eligibility(staff_id, CampusIds=leave_request_data.get('CampusId'), from_date, to_date):
+                    return {"status": "error", "message": "Not eligible for compensatory leave."}, 400
+
+            check_attendance = db.session.query(StaffAttendanceTemp.CreateDate).filter(
+                StaffAttendanceTemp.staff_Id == staff_id,
+                StaffAttendanceTemp.time_In.isnot(None),
+                StaffAttendanceTemp.CreateDate >= from_date,
+                StaffAttendanceTemp.CreateDate <= to_date
+            ).first()
+
+            if check_attendance:
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You were marked as Present on {check_attendance.CreateDate.strftime('%d-%b-%Y')}."
+                )}, 409
+
+            check_duplicate_leave = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status == 1,
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                ((StaffLeaveRequest.FromDate >= from_date) & (StaffLeaveRequest.FromDate <= to_date)) |
+                ((StaffLeaveRequest.ToDate >= from_date) & (StaffLeaveRequest.ToDate <= to_date))
+            ).first()
+
+            if check_duplicate_leave:
+                return {"status": "error", "message": (
+                    f"Your leave request from {from_date.strftime('%d-%b-%Y')} to {to_date.strftime('%d-%b-%Y')} has not been approved. "
+                    f"You already have an existing leave scheduled."
+                )}, 409
+
+            # Assuming validations pass, update the leave request
+            leave_request.StaffId = staff_id
+            leave_request.FromDate = from_date
+            leave_request.ToDate = to_date
+            leave_request.Reason = reason
+            leave_request.LeaveStatusId = leave_status_id
+            leave_request.Remarks = leave_request_data.get('Remarks', leave_request.Remarks)
+            leave_request.ApprovedBy = leave_request_data.get('ApprovedBy', leave_request.ApprovedBy)
+            leave_request.LeaveApplicationPath = leave_request_data.get('LeaveApplicationPath', leave_request.LeaveApplicationPath)
+            leave_request.UpdaterId = leave_request_data.get('UpdaterId', leave_request.UpdaterId)
+            leave_request.UpdateDate = datetime.utcnow()
+
+            db.session.commit()
+
+            return {"status": "success", "message": "Leave request updated successfully."}, 200
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error: {str(e)}")
+            db.session.rollback()
+            return {"status": "error", "message": "A database error occurred, please try again later."}, 500
+
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            db.session.rollback()
+            return {"status": "error", "message": "An unexpected error occurred, please try again later."}, 500
+
+    def check_casual_leave(self, staff_id, leave_type_id, from_date, to_date, month_data=None):
+        casual_leave_count = 0
+        if month_data:
+            casual_leave_count = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status == 1,
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveTypeId == leave_type_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                (
+                    (StaffLeaveRequest.FromDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.FromDate <= month_data['EndDate'])
+                ) |
+                (
+                    (StaffLeaveRequest.ToDate >= month_data['StartDate']) &
+                    (StaffLeaveRequest.ToDate <= month_data['EndDate'])
+                )
+            ).count()
+        else:
+            casual_leave_count = StaffLeaveRequest.query.filter(
+                StaffLeaveRequest.status == 1,
+                StaffLeaveRequest.StaffId == staff_id,
+                StaffLeaveRequest.LeaveTypeId == leave_type_id,
+                StaffLeaveRequest.LeaveStatusId != 2,
+                (
+                    (extract('month', StaffLeaveRequest.FromDate) == from_date.month) &
+                    (extract('year', StaffLeaveRequest.FromDate) == from_date.year)
+                ) |
+                (
+                    (extract('month', StaffLeaveRequest.ToDate) == to_date.month) &
+                    (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
+                )
+            ).count()
+
+        return casual_leave_count
+
+    def check_sick_leave(self, staff_id, leave_type_id, from_date, to_date):
+        sick_leave_count = StaffLeaveRequest.query.filter(
+            StaffLeaveRequest.status == 1,
+            StaffLeaveRequest.StaffId == staff_id,
+            StaffLeaveRequest.LeaveTypeId == leave_type_id,
+            StaffLeaveRequest.LeaveStatusId != 2,
+            (
+                (extract('year', StaffLeaveRequest.FromDate) == from_date.year) |
+                (extract('year', StaffLeaveRequest.ToDate) == to_date.year)
+            )
+        ).count()
+
+        return sick_leave_count
+
+    def get_annual_leave_taken(self, staff_id, academic_year_id):
+        annual_leave_count = StaffLeaveRequest.query.filter(
+            StaffLeaveRequest.status == 1,
+            StaffLeaveRequest.StaffId == staff_id,
+            StaffLeaveRequest.LeaveTypeId == self.get_leave_type_id('ANNUAL_LEAVE_TYPE_ID'),
+            StaffLeaveRequest.AcademicYearId == academic_year_id
+        ).count()
+
+        return annual_leave_count
+
+    def get_employment_duration(self, staff_id):
+        employment_start_date = db.session.query(StaffInfo.S_JoiningDate).filter_by(Staff_ID=staff_id).first()
+        if employment_start_date:
+            return datetime.utcnow() - employment_start_date[0]
+        return timedelta(days=0)
+
+    def verify_compensatory_leave_eligibility(self, staff_id, CampusIds, from_date, to_date):
+        # Query to filter records between the given date range
+        worked_on_off_days = db.session.query(MarkDayOffDeps).filter(
+            MarkDayOffDeps.Staff_Id == staff_id,
+            MarkDayOffDeps.Date.between(from_date, to_date)).count()
+        
+        if not worked_on_off_days:
+            worked_on_off_days = db.session.query(MarkDayOffHRs).filter(
+                MarkDayOffHRs.CampusIds == CampusIds,
+                MarkDayOffHRs.Date.between(from_date, to_date)).count()
+
+        return worked_on_off_days > 0
+
+    def get_staff_group(self, staff_id):
+        staff_group = db.session.query(StaffInfo.IsAEN).filter_by(Staff_ID=staff_id).first()
+        staff_group = staff_group[0] if staff_group else None
+        try:
+            staff_group = "AEN" if staff_group == 1 else 'Campus'
+            return staff_group
+        except:
+            return None
+
+    def get_paternity_leave_taken(self, staff_id):
+        paternity_leave_count = StaffLeaveRequest.query.filter(
+            StaffLeaveRequest.status == 1,
+            StaffLeaveRequest.StaffId == staff_id,
+            StaffLeaveRequest.LeaveTypeId == self.get_leave_type_id('PATERNITY_LEAVE_TYPE_ID')
+        ).count()
+
+        return paternity_leave_count
+
+    def staff_leave_date_range_entry(self, from_date, to_date):
+        try:
+            from_date_str = from_date.strftime('%Y-%m-%d')
+            to_date_str = to_date.strftime('%Y-%m-%d')
+            sql = text("EXEC sp_StaffLeaveDateRangeEntry :from_date, :to_date")
+            db.session.execute(sql, {'from_date': from_date_str, 'to_date': to_date_str})
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e
+
+
+# New code for StaffLeaveRequestResource
 class StaffLeaveRequestTempResource(Resource):
     leave_config = {}
 
