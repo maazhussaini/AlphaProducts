@@ -837,22 +837,22 @@ class InterviewSchedulesResource(Resource):
 
         try:
             new_schedule = InterviewSchedules(
-                interviewTypeId=args['InterviewTypeId'],
-                date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
-                time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
-                venue=args['Venue'],
-                jobApplicationFormId=args['JobApplicationFormId'],
-                interviewConductorId=args['InterviewConductorId'],
-                demoTopic=args['DemoTopic'],
-                position=args['Position'],
-                location=args['Location'],
-                createdBy=args['CreatedBy'],
-                createDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow() + timedelta(hours=5),
-                campusId=args['CampusId']
+                InterviewTypeId=args['InterviewTypeId'],
+                Date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
+                Time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
+                Venue=args['Venue'],
+                JobApplicationFormId=args['JobApplicationFormId'],
+                InterviewConductorId=args['InterviewConductorId'],
+                DemoTopic=args['DemoTopic'],
+                Position=args['Position'],
+                Location=args['Location'],
+                CreatedBy=args['CreatedBy'],
+                CreateDate=datetime.strptime(args['CreateDate'], '%Y-%m-%d %H:%M:%S') if args['CreateDate'] else datetime.utcnow() + timedelta(hours=5),
+                CampusId=args['CampusId']
             )
             db.session.add(new_schedule)
             db.session.commit()
-            return {"message": "Interview schedule created", "id": new_schedule.id}, 201
+            return {"message": "Interview schedule created", "id": new_schedule.Id}, 201
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error creating interview schedule: {str(e)}")
@@ -904,7 +904,7 @@ class InterviewSchedulesResource(Resource):
                 schedule.CampusId = args['CampusId']
             
             db.session.commit()
-            return {"message": "Interview schedule updated", "id": schedule.id}, 200
+            return {"message": "Interview schedule updated", "id": schedule.Id}, 200
         except Exception as e:
             db.session.rollback()
             abort(400, message=f"Error updating interview schedule: {str(e)}")
