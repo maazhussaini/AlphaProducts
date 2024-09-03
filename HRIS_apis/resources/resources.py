@@ -836,7 +836,7 @@ class InterviewSchedulesResource(Resource):
         args = parser.parse_args()
 
         
-        Date=datetime.strptime(args['Date'], '%Y-%m-%d') if args['Date'] else None,
+        Date=datetime.strptime(args['Date'], '%Y-%m-%d').date() if args['Date'] else None,
         Time=datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None,
         
         print(Date, Time)
