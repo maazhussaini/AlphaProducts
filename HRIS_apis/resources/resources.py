@@ -6102,10 +6102,6 @@ class UserDetails(Resource):
             logger.error(f"An unexpected error occurred: {e}")
             return {"data": {'status': 400, 'message': f'Internal server error: {e}'}}, 500
 
-
-# ------------------ LEAVE ----------------------
-
-
 class StaffDetailsResource(Resource):
     def get(self, id=None):
         
@@ -6126,3 +6122,8 @@ class StaffDetailsResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
+
+class EmployeeCreationResource(Resource):
+    
+    def post(self):
+        pass

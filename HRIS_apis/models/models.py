@@ -3389,12 +3389,158 @@ class LeaveConfiguration(db.Model):
             'value': self.value
         }
 
+class StaffCnic(db.Model):
+    __tablename__ = 'StaffCnic'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+    FrontCNICDocumentPath = db.Column(db.String(255), nullable=True)
+    BackCNICDocumentPath = db.Column(db.String(255), nullable=True)
 
+    def __repr__(self):
+        return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
 
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'Status': self.Status,
+            'CampusId': self.CampusId,
+            'FrontCNICDocumentPath': self.FrontCNICDocumentPath,
+            'BackCNICDocumentPath': self.BackCNICDocumentPath
+        }
 
+class StaffChild(db.Model):
+    __tablename__ = 'StaffChild'
 
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    ChildName = db.Column(db.String(50), nullable=True)
+    GenderId = db.Column(db.Integer, nullable=True)
+    CNIC = db.Column(db.String(20), nullable=True)
+    DOB = db.Column(db.DateTime, nullable=False)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
 
+    def __repr__(self):
+        return f"<StaffChild Id={self.Id}, ChildName={self.ChildName}, Status={self.Status}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'ChildName': self.ChildName,
+            'GenderId': self.GenderId,
+            'CNIC': self.CNIC,
+            'DOB': self.DOB,
+            'Status': self.Status,
+            'CampusId': self.CampusId
+        }
+
+class StaffEducation(db.Model):
+    __tablename__ = 'StaffEducation'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    EducationTypeId = db.Column(db.Integer, nullable=True)
+    FieldName = db.Column(db.String(150), nullable=True)
+    Institution = db.Column(db.String(100), nullable=True)
+    Year = db.Column(db.Integer, nullable=False)
+    Grade = db.Column(db.String(50), nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+    EducationDocumentPath = db.Column(db.String(255), nullable=True)
+
+    def __repr__(self):
+        return f"<StaffEducation Id={self.Id}, StaffId={self.StaffId}, FieldName={self.FieldName}, Institution={self.Institution}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'EducationTypeId': self.EducationTypeId,
+            'FieldName': self.FieldName,
+            'Institution': self.Institution,
+            'Year': self.Year,
+            'Grade': self.Grade,
+            'Status': self.Status,
+            'CampusId': self.CampusId,
+            'EducationDocumentPath': self.EducationDocumentPath
+        }
+
+class StaffExperience(db.Model):
+    __tablename__ = 'StaffExperience'
+
+    Id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    CompanyName = db.Column(db.String(255), nullable=True)
+    Position = db.Column(db.String(255), nullable=True)
+    StartDate = db.Column(db.DateTime, nullable=False)
+    EndDate = db.Column(db.DateTime, nullable=False)
+    StaffId = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    Status = db.Column(db.Boolean, nullable=False)
+    Salary = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    ExperienceDocumentPath = db.Column(db.String(255), nullable=True)
+
+    def __repr__(self):
+        return f"<StaffExperience Id={self.Id}, CompanyName={self.CompanyName}, Position={self.Position}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'CompanyName': self.CompanyName,
+            'Position': self.Position,
+            'StartDate': self.StartDate,
+            'EndDate': self.EndDate,
+            'StaffId': self.StaffId,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate,
+            'Status': self.Status,
+            'Salary': self.Salary,
+            'CampusId': self.CampusId,
+            'ExperienceDocumentPath': self.ExperienceDocumentPath
+        }
+
+class StaffOther(db.Model):
+    __tablename__ = 'StaffOther'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    Title = db.Column(db.String(50), nullable=True)
+    Description = db.Column(db.String(100), nullable=True)
+    Status = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+    OtherDocumentPath = db.Column(db.String(255), nullable=True)
+
+    def __repr__(self):
+        return f"<StaffOther Id={self.Id}, Title={self.Title}, Status={self.Status}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'Title': self.Title,
+            'Description': self.Description,
+            'Status': self.Status,
+            'CampusId': self.CampusId,
+            'OtherDocumentPath': self.OtherDocumentPath
+        }
 
 
 
