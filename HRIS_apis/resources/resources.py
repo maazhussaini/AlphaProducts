@@ -837,7 +837,7 @@ class InterviewSchedulesResource(Resource):
 
         
         # Parse Date (with both date and time in the string)
-        Date = datetime.strptime(args['Date'], '%Y-%m-%d %H:%M:%S').date() if args['Date'] else None
+        Date = datetime.strptime(args['Date'], '%Y-%m-%d %H:%M:%S') if args['Date'] else None
 
         # Parse Time correctly using only time format
         Time = datetime.strptime(args['Time'], '%H:%M:%S').time() if args['Time'] else None
