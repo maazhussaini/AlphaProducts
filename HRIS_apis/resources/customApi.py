@@ -135,9 +135,7 @@ class CallProcedureResource(Resource):
                     'total': total
                 })
             else:
-                return jsonify(
-                    {"data": result_list}
-                )
+                return {"data": result_list}
 
         except SQLAlchemyError as e:
             connection.rollback()
