@@ -99,13 +99,9 @@ class CallProcedureResource(Resource):
             return {'error': 'Parameters should be a dictionary if provided'}, 400
 
         # Prepare the parameters if they exist
-        # custom_parameters = [f'@{key} = {value}' for key, value in parameters.items()]
-        custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
+        custom_parameters = [f'@{key} = {value}' for key, value in parameters.items()]
+        # custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_parameters)
-        
-        print(param_placeholders)
-        # custom_parameters = parameters['WhereClause']
-        # param_placeholders = '"' + str(custom_parameters) + '"'
 
         # Connect to the database
         connection = db.engine.raw_connection()
@@ -113,8 +109,6 @@ class CallProcedureResource(Resource):
             cursor = connection.cursor()
             if param_placeholders:
                 call_procedure_query = f"EXEC {procedure_name} {param_placeholders}"
-                
-                print(call_procedure_query)
                 cursor.execute(call_procedure_query)
             else:
                 call_procedure_query = f"exec {procedure_name};"
