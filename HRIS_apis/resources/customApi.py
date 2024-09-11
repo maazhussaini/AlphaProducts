@@ -99,8 +99,11 @@ class CallProcedureResource(Resource):
             return {'error': 'Parameters should be a dictionary if provided'}, 400
 
         # Prepare the parameters if they exist
-        custom_paramters = [f'@{key} = {value}' for key, value in parameters.items()]
-        param_placeholders = ', '.join(custom_paramters)
+        # custom_paramters = [f'@{key} = {value}' for key, value in parameters.items()]
+        # param_placeholders = ', '.join(custom_paramters)
+        
+        custom_parameters = parameters['WhereClause']
+        param_placeholders = '"' + str(custom_parameters) + '"'
 
         # Connect to the database
         connection = db.engine.raw_connection()
