@@ -9,6 +9,13 @@ import pyodbc
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 import os
+from decimal import Decimal
+import pandas as pd
+
+def decimal_to_serializable(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)  # or use str(obj) if you prefer to keep it as a string
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 def get_model_by_tablename(table_name):
     return globals().get(table_name)
@@ -122,6 +129,16 @@ class CallProcedureResource(Resource):
             # Convert results to a list of dictionaries for JSON response
             result_list = [dict(zip(columns, row)) for row in results]
             
+            # Create a pandas DataFrame from the result
+            temp = pd.DataFrame(result_list)
+
+            # Convert DataFrame to a list of dictionaries
+            results = temp.to_dict(orient='records')
+            
+            # Use json.dumps with the custom decimal-to-float converter
+            json_data = json.dumps({"data": results}, default=decimal_to_serializable)
+
+            return json_data
             if page and per_page:
                 # Apply pagination
                 total = len(result_list)
