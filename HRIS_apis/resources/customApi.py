@@ -102,6 +102,7 @@ class CallProcedureResource(Resource):
         custom_paramters = [f'@{key} = {value}' for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_paramters)
         
+        print(param_placeholders)
         # custom_parameters = parameters['WhereClause']
         # param_placeholders = '"' + str(custom_parameters) + '"'
 
@@ -111,6 +112,8 @@ class CallProcedureResource(Resource):
             cursor = connection.cursor()
             if param_placeholders:
                 call_procedure_query = f"EXEC {procedure_name} {param_placeholders}"
+                
+                print(call_procedure_query)
                 cursor.execute(call_procedure_query)
             else:
                 call_procedure_query = f"exec {procedure_name};"
