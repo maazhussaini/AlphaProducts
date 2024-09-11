@@ -6129,4 +6129,8 @@ class StaffDetailsResource(Resource):
 class EmployeeCreationResource(Resource):
     
     def post(self):
-        pass
+        form_data = request.form.to_dict()
+        
+        print(form_data)
+        
+        return form_data
