@@ -138,6 +138,11 @@ class CallProcedureResource(Resource):
             # Use json.dumps with the custom decimal-to-float converter
             json_data = json.dumps({"data": results}, default=decimal_to_serializable)
 
+            # Use json.dumps with the custom decimal-to-float converter
+            json_data = json.dumps({"data": results}, default=decimal_to_serializable)
+
+            json_data = json.loads(json_data)
+
             return json_data
             if page and per_page:
                 # Apply pagination
