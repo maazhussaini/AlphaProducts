@@ -106,8 +106,8 @@ class CallProcedureResource(Resource):
             return {'error': 'Parameters should be a dictionary if provided'}, 400
 
         # Prepare the parameters if they exist
-        custom_parameters = [f'@{key} = {value}' for key, value in parameters.items()]
-        # custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
+        # custom_parameters = [f'@{key} = {value}' for key, value in parameters.items()]
+        custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_parameters)
 
         # Connect to the database
