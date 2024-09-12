@@ -11,12 +11,13 @@ from werkzeug.utils import secure_filename
 import os
 from decimal import Decimal
 import pandas as pd
+from datetime import datetime
 
 # Custom function to handle both Decimal and Timestamp objects
 def custom_serializer(obj):
     if isinstance(obj, Decimal):
         return float(obj)  # Convert Decimal to float
-    elif isinstance(obj, (pd.Timestamp, datetime.datetime)):
+    elif isinstance(obj, (pd.Timestamp, datetime)):  # Use the correct datetime
         return obj.isoformat()  # Convert Timestamp/datetime to ISO 8601 string format
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
