@@ -114,6 +114,8 @@ class CallProcedureResource(Resource):
         custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_parameters)
 
+        print(parameters, custom_parameters, param_placeholders)
+        
         # Connect to the database
         connection = db.engine.raw_connection()
         try:
@@ -125,6 +127,8 @@ class CallProcedureResource(Resource):
                 call_procedure_query = f"exec {procedure_name};"
                 cursor.execute(call_procedure_query)
 
+            print(call_procedure_query)
+            
             columns = [column[0] for column in cursor.description]
             results = cursor.fetchall()
             cursor.close()
@@ -138,9 +142,6 @@ class CallProcedureResource(Resource):
 
             # Convert DataFrame to a list of dictionaries
             results = temp.to_dict(orient='records')
-            
-            # Use json.dumps with the custom decimal-to-float converter
-            # json_data = json.dumps({"data": results}, default=decimal_to_serializable)
 
             # Use json.dumps with the custom decimal-to-float converter
             json_data = json.dumps({"data": results}, default=custom_serializer)
