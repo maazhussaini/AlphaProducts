@@ -12,10 +12,14 @@ import os
 from decimal import Decimal
 import pandas as pd
 
-def decimal_to_serializable(obj):
+# Custom function to handle both Decimal and Timestamp objects
+def custom_serializer(obj):
     if isinstance(obj, Decimal):
-        return float(obj)  # or use str(obj) if you prefer to keep it as a string
+        return float(obj)  # Convert Decimal to float
+    elif isinstance(obj, (pd.Timestamp, datetime.datetime)):
+        return obj.isoformat()  # Convert Timestamp/datetime to ISO 8601 string format
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
 
 def get_model_by_tablename(table_name):
     return globals().get(table_name)
@@ -136,10 +140,10 @@ class CallProcedureResource(Resource):
             results = temp.to_dict(orient='records')
             
             # Use json.dumps with the custom decimal-to-float converter
-            json_data = json.dumps({"data": results}, default=decimal_to_serializable)
+            # json_data = json.dumps({"data": results}, default=decimal_to_serializable)
 
             # Use json.dumps with the custom decimal-to-float converter
-            json_data = json.dumps({"data": results}, default=decimal_to_serializable)
+            json_data = json.dumps({"data": results}, default=custom_serializer)
 
             json_data = json.loads(json_data)
 
