@@ -6129,8 +6129,75 @@ class StaffDetailsResource(Resource):
 class EmployeeCreationResource(Resource):
     
     def post(self):
-        form_data = request.form.to_dict()
-        
-        print(form_data)
-        
-        return form_data
+        try:
+            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+            MAIN_UPLOAD_FOLDER = 'uploads\\'
+
+            if not request.files and not request.form:
+                return {'message': 'No file or form data in the request'}, 400
+
+            # Process form data as JSON for handling multiple tables
+            form_data = request.form.to_dict()
+
+            inserted_ids = {}  # To store IDs of inserted records
+            
+            for table_name, fields in form_data.items():
+                
+                # Insert the data into the respective table
+                model_class = self.get_model_by_tablename(table_name)
+                if not model_class:
+                    return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+                
+                # Handle file uploads
+                uploaded_files = []
+                if request.files:
+                    for key in request.files:
+                        file = request.files[key]
+                        if file.filename == '':
+                            continue
+
+                        filename = secure_filename(file.filename)
+                        UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name, key)
+
+                        if not os.path.exists(UPLOAD_FOLDER):
+                            os.makedirs(UPLOAD_FOLDER)
+
+                        file_path = os.path.join(UPLOAD_FOLDER, filename)
+                        file.save(file_path)
+                        uploaded_files.append((filename, file_path, key))
+
+                        # Add the file path to the form data for insertion
+                        fields[key] = file_path
+
+                if table_name == "UserCampus":
+                    field["UserId"] = inserted_ids['USERS']
+                
+                # # Dynamically add foreign key if required
+                # for field, value in fields.items():
+                #     if value == "Table1.Id" and "Table1" in inserted_ids:  # Assuming "Table1.Id" implies FK to Table1
+                #         fields[field] = inserted_ids["Table1"]  # Use the ID from the inserted Table1
+
+                try:
+                    record = model_class(**fields)
+                    db.session.add(record)
+                    db.session.commit()
+
+                    # Store inserted ID for future foreign key references
+                    if table_name == "USERS":
+                        inserted_id = record.User_Id  # Assuming 'id' is the primary key field
+                        inserted_ids[table_name] = inserted_id
+
+                except SQLAlchemyError as e:
+                    db.session.rollback()
+                    return {'status': 'error', 'message': str(e)}, 500
+                except Exception as e:
+                    db.session.rollback()
+                    return {'status': 'error', 'message': str(e)}, 500
+
+            return {'status': 'success', 'message': 'Records inserted successfully', 'inserted_ids': inserted_ids}, 201
+
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}, 500
+
+    def get_model_by_tablename(self, table_name):
+        return globals().get(table_name)
