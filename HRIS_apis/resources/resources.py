@@ -6168,14 +6168,16 @@ class EmployeeCreationResource(Resource):
 
                         # Add the file path to the form data for insertion
                         fields[key] = file_path
-
-                if table_name == "UserCampus":
-                    field["UserId"] = inserted_ids['USERS']
                 
-                # # Dynamically add foreign key if required
-                # for field, value in fields.items():
-                #     if value == "Table1.Id" and "Table1" in inserted_ids:  # Assuming "Table1.Id" implies FK to Table1
-                #         fields[field] = inserted_ids["Table1"]  # Use the ID from the inserted Table1
+                
+                if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "ShiftMonthlySchedules", "StaffOther"]:
+                    fields["StaffId"] = inserted_ids['StaffInfo']
+                
+                elif table_name == "Salaries":
+                    fields["EmployeeId"] = inserted_ids['StaffInfo']
+                
+                elif table_name == "UserCampus":
+                    fields["UserId"] = inserted_ids['USERS']
 
                 try:
                     record = model_class(**fields)
@@ -6183,9 +6185,15 @@ class EmployeeCreationResource(Resource):
                     db.session.commit()
 
                     # Store inserted ID for future foreign key references
+                    
+                    if table_name == "StaffInfo":
+                        inserted_id = record.Staff_ID  # Assuming 'id' is the primary key field
+                        inserted_ids[table_name] = inserted_id
+                        
                     if table_name == "USERS":
                         inserted_id = record.User_Id  # Assuming 'id' is the primary key field
                         inserted_ids[table_name] = inserted_id
+                        
 
                 except SQLAlchemyError as e:
                     db.session.rollback()
