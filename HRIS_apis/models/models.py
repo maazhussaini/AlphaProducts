@@ -32,7 +32,7 @@ class AcademicYear(db.Model):
             'IsActive': self.IsActive
         }
 
-class Users(db.Model):
+class USERS(db.Model):
     __tablename__ = 'USERS'
 
     User_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)

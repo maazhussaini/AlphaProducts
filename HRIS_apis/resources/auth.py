@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from resources.crypto_utils import encrypt
 from datetime import timedelta  # Import timedelta
-from models.models import (Users, UserCampus, StaffInfo, Role, LNK_USER_ROLE, FormDetails, 
+from models.models import (USERS, UserCampus, StaffInfo, Role, LNK_USER_ROLE, FormDetails, 
                            FormDetailPermissions, Form, SchoolDetails, AcademicYear, UserType, 
                            StudentInfo, country, cities)
 
@@ -33,7 +33,7 @@ class UserLoginResource(Resource):
                 return {"data": {'status': 400, 'message': 'Encryption error'}}, 500
 
             try:
-                user = Users.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
+                user = USERS.query.filter_by(Username=encrypted_username, Password=encrypted_password).first()
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
                 return {"data": {'status': 400, 'message': 'Database error'}}, 500

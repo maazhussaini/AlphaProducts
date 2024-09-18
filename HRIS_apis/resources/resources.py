@@ -3133,12 +3133,12 @@ class StaffTransferResource(Resource):
 
     def update_user(self, staff_id, to_campus_id):
         """
-        Updates the Users table with the new campus ID and sets the IsAEN flag if transferring to campus 11
+        Updates the USERS table with the new campus ID and sets the IsAEN flag if transferring to campus 11
         """
         
         try:
             user_id = UserCampus.query.filter_by(StaffId=staff_id).first().UserId
-            user = Users.query.get(user_id)
+            user = USERS.query.get(user_id)
             
             if to_campus_id == 11:
                 user.IsAEN = 1  # Set IsAEN flag if transferring to campus 11
@@ -6017,7 +6017,7 @@ class UserDetails(Resource):
     def post(self, id):
         try:
             try:
-                user = Users.query.get_or_404(id)
+                user = USERS.query.get_or_404(id)
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
                 return {"data": {'status': 400, 'message': 'Database error'}}, 500
@@ -6178,6 +6178,7 @@ class EmployeeCreationResource(Resource):
                 
                 elif table_name == "UserCampus":
                     fields["UserId"] = inserted_ids['USERS']
+                    fields["StaffId"] = inserted_ids['StaffInfo']
 
                 try:
                     record = model_class(**fields)
