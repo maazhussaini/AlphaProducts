@@ -6158,7 +6158,8 @@ class EmployeeCreationResource(Resource):
                 
                 # Convert list values to single values if needed
                 if isinstance(fields, list):
-                    fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
+                    fields = json.loads(fields[0]) if isinstance(fields, list) and len(fields) == 1 else fields
+                    # fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
 
                 logging.info(f"Processing table: {table_name}, with fields: {fields}")
 
