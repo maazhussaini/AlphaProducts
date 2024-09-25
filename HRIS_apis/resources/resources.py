@@ -6127,74 +6127,56 @@ class StaffDetailsResource(Resource):
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
 class EmployeeCreationResource(Resource):
-    
+
     def post(self):
         try:
-            ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-            MAIN_UPLOAD_FOLDER = 'uploads\\'
+            ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+            MAIN_UPLOAD_FOLDER = 'uploads/'
 
+            # Ensure that both form data and files are present in the request
             if not request.files and not request.form:
                 return {'message': 'No file or form data in the request'}, 400
 
             # Process form data as JSON for handling multiple tables
-            form_data = request.form.to_dict()
+            form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
 
             inserted_ids = {}  # To store IDs of inserted records
-            
+            file_data = {}
+
+            # Handle form data processing for each table
             for table_name, fields in form_data.items():
-                
-                # Insert the data into the respective table
+                if table_name == 'FilesContainer':
+                    # Process the file mappings
+                    file_data = self.process_files(request.files)
+                    continue
+
+                # Insert the non-file data into the respective table
                 model_class = self.get_model_by_tablename(table_name)
                 if not model_class:
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
                 
-                # Handle file uploads
-                uploaded_files = []
-                if request.files:
-                    for key in request.files:
-                        file = request.files[key]
-                        if file.filename == '':
-                            continue
-
-                        filename = secure_filename(file.filename)
-                        UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name, key)
-
-                        if not os.path.exists(UPLOAD_FOLDER):
-                            os.makedirs(UPLOAD_FOLDER)
-
-                        file_path = os.path.join(UPLOAD_FOLDER, filename)
-                        file.save(file_path)
-                        uploaded_files.append((filename, file_path, key))
-
-                        # Add the file path to the form data for insertion
-                        fields[key] = file_path
-                
-                
+                # Handle foreign key references
                 if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "ShiftMonthlySchedules", "StaffOther"]:
-                    fields["StaffId"] = inserted_ids['StaffInfo']
-                
+                    fields["StaffId"] = inserted_ids.get('StaffInfo')
                 elif table_name == "Salaries":
-                    fields["EmployeeId"] = inserted_ids['StaffInfo']
-                
+                    fields["EmployeeId"] = inserted_ids.get('StaffInfo')
                 elif table_name == "UserCampus":
-                    fields["UserId"] = inserted_ids['USERS']
-                    fields["StaffId"] = inserted_ids['StaffInfo']
+                    fields["UserId"] = inserted_ids.get('USERS')
+                    fields["StaffId"] = inserted_ids.get('StaffInfo')
 
+                # Insert the record
                 try:
                     record = model_class(**fields)
                     db.session.add(record)
                     db.session.commit()
 
                     # Store inserted ID for future foreign key references
-                    
                     if table_name == "StaffInfo":
-                        inserted_id = record.Staff_ID  # Assuming 'id' is the primary key field
+                        inserted_id = record.Staff_ID
                         inserted_ids[table_name] = inserted_id
-                        
-                    if table_name == "USERS":
-                        inserted_id = record.User_Id  # Assuming 'id' is the primary key field
+                    elif table_name == "USERS":
+                        inserted_id = record.User_Id
                         inserted_ids[table_name] = inserted_id
-                        
 
                 except SQLAlchemyError as e:
                     db.session.rollback()
@@ -6203,10 +6185,70 @@ class EmployeeCreationResource(Resource):
                     db.session.rollback()
                     return {'status': 'error', 'message': str(e)}, 500
 
+            # After inserting records, process file uploads and map them to the records
+            for file_key, file_info in file_data.items():
+                table_name, field_name, file_name = file_info['key'].split('-')
+                file_path = file_info['path']
+
+                # Update the corresponding table with the file path
+                model_class = self.get_model_by_tablename(table_name)
+                record_id = inserted_ids.get(table_name)
+                if model_class and record_id:
+                    try:
+                        # Assuming there's a method to update a specific field with a file path
+                        record = db.session.query(model_class).filter_by(id=record_id).first()
+                        setattr(record, field_name, file_path)
+                        db.session.commit()
+                    except Exception as e:
+                        db.session.rollback()
+                        return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
+
             return {'status': 'success', 'message': 'Records inserted successfully', 'inserted_ids': inserted_ids}, 201
 
         except Exception as e:
             return {'status': 'error', 'message': str(e)}, 500
 
     def get_model_by_tablename(self, table_name):
+        # Dynamically get the model class based on the table name
         return globals().get(table_name)
+
+    def allowed_file(self, filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'doc', 'docx'}
+
+    def process_files(self, files):
+        """
+        Processes files sent from the frontend.
+        """
+        file_data = {}
+        MAIN_UPLOAD_FOLDER = 'uploads/'
+        
+        for key, file in files.items():
+            if file.filename == '':
+                continue
+
+            if not self.allowed_file(file.filename):
+                continue
+
+            filename = secure_filename(file.filename)
+            key_parts = key.split('-')
+
+            if len(key_parts) < 3:
+                continue  # Skip files that don't conform to the expected key format
+
+            table_name = key_parts[0]
+            field_name = key_parts[1]
+            file_name = key_parts[2]
+
+            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name)
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+
+            file_data[key] = {
+                'key': key, 
+                'path': file_path
+            }
+
+        return file_data
