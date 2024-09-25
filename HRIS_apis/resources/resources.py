@@ -6133,12 +6133,17 @@ class EmployeeCreationResource(Resource):
             ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
             MAIN_UPLOAD_FOLDER = 'uploads/'
 
+            logging.info("Received request to create employee record.")
+
             # Ensure that both form data and files are present in the request
             if not request.files and not request.form:
+                logging.warning("No file or form data found in the request.")
                 return {'message': 'No file or form data in the request'}, 400
 
             # Process form data as JSON for handling multiple tables
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
+
+            logging.info(f"Form data received: {form_data}")
 
             inserted_ids = {}  # To store IDs of inserted records
             file_data = {}
@@ -6148,16 +6153,25 @@ class EmployeeCreationResource(Resource):
                 if table_name == 'FilesContainer':
                     # Process the file mappings
                     file_data = self.process_files(request.files)
+                    logging.info(f"Files received: {file_data}")
                     continue
+                
+                # Convert list values to single values if needed
+                if isinstance(fields, list):
+                    fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
+
+                logging.info(f"Processing table: {table_name}, with fields: {fields}")
 
                 # Insert the non-file data into the respective table
                 model_class = self.get_model_by_tablename(table_name)
                 if not model_class:
+                    logging.error(f"Table {table_name} does not exist.")
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
-                
+
                 # Handle foreign key references
                 if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "StaffOther"]:
                     fields["StaffId"] = inserted_ids.get('StaffInfo')
+                    logging.info(f"Added StaffId: {inserted_ids.get('StaffInfo')} to table: {table_name}")
                 elif table_name == "Salaries":
                     fields["EmployeeId"] = inserted_ids.get('StaffInfo')
                 elif table_name == "UserCampus":
@@ -6167,32 +6181,35 @@ class EmployeeCreationResource(Resource):
                     fields["Teacher_id"] = inserted_ids.get('StaffInfo')
                 elif table_name == "ShiftMonthlySchedules":
                     fields["ShiftId"] = inserted_ids.get('StaffShifts')
-                
-                
 
-                # Insert the record
                 try:
                     record = model_class(**fields)
                     db.session.add(record)
                     db.session.commit()
 
+                    logging.info(f"Inserted data into {table_name} successfully.")
+
                     # Store inserted ID for future foreign key references
                     if table_name == "StaffInfo":
                         inserted_id = record.Staff_ID
                         inserted_ids[table_name] = inserted_id
+                        logging.info(f"Inserted StaffInfo with ID: {inserted_id}")
                     elif table_name == "USERS":
                         inserted_id = record.User_Id
                         inserted_ids[table_name] = inserted_id
+                        logging.info(f"Inserted USERS with ID: {inserted_id}")
                     elif table_name == "StaffShifts":
                         inserted_id = record.User_Id
                         inserted_ids[table_name] = inserted_id
-                    
+                        logging.info(f"Inserted StaffShifts with ID: {inserted_id}")
 
                 except SQLAlchemyError as e:
                     db.session.rollback()
+                    logging.error(f"Database error occurred: {str(e)}")
                     return {'status': 'error', 'message': str(e)}, 500
                 except Exception as e:
                     db.session.rollback()
+                    logging.error(f"General error occurred: {str(e)}")
                     return {'status': 'error', 'message': str(e)}, 500
 
             # After inserting records, process file uploads and map them to the records
@@ -6200,49 +6217,59 @@ class EmployeeCreationResource(Resource):
                 table_name, field_name, file_name = file_info['key'].split('-')
                 file_path = file_info['path']
 
+                logging.info(f"Updating {table_name} with file path for {field_name}.")
+
                 # Update the corresponding table with the file path
                 model_class = self.get_model_by_tablename(table_name)
                 record_id = inserted_ids.get(table_name)
                 if model_class and record_id:
                     try:
-                        # Assuming there's a method to update a specific field with a file path
                         record = db.session.query(model_class).filter_by(id=record_id).first()
                         setattr(record, field_name, file_path)
                         db.session.commit()
+                        logging.info(f"Successfully updated file path for {field_name} in {table_name}.")
                     except Exception as e:
                         db.session.rollback()
+                        logging.error(f"File association error: {str(e)}")
                         return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
 
+            logging.info("Employee record created successfully.")
             return {'status': 'success', 'message': 'Records inserted successfully', 'inserted_ids': inserted_ids}, 201
 
         except Exception as e:
+            logging.error(f"Error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
 
     def get_model_by_tablename(self, table_name):
-        # Dynamically get the model class based on the table name
+        logging.info(f"Fetching model for table: {table_name}")
         return globals().get(table_name)
 
     def allowed_file(self, filename):
+        logging.info(f"Checking if file is allowed: {filename}")
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'doc', 'docx'}
 
     def process_files(self, files):
         """
         Processes files sent from the frontend.
         """
+        logging.info("Processing files.")
         file_data = {}
         MAIN_UPLOAD_FOLDER = 'uploads/'
         
         for key, file in files.items():
             if file.filename == '':
+                logging.warning(f"Empty filename for key: {key}")
                 continue
 
             if not self.allowed_file(file.filename):
+                logging.warning(f"Disallowed file extension for file: {file.filename}")
                 continue
 
             filename = secure_filename(file.filename)
             key_parts = key.split('-')
 
             if len(key_parts) < 3:
+                logging.warning(f"File key {key} does not conform to the expected format.")
                 continue  # Skip files that don't conform to the expected key format
 
             table_name = key_parts[0]
@@ -6252,9 +6279,11 @@ class EmployeeCreationResource(Resource):
             UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name)
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
+                logging.info(f"Created upload directory: {UPLOAD_FOLDER}")
 
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
+            logging.info(f"Saved file {filename} to {file_path}")
 
             file_data[key] = {
                 'key': key, 
