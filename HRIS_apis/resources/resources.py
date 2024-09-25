@@ -6156,13 +6156,19 @@ class EmployeeCreationResource(Resource):
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
                 
                 # Handle foreign key references
-                if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "ShiftMonthlySchedules", "StaffOther"]:
+                if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "StaffOther"]:
                     fields["StaffId"] = inserted_ids.get('StaffInfo')
                 elif table_name == "Salaries":
                     fields["EmployeeId"] = inserted_ids.get('StaffInfo')
                 elif table_name == "UserCampus":
                     fields["UserId"] = inserted_ids.get('USERS')
                     fields["StaffId"] = inserted_ids.get('StaffInfo')
+                elif table_name == "USERS":
+                    fields["Teacher_id"] = inserted_ids.get('StaffInfo')
+                elif table_name == "ShiftMonthlySchedules":
+                    fields["ShiftId"] = inserted_ids.get('StaffShifts')
+                
+                
 
                 # Insert the record
                 try:
@@ -6177,6 +6183,10 @@ class EmployeeCreationResource(Resource):
                     elif table_name == "USERS":
                         inserted_id = record.User_Id
                         inserted_ids[table_name] = inserted_id
+                    elif table_name == "StaffShifts":
+                        inserted_id = record.User_Id
+                        inserted_ids[table_name] = inserted_id
+                    
 
                 except SQLAlchemyError as e:
                     db.session.rollback()
