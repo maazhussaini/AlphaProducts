@@ -6126,35 +6126,15 @@ class StaffDetailsResource(Resource):
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
-
-                # Convert list values to single values if needed
-                # if isinstance(fields, list):
-                #     try:
-                #         # Log what fields contain before any parsing
-                #         logging.info(f"Raw fields data for {table_name}: {fields}")
-                        
-                #         # Handle single-item lists by loading the JSON
-                #         if len(fields) == 1:
-                #             fields = json.loads(fields[0])
-                #         else:
-                #             # If it's a list with more than 1 item, ensure it's properly handled or raise an exception
-                #             logging.warning(f"Unexpected list structure in {table_name}: {fields}")
-                #             fields = [json.loads(item) for item in fields]
-                #     except (ValueError, TypeError) as e:
-                #         logging.error(f"Error parsing fields data for {table_name}: {e}")
-                #         return {'status': 'error', 'message': f'Invalid form data for {table_name}: {str(e)}'}, 400
-                # else:
-                #     logging.warning(f"Fields data is not a list for {table_name}: {fields}")
-
-
+import json
+import logging
+from flask_restful import Resource
+from sqlalchemy.exc import SQLAlchemyError
 
 class EmployeeCreationResource(Resource):
 
     def post(self):
         try:
-            ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
-            MAIN_UPLOAD_FOLDER = 'uploads/'
-
             logging.info("Received request to create employee record.")
 
             # Ensure that both form data and files are present in the request
@@ -6162,142 +6142,120 @@ class EmployeeCreationResource(Resource):
                 logging.warning("No file or form data found in the request.")
                 return {'message': 'No file or form data in the request'}, 400
 
-            # Process form data as JSON for handling multiple tables
+            # Process form data
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
-
             logging.info(f"Form data received: {form_data}")
 
-            inserted_ids = {}  # To store IDs of inserted records
+            inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
             file_data = {}
 
-            # Handle form data processing for each table
+            # Step 1: Loop through form data and insert records into the appropriate tables
             for table_name, fields in form_data.items():
                 if table_name == 'FilesContainer':
-                    # Process the file mappings
+                    # Process files after records are inserted
                     file_data = self.process_files(request.files)
-                    logging.info(f"Files received: {file_data}")
                     continue
-                
-                ## CODE
-                
-                # Handle case where fields might still be in a list
+
+                # Step 2: Handle JSON string data (the fields contain lists of JSON strings)
                 if isinstance(fields, list) and len(fields) == 1:
                     try:
-                        fields = json.loads(fields[0])  # Convert JSON string to a dictionary
+                        # Parse the JSON string into a Python dictionary or list
+                        fields = json.loads(fields[0])
                     except json.JSONDecodeError as e:
                         logging.error(f"JSON decoding error for table {table_name}: {str(e)}")
                         return {'status': 'error', 'message': f'Invalid JSON data for {table_name}'}, 400
 
-                # Ensure that `fields` is now a dictionary after json.loads()
-                if not isinstance(fields, dict):
-                    logging.error(f"Expected dict, got {type(fields)} for {table_name}")
-                    return {'status': 'error', 'message': f'Invalid data format for {table_name}'}, 400
+                # Step 3: Handle both single dictionary entries and list of dictionaries
+                if isinstance(fields, dict):
+                    fields = [fields]  # Convert single dictionary to list for uniformity
 
-                    # fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
-
-                logging.info(f"Processing table: {table_name}, with fields: {fields}")
-
-                # Insert the non-file data into the respective table
+                # Step 4: Insert each record in the list into the respective table
                 model_class = self.get_model_by_tablename(table_name)
                 if not model_class:
                     logging.error(f"Table {table_name} does not exist.")
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
 
-                # Handle foreign key references
-                if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "StaffOther"]:
-                    fields["StaffId"] = inserted_ids.get('StaffInfo')
-                    logging.info(f"Added StaffId: {inserted_ids.get('StaffInfo')} to table: {table_name}")
-                elif table_name == "Salaries":
-                    fields["EmployeeId"] = inserted_ids.get('StaffInfo')
-                elif table_name == "UserCampus":
-                    fields["UserId"] = inserted_ids.get('USERS')
-                    fields["StaffId"] = inserted_ids.get('StaffInfo')
-                elif table_name == "USERS":
-                    fields["Teacher_id"] = inserted_ids.get('StaffInfo')
-                elif table_name == "ShiftMonthlySchedules":
-                    fields["ShiftId"] = inserted_ids.get('StaffShifts')
+                for record_fields in fields:
+                    # Step 5: Handle foreign key relationships based on previously inserted IDs
+                    self.apply_foreign_keys(table_name, record_fields, inserted_ids)
 
-                try:
-                    record = model_class(**fields)
-                    db.session.add(record)
-                    db.session.commit()
-
-                    logging.info(f"Inserted data into {table_name} successfully.")
-
-                    # Store inserted ID for future foreign key references
-                    if table_name == "StaffInfo":
-                        inserted_id = record.Staff_ID
-                        inserted_ids[table_name] = inserted_id
-                        logging.info(f"Inserted StaffInfo with ID: {inserted_id}")
-                    elif table_name == "USERS":
-                        inserted_id = record.User_Id
-                        inserted_ids[table_name] = inserted_id
-                        logging.info(f"Inserted USERS with ID: {inserted_id}")
-                    elif table_name == "StaffShifts":
-                        inserted_id = record.User_Id
-                        inserted_ids[table_name] = inserted_id
-                        logging.info(f"Inserted StaffShifts with ID: {inserted_id}")
-
-                except SQLAlchemyError as e:
-                    db.session.rollback()
-                    logging.error(f"Database error occurred: {str(e)}")
-                    return {'status': 'error', 'message': str(e)}, 500
-                except Exception as e:
-                    db.session.rollback()
-                    logging.error(f"General error occurred: {str(e)}")
-                    return {'status': 'error', 'message': str(e)}, 500
-
-            # After inserting records, process file uploads and map them to the records
-            for file_key, file_info in file_data.items():
-                table_name, field_name, file_name = file_info['key'].split('-')
-                file_path = file_info['path']
-
-                logging.info(f"Updating {table_name} with file path for {field_name}.")
-
-                # Update the corresponding table with the file path
-                model_class = self.get_model_by_tablename(table_name)
-                record_id = inserted_ids.get(table_name)
-                if model_class and record_id:
+                    # Step 6: Try inserting the record into the table
                     try:
-                        record = db.session.query(model_class).filter_by(id=record_id).first()
-                        setattr(record, field_name, file_path)
+                        record = model_class(**record_fields)
+                        db.session.add(record)
                         db.session.commit()
-                        logging.info(f"Successfully updated file path for {field_name} in {table_name}.")
+
+                        # Step 7: Capture the inserted record's ID for future foreign key relationships
+                        if table_name == "StaffInfo":
+                            inserted_ids[table_name] = record.Staff_ID
+                            logging.info(f"Inserted StaffInfo with ID: {record.Staff_ID}")
+                        elif table_name == "USERS":
+                            inserted_ids[table_name] = record.User_Id
+                            logging.info(f"Inserted USERS with ID: {record.User_Id}")
+                        elif table_name == "StaffShifts":
+                            inserted_ids[table_name] = record.Shift_ID
+                            logging.info(f"Inserted StaffShifts with ID: {record.Shift_ID}")
+
+                    except SQLAlchemyError as e:
+                        db.session.rollback()
+                        logging.error(f"Database error: {str(e)}")
+                        return {'status': 'error', 'message': str(e)}, 500
                     except Exception as e:
                         db.session.rollback()
-                        logging.error(f"File association error: {str(e)}")
+                        logging.error(f"Error inserting into {table_name}: {str(e)}")
+                        return {'status': 'error', 'message': str(e)}, 500
+
+            # Step 8: Process file uploads and associate them with the inserted records
+            for file_key, file_info in file_data.items():
+                table_name, field_name, _ = file_info['key'].split('-')
+                file_path = file_info['path']
+                record_id = inserted_ids.get(table_name)
+
+                if record_id:
+                    try:
+                        # Update the record with the file path
+                        self.update_file_path(table_name, record_id, field_name, file_path)
+                    except Exception as e:
+                        db.session.rollback()
+                        logging.error(f"File association error for {table_name}: {str(e)}")
                         return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
 
             logging.info("Employee record created successfully.")
             return {'status': 'success', 'message': 'Records inserted successfully', 'inserted_ids': inserted_ids}, 201
 
         except Exception as e:
-            logging.error(f"Error in processing request: {str(e)}")
+            logging.error(f"Unexpected error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
 
     def get_model_by_tablename(self, table_name):
-        logging.info(f"Fetching model for table: {table_name}")
+        """
+        Dynamically fetches the SQLAlchemy model class based on the table name.
+        """
         return globals().get(table_name)
 
-    def allowed_file(self, filename):
-        logging.info(f"Checking if file is allowed: {filename}")
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'doc', 'docx'}
+    def apply_foreign_keys(self, table_name, record_fields, inserted_ids):
+        """
+        Applies the foreign key relationships based on inserted_ids.
+        """
+        if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "StaffOther"]:
+            record_fields["StaffId"] = inserted_ids.get('StaffInfo')
+        elif table_name == "Salaries":
+            record_fields["EmployeeId"] = inserted_ids.get('StaffInfo')
+        elif table_name == "UserCampus":
+            record_fields["UserId"] = inserted_ids.get('USERS')
+            record_fields["StaffId"] = inserted_ids.get('StaffInfo')
+        elif table_name == "ShiftMonthlySchedules":
+            record_fields["ShiftId"] = inserted_ids.get('StaffShifts')
 
     def process_files(self, files):
         """
-        Processes files sent from the frontend.
+        Handles the file uploads and saves them to the appropriate locations.
         """
-        logging.info("Processing files.")
         file_data = {}
         MAIN_UPLOAD_FOLDER = 'uploads/'
-        
+
         for key, file in files.items():
             if file.filename == '':
-                logging.warning(f"Empty filename for key: {key}")
-                continue
-
-            if not self.allowed_file(file.filename):
-                logging.warning(f"Disallowed file extension for file: {file.filename}")
                 continue
 
             filename = secure_filename(file.filename)
@@ -6305,24 +6263,27 @@ class EmployeeCreationResource(Resource):
 
             if len(key_parts) < 3:
                 logging.warning(f"File key {key} does not conform to the expected format.")
-                continue  # Skip files that don't conform to the expected key format
+                continue
 
             table_name = key_parts[0]
             field_name = key_parts[1]
-            file_name = key_parts[2]
-
             UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name)
+
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
-                logging.info(f"Created upload directory: {UPLOAD_FOLDER}")
 
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
-            logging.info(f"Saved file {filename} to {file_path}")
-
-            file_data[key] = {
-                'key': key, 
-                'path': file_path
-            }
+            file_data[key] = {'key': key, 'path': file_path}
 
         return file_data
+
+    def update_file_path(self, table_name, record_id, field_name, file_path):
+        """
+        Updates the record in the database with the file path.
+        """
+        model_class = self.get_model_by_tablename(table_name)
+        if model_class:
+            record = db.session.query(model_class).filter_by(id=record_id).first()
+            setattr(record, field_name, file_path)
+            db.session.commit()
