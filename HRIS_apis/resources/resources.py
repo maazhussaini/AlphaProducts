@@ -6158,7 +6158,22 @@ class EmployeeCreationResource(Resource):
                 
                 # Convert list values to single values if needed
                 if isinstance(fields, list):
-                    fields = json.loads(fields[0]) if isinstance(fields, list) and len(fields) == 1 else fields
+                    try:
+                        # Log what fields contain before any parsing
+                        logging.info(f"Raw fields data for {table_name}: {fields}")
+                        
+                        # Handle single-item lists by loading the JSON
+                        if len(fields) == 1:
+                            fields = json.loads(fields[0])
+                        else:
+                            # If it's a list with more than 1 item, ensure it's properly handled or raise an exception
+                            logging.warning(f"Unexpected list structure in {table_name}: {fields}")
+                            fields = [json.loads(item) for item in fields]
+                    except (ValueError, TypeError) as e:
+                        logging.error(f"Error parsing fields data for {table_name}: {e}")
+                        return {'status': 'error', 'message': f'Invalid form data for {table_name}: {str(e)}'}, 400
+                else:
+                    logging.warning(f"Fields data is not a list for {table_name}: {fields}")
                     # fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
 
                 logging.info(f"Processing table: {table_name}, with fields: {fields}")
