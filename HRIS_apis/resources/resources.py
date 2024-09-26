@@ -6192,9 +6192,9 @@ class EmployeeCreationResource(Resource):
                         elif table_name == "USERS":
                             inserted_ids[table_name] = record.User_Id
                             logging.info(f"Inserted USERS with ID: {record.User_Id}")
-                        elif table_name == "StaffShifts":
+                        elif table_name == "Shifts":
                             inserted_ids[table_name] = record.Shift_ID
-                            logging.info(f"Inserted StaffShifts with ID: {record.Shift_ID}")
+                            logging.info(f"Inserted Shifts with ID: {record.Shift_ID}")
 
                     except SQLAlchemyError as e:
                         db.session.rollback()
@@ -6245,7 +6245,7 @@ class EmployeeCreationResource(Resource):
             record_fields["UserId"] = inserted_ids.get('USERS')
             record_fields["StaffId"] = inserted_ids.get('StaffInfo')
         elif table_name == "ShiftMonthlySchedules":
-            record_fields["ShiftId"] = inserted_ids.get('StaffShifts')
+            record_fields["ShiftId"] = inserted_ids.get('Shifts')
 
     def process_files(self, files):
         """
