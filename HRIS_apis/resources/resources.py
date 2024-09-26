@@ -6193,8 +6193,8 @@ class EmployeeCreationResource(Resource):
                             inserted_ids[table_name] = record.User_Id
                             logging.info(f"Inserted USERS with ID: {record.User_Id}")
                         elif table_name == "Shifts":
-                            inserted_ids[table_name] = record.Shift_ID
-                            logging.info(f"Inserted Shifts with ID: {record.Shift_ID}")
+                            inserted_ids[table_name] = record.Id
+                            logging.info(f"Inserted Shifts with ID: {record.Id}")
 
                     except SQLAlchemyError as e:
                         db.session.rollback()
