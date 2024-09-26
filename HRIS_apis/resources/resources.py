@@ -6183,6 +6183,12 @@ class EmployeeCreationResource(Resource):
                         # Step 7: Capture the inserted record's ID for future foreign key relationships
                         if table_name == "StaffInfo":
                             inserted_ids[table_name] = record.Staff_ID
+                            
+                            # Updating EmpId in StaffInfo
+                            record = db.session.query(model_class).filter_by(id=record.Staff_ID).first()
+                            setattr(record, "EmpId", record.Staff_ID)
+                            db.session.commit()
+                            
                             logging.info(f"Inserted StaffInfo with ID: {record.Staff_ID}")
                         elif table_name == "USERS":
                             inserted_ids[table_name] = record.User_Id
