@@ -6126,6 +6126,28 @@ class StaffDetailsResource(Resource):
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
+
+                # Convert list values to single values if needed
+                # if isinstance(fields, list):
+                #     try:
+                #         # Log what fields contain before any parsing
+                #         logging.info(f"Raw fields data for {table_name}: {fields}")
+                        
+                #         # Handle single-item lists by loading the JSON
+                #         if len(fields) == 1:
+                #             fields = json.loads(fields[0])
+                #         else:
+                #             # If it's a list with more than 1 item, ensure it's properly handled or raise an exception
+                #             logging.warning(f"Unexpected list structure in {table_name}: {fields}")
+                #             fields = [json.loads(item) for item in fields]
+                #     except (ValueError, TypeError) as e:
+                #         logging.error(f"Error parsing fields data for {table_name}: {e}")
+                #         return {'status': 'error', 'message': f'Invalid form data for {table_name}: {str(e)}'}, 400
+                # else:
+                #     logging.warning(f"Fields data is not a list for {table_name}: {fields}")
+
+
+
 class EmployeeCreationResource(Resource):
 
     def post(self):
@@ -6156,24 +6178,21 @@ class EmployeeCreationResource(Resource):
                     logging.info(f"Files received: {file_data}")
                     continue
                 
-                # Convert list values to single values if needed
-                if isinstance(fields, list):
+                ## CODE
+                
+                # Handle case where fields might still be in a list
+                if isinstance(fields, list) and len(fields) == 1:
                     try:
-                        # Log what fields contain before any parsing
-                        logging.info(f"Raw fields data for {table_name}: {fields}")
-                        
-                        # Handle single-item lists by loading the JSON
-                        if len(fields) == 1:
-                            fields = json.loads(fields[0])
-                        else:
-                            # If it's a list with more than 1 item, ensure it's properly handled or raise an exception
-                            logging.warning(f"Unexpected list structure in {table_name}: {fields}")
-                            fields = [json.loads(item) for item in fields]
-                    except (ValueError, TypeError) as e:
-                        logging.error(f"Error parsing fields data for {table_name}: {e}")
-                        return {'status': 'error', 'message': f'Invalid form data for {table_name}: {str(e)}'}, 400
-                else:
-                    logging.warning(f"Fields data is not a list for {table_name}: {fields}")
+                        fields = json.loads(fields[0])  # Convert JSON string to a dictionary
+                    except json.JSONDecodeError as e:
+                        logging.error(f"JSON decoding error for table {table_name}: {str(e)}")
+                        return {'status': 'error', 'message': f'Invalid JSON data for {table_name}'}, 400
+
+                # Ensure that `fields` is now a dictionary after json.loads()
+                if not isinstance(fields, dict):
+                    logging.error(f"Expected dict, got {type(fields)} for {table_name}")
+                    return {'status': 'error', 'message': f'Invalid data format for {table_name}'}, 400
+
                     # fields = {key: value[0] if isinstance(value, list) and len(value) == 1 else value for key, value in fields.items()}
 
                 logging.info(f"Processing table: {table_name}, with fields: {fields}")
