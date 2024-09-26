@@ -6185,7 +6185,7 @@ class EmployeeCreationResource(Resource):
                             inserted_ids[table_name] = record.Staff_ID
                             
                             # Updating EmpId in StaffInfo
-                            record = db.session.query(model_class).filter_by(id=record.Staff_ID).first()
+                            record = db.session.query(model_class).filter_by(Staff_ID=record.Staff_ID).first()
                             setattr(record, "EmpId", record.Staff_ID)
                             db.session.commit()
                             
