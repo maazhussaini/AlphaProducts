@@ -63,7 +63,7 @@ class USERS(db.Model):
     GroupId = db.Column(db.Integer, nullable=True)
     UserToken = db.Column(db.String(200), nullable=True)
     NotificationToken = db.Column(db.String(200), nullable=True)
-    Ispasswordchanged = db.Column(db.Boolean, nullable=False)
+    ispasswordchanged = db.Column(db.Boolean, nullable=False)
     IsAEN = db.Column(db.Integer, nullable=True)
 
     # user_campus = db.relationship('UserCampus', back_populates='user')
@@ -101,7 +101,7 @@ class USERS(db.Model):
             "GroupId": self.GroupId,
             "UserToken": self.UserToken,
             "NotificationToken": self.NotificationToken,
-            "Ispasswordchanged": self.Ispasswordchanged,
+            "ispasswordchanged": self.ispasswordchanged,
             "IsAEN": self.IsAEN
         }
 
