@@ -59,7 +59,7 @@ class USERS(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     GuardianCNIC = db.Column(db.String(15), nullable=True)
     CampusId = db.Column(db.Integer, nullable=True)
-    IsClassAccess = db.Column(db.Boolean, nullable=True)
+    isClassAccess = db.Column(db.Boolean, nullable=True)
     GroupId = db.Column(db.Integer, nullable=True)
     UserToken = db.Column(db.String(200), nullable=True)
     NotificationToken = db.Column(db.String(200), nullable=True)
@@ -97,7 +97,7 @@ class USERS(db.Model):
             "CreateDate": self.CreateDate,
             "GuardianCNIC": self.GuardianCNIC,
             "CampusId": self.CampusId,
-            "IsClassAccess": self.IsClassAccess,
+            "isClassAccess": self.isClassAccess,
             "GroupId": self.GroupId,
             "UserToken": self.UserToken,
             "NotificationToken": self.NotificationToken,
