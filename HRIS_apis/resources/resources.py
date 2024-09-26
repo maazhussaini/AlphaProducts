@@ -6126,11 +6126,6 @@ class StaffDetailsResource(Resource):
             db.session.rollback()
             return {'error': f"An unexpected error occurred: {str(e)}"}, 500
 
-import json
-import logging
-from flask_restful import Resource
-from sqlalchemy.exc import SQLAlchemyError
-
 class EmployeeCreationResource(Resource):
 
     def post(self):

@@ -1631,6 +1631,7 @@ class Salaries(db.Model):
     RemainingStudyLeaves = db.Column(db.Integer, nullable=False)
     Loan = db.Column(db.Integer, nullable=False)
     Arrears = db.Column(db.Integer, nullable=False)
+    IsPFApply = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
         return f'<id {self.Id}>'
@@ -1676,7 +1677,8 @@ class Salaries(db.Model):
             'StudyLeaves': self.StudyLeaves,
             'RemainingStudyLeaves': self.RemainingStudyLeaves,
             'Loan': self.Loan,
-            'Arrears': self.Arrears
+            'Arrears': self.Arrears,
+            'IsPFApply': self.IsPFApply
         }
 
 class SalaryHold(db.Model):
