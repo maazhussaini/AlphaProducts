@@ -6241,6 +6241,9 @@ class EmployeeCreationResource(Resource):
             record_fields["StaffId"] = inserted_ids.get('StaffInfo')
         elif table_name == "ShiftMonthlySchedules":
             record_fields["ShiftId"] = inserted_ids.get('Shifts')
+        elif table_name == "USERS":
+            record_fields["Username"] = str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk"
+            record_fields["Password"] = str(inserted_ids.get('StaffInfo'))
 
     def process_files(self, files):
         """
