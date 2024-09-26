@@ -46,9 +46,9 @@ class USERS(db.Model):
     Email = db.Column(db.String(250), nullable=True)
     Password = db.Column(db.String(50), nullable=True)
     Status = db.Column(db.Boolean, nullable=False)
-    UserType_id = db.Column(db.Integer, nullable=True)
+    UserType_Id = db.Column(db.Integer, nullable=True)
     MobileNo = db.Column(db.String(15), nullable=True)
-    Teacher_id = db.Column(db.Integer, nullable=True)
+    Teacher_Id = db.Column(db.Integer, nullable=True)
     UpdaterId = db.Column(db.BigInteger, nullable=True)
     UpdaterIP = db.Column(db.String(20), nullable=True)
     UpdaterTerminal = db.Column(db.String(255), nullable=True)
@@ -84,9 +84,9 @@ class USERS(db.Model):
             "Email": self.Email,
             "Password": self.Password,
             "Status": self.Status,
-            "UserType_id": self.UserType_id,
+            "UserType_Id": self.UserType_Id,
             "MobileNo": self.MobileNo,
-            "Teacher_id": self.Teacher_id,
+            "Teacher_Id": self.Teacher_Id,
             "UpdaterId": self.UpdaterId,
             "UpdaterIP": self.UpdaterIP,
             "UpdaterTerminal": self.UpdaterTerminal,
