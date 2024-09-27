@@ -20,6 +20,7 @@ from sqlalchemy import text
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
+from crypto_utils import encrypt
 
 load_dotenv()
 
@@ -6249,8 +6250,8 @@ class EmployeeCreationResource(Resource):
             record_fields["ShiftId"] = inserted_ids.get('Shifts')
         elif table_name == "USERS":
             record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
-            record_fields["Username"] = str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk"
-            record_fields["Password"] = str(inserted_ids.get('StaffInfo'))
+            record_fields["Username"] = encrypt(str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk")
+            record_fields["Password"] = encrypt(str(inserted_ids.get('StaffInfo')))
 
     def process_files(self, files):
         """
