@@ -6248,6 +6248,7 @@ class EmployeeCreationResource(Resource):
         elif table_name == "ShiftMonthlySchedules":
             record_fields["ShiftId"] = inserted_ids.get('Shifts')
         elif table_name == "USERS":
+            record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
             record_fields["Username"] = str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk"
             record_fields["Password"] = str(inserted_ids.get('StaffInfo'))
 
