@@ -20,7 +20,7 @@ from sqlalchemy import text
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from crypto_utils import encrypt
+from resources.crypto_utils import encrypt
 
 load_dotenv()
 
