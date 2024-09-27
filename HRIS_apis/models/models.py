@@ -43,7 +43,7 @@ class USERS(db.Model):
     Lastname = db.Column(db.String(50), nullable=True)
     Title = db.Column(db.String(30), nullable=True)
     Initial = db.Column(db.String(3), nullable=True)
-    Email = db.Column(db.String(250), nullable=True)
+    EMail = db.Column(db.String(250), nullable=True)
     Password = db.Column(db.String(50), nullable=True)
     Status = db.Column(db.Boolean, nullable=False)
     UserType_Id = db.Column(db.Integer, nullable=True)
@@ -81,7 +81,7 @@ class USERS(db.Model):
             "Lastname": self.Lastname,
             "Title": self.Title,
             "Initial": self.Initial,
-            "Email": self.Email,
+            "EMail": self.EMail,
             "Password": self.Password,
             "Status": self.Status,
             "UserType_Id": self.UserType_Id,
