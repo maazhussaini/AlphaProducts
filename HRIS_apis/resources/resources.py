@@ -6260,6 +6260,8 @@ class EmployeeCreationResource(Resource):
         file_data = {}
         MAIN_UPLOAD_FOLDER = 'uploads/'
 
+        print(files)
+        
         for key, file in files.items():
             if file.filename == '':
                 continue
@@ -6288,6 +6290,7 @@ class EmployeeCreationResource(Resource):
         """
         Updates the record in the database with the file path.
         """
+        print("file_path: ", file_path, "\n")
         model_class = self.get_model_by_tablename(table_name)
         if model_class:
             record = db.session.query(model_class).filter_by(id=record_id).first()
