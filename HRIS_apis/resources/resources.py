@@ -6147,7 +6147,7 @@ class EmployeeCreationResource(Resource):
 
             # Step 1: Loop through form data and insert records into the appropriate tables
             for table_name, fields in form_data.items():
-                if table_name == 'FilesContainer':
+                if "file_" in table_name:
                     # Process files after records are inserted
                     file_data = self.process_files(request.files)
                     continue
@@ -6267,7 +6267,7 @@ class EmployeeCreationResource(Resource):
                 continue
 
             filename = secure_filename(file.filename)
-            key_parts = key.split('-')
+            key_parts = key.split('_')
 
             if len(key_parts) < 3:
                 logging.warning(f"File key {key} does not conform to the expected format.")
@@ -6275,7 +6275,9 @@ class EmployeeCreationResource(Resource):
 
             table_name = key_parts[0]
             field_name = key_parts[1]
-            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name)
+            
+            MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
+            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
 
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
@@ -6284,6 +6286,7 @@ class EmployeeCreationResource(Resource):
             file.save(file_path)
             file_data[key] = {'key': key, 'path': file_path}
 
+        logging.info(f"file_data: {file_data}")
         return file_data
 
     def update_file_path(self, table_name, record_id, field_name, file_path):
