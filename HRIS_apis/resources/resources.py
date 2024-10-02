@@ -6139,8 +6139,9 @@ class EmployeeCreationResource(Resource):
                 return {'message': 'No file or form data in the request'}, 400
 
             # Process form data
-            form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
-            # logging.info(f"Form data received: {form_data}")
+            # form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
+            form_data = request.form.to_dict()
+            logging.info(f"Form data received: {form_data}")
 
             inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
             file_data = {}
@@ -6270,9 +6271,9 @@ class EmployeeCreationResource(Resource):
             filename = secure_filename(file.filename)
             key_parts = key.split('_')
 
-            if len(key_parts) < 3:
-                logging.warning(f"File key {key} does not conform to the expected format.")
-                continue
+            # if len(key_parts) < 3:
+            #     logging.warning(f"File key {key} does not conform to the expected format.")
+            #     continue
 
             table_name = key_parts[0]
             field_name = key_parts[1]
