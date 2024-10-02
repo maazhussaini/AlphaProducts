@@ -6141,7 +6141,7 @@ class EmployeeCreationResource(Resource):
 
             # Process form data
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
-            logging.info(f"Form data received: {form_data}")
+            # logging.info(f"Form data received: {form_data}")
 
             inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
             file_data = {}
@@ -6275,8 +6275,8 @@ class EmployeeCreationResource(Resource):
             #     logging.warning(f"File key {key} does not conform to the expected format.")
             #     continue
 
-            table_name = key_parts[0]
-            field_name = key_parts[1]
+            table_name = key_parts[1]
+            field_name = key_parts[2]
             
             MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
             UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
