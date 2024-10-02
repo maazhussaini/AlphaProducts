@@ -6134,17 +6134,16 @@ class EmployeeCreationResource(Resource):
             logging.info("Received request to create employee record.")
 
             # Ensure that both form data and files are present in the request
-            # if not request.files and not request.form:
-            if not request.files:
+            if not request.files and not request.form:
+            # if not request.files:
                 logging.warning("No file or form data found in the request.")
                 return {'message': 'No file or form data in the request'}, 400
 
-            if request.files:
-                logging.info("FILES FOUND")
-                logging.info(request.files)
             # Process form data
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
-            # logging.info(f"Form data received: {form_data}")
+            logging.info(f"Form data received: {form_data}")
+            
+            return
 
             inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
             file_data = {}
