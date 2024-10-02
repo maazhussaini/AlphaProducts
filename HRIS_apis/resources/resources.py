@@ -6305,6 +6305,6 @@ class EmployeeCreationResource(Resource):
         logging.info(f"file_path: {file_path} \n")
         model_class = self.get_model_by_tablename(table_name)
         if model_class:
-            record = db.session.query(model_class).filter_by(id=record_id).first()
+            record = db.session.query(model_class).filter_by(Id=record_id).first()
             setattr(record, field_name, file_path)
             db.session.commit()
