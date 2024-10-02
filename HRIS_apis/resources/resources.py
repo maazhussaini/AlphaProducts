@@ -6139,6 +6139,8 @@ class EmployeeCreationResource(Resource):
                 logging.warning("No file or form data found in the request.")
                 return {'message': 'No file or form data in the request'}, 400
 
+            if request.files:
+                logging.info("FILES FOUND")
             # Process form data
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
             # logging.info(f"Form data received: {form_data}")
