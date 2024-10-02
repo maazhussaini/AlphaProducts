@@ -64,7 +64,7 @@ class UserLoginResource(Resource):
                     .filter(LNK_USER_ROLE.User_Id == user.User_Id, FormDetailPermissions.Status == True)\
                     .all()
 
-                user_type = UserType.query.filter_by(UserTypeId=user.UserType_id).first()
+                user_type = UserType.query.filter_by(UserTypeId=user.UserType_Id).first()
             except SQLAlchemyError as e:
                 logger.error(f"Database query error: {e}")
                 return {"data": {'status': 400, 'message': 'Database error'}}, 500
@@ -83,7 +83,7 @@ class UserLoginResource(Resource):
                 'user': {
                     'id': user.User_Id,
                     'displayName': firstName + " " + lastName,
-                    'email': user.Email,
+                    'email': user.EMail,
                     'campusId': user.CampusId,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
                     'roles': [role.RoleName for role in user_roles],

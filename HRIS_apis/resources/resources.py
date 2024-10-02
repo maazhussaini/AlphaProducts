@@ -6143,9 +6143,6 @@ class EmployeeCreationResource(Resource):
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
             logging.info(f"Form data received: {form_data}")
             
-            for key in request.files:
-                logging.info(key)
-            
             return
 
             inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
