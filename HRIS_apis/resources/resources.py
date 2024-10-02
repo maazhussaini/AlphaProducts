@@ -6140,7 +6140,7 @@ class EmployeeCreationResource(Resource):
 
             # Process form data
             form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
-            logging.info(f"Form data received: {form_data}")
+            # logging.info(f"Form data received: {form_data}")
 
             inserted_ids = {}  # To store IDs of inserted records for foreign key relationships
             file_data = {}
@@ -6148,6 +6148,7 @@ class EmployeeCreationResource(Resource):
             # Step 1: Loop through form data and insert records into the appropriate tables
             for table_name, fields in form_data.items():
                 if "file_" in table_name:
+                    logging.info(f"fileName: {table_name}")
                     # Process files after records are inserted
                     file_data = self.process_files(request.files)
                     continue
