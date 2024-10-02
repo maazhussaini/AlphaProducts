@@ -6194,6 +6194,9 @@ class EmployeeCreationResource(Resource):
                         elif table_name == "Shifts":
                             inserted_ids[table_name] = record.Id
                             logging.info(f"Inserted Shifts with ID: {record.Id}")
+                        else:
+                            inserted_ids[table_name] = record.Id
+                            logging.info(f"Inserted {table_name} with ID: {record.Id}")
 
                     except SQLAlchemyError as e:
                         db.session.rollback()
