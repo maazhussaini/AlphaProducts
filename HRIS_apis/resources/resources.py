@@ -6148,10 +6148,6 @@ class EmployeeCreationResource(Resource):
 
             # Step 1: Loop through form data and insert records into the appropriate tables
             for table_name, fields in form_data.items():
-                if request.files:
-                    # Process files after records are inserted
-                    file_data = self.process_files(request.files)
-                    continue
 
                 # Step 2: Handle JSON string data (the fields contain lists of JSON strings)
                 if isinstance(fields, list) and len(fields) == 1:
@@ -6208,9 +6204,13 @@ class EmployeeCreationResource(Resource):
                         logging.error(f"Error inserting into {table_name}: {str(e)}")
                         return {'status': 'error', 'message': str(e)}, 500
 
+            if request.files:
+                # Process files after records are inserted
+                file_data = self.process_files(request.files)
+            
             # Step 8: Process file uploads and associate them with the inserted records
             for file_key, file_info in file_data.items():
-                table_name, field_name, _ = file_info['key'].split('-')
+                _, table_name, field_name = file_info['key'].split('_')
                 file_path = file_info['path']
                 record_id = inserted_ids.get(table_name)
 
@@ -6259,7 +6259,7 @@ class EmployeeCreationResource(Resource):
         Handles the file uploads and saves them to the appropriate locations.
         """
         file_data = {}
-        MAIN_UPLOAD_FOLDER = 'uploads/'
+        MAIN_UPLOAD_FOLDER = 'uploads\\'
         
         for key, file in files.items():
             
