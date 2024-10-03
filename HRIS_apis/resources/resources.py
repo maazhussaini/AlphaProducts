@@ -6294,7 +6294,6 @@ class EmployeeCreationResource(Resource):
             file.save(file_path)
             file_data[key] = {'key': key, 'path': file_path}
 
-        logging.info(f"file_data: {file_data}")
         return file_data
 
     def update_file_path(self, table_name, record_id, field_name, file_path):
