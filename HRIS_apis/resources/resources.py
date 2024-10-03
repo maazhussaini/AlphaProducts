@@ -6135,7 +6135,6 @@ class EmployeeCreationResource(Resource):
 
             # Ensure that both form data and files are present in the request
             if not request.files and not request.form:
-            # if not request.files:
                 logging.warning("No file or form data found in the request.")
                 return {'message': 'No file or form data in the request'}, 400
 
@@ -6196,7 +6195,7 @@ class EmployeeCreationResource(Resource):
                             logging.info(f"Inserted Shifts with ID: {record.Id}")
                         else:
                             try:
-                                inserted_ids[table_name] = record.Id
+                                inserted_ids[str(table_name)+f"_{record.Id}"] = record.Id
                                 logging.info(f"Inserted {table_name} with ID: {record.Id}")
                             except:
                                 pass
@@ -6218,7 +6217,8 @@ class EmployeeCreationResource(Resource):
             for file_key, file_info in file_data.items():
                 _ , table_name, field_name, _ = file_info['key'].split('_')
                 file_path = file_info['path']
-                record_id = inserted_ids.get(table_name)
+                record_id = next((value for key, value in inserted_ids.items() if table_name in key), None)
+                # record_id = inserted_ids.get(table_name)
 
                 if record_id:
                     try:
@@ -6276,10 +6276,6 @@ class EmployeeCreationResource(Resource):
 
             filename = secure_filename(file.filename)
             key_parts = key.split('_')
-
-            # if len(key_parts) < 3:
-            #     logging.warning(f"File key {key} does not conform to the expected format.")
-            #     continue
 
             table_name = key_parts[1]
             field_name = key_parts[2]
