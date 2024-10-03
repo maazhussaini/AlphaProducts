@@ -6216,7 +6216,7 @@ class EmployeeCreationResource(Resource):
             
             # Step 8: Process file uploads and associate them with the inserted records
             for file_key, file_info in file_data.items():
-                _, table_name, field_name = file_info['key'].split('_')
+                _ , table_name, field_name, _ = file_info['key'].split('_')
                 file_path = file_info['path']
                 record_id = inserted_ids.get(table_name)
 
