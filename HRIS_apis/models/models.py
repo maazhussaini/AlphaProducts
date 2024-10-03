@@ -32,6 +32,9 @@ class AcademicYear(db.Model):
             'IsActive': self.IsActive
         }
 
+
+
+
 class USERS(db.Model):
     __tablename__ = 'USERS'
 
