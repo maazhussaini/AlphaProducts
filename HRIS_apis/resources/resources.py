@@ -6153,6 +6153,14 @@ class EmployeeCreationResource(Resource):
                     try:
                         # Parse the JSON string into a Python dictionary or list
                         fields = json.loads(fields[0])
+                        
+                        if table_name in ['StaffEducation', 'StaffExperience', 'StaffOther']:
+                            for items in fields:
+                                try:
+                                    items.pop("Filename")
+                                except:
+                                    pass
+                        
                     except json.JSONDecodeError as e:
                         logging.error(f"JSON decoding error for table {table_name}: {str(e)}")
                         return {'status': 'error', 'message': f'Invalid JSON data for {table_name}'}, 400
@@ -6217,13 +6225,13 @@ class EmployeeCreationResource(Resource):
             for file_key, file_info in file_data.items():
                 _ , table_name, field_name, _ = file_info['key'].split('_')
                 file_path = file_info['path']
-                record_id = next((value for key, value in inserted_ids.items() if table_name in key), None)
-                # record_id = inserted_ids.get(table_name)
+                key, record_id = next((key, value for key, value in inserted_ids.items() if table_name in key), None)
 
                 if record_id:
                     try:
                         # Update the record with the file path
                         self.update_file_path(table_name, record_id, field_name, file_path)
+                        inserted_ids.pop(key)
                     except Exception as e:
                         db.session.rollback()
                         logging.error(f"File association error for {table_name}: {str(e)}")
