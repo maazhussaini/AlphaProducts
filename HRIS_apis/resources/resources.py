@@ -6225,10 +6225,13 @@ class EmployeeCreationResource(Resource):
             for file_key, file_info in file_data.items():
                 _ , table_name, field_name, _ = file_info['key'].split('_')
                 file_path = file_info['path']
-                key, record_id = next((key, value for key, value in inserted_ids.items() if table_name in key), None)
+                # Optimized code to simulate LIKE behavior and return both key and value
+                result = next(((key, value) for key, value in inserted_ids.items() if table_name in key), None)
 
-                if record_id:
+                if result is not None:
+                # if record_id:
                     try:
+                        key, record_id = result
                         # Update the record with the file path
                         self.update_file_path(table_name, record_id, field_name, file_path)
                         inserted_ids.pop(key)
