@@ -2980,7 +2980,9 @@ class StaffTransferResource(Resource):
         parser.add_argument('Transfer_from_Campus', type=int, required=True, help='Transfer_from_Campus is required')
         parser.add_argument('Transfer_To_Campus', type=int, required=True, help='Transfer_To_Campus is required')
         parser.add_argument('DepartmentId', type=int, required=True, help='DepartmentId is required')
+        parser.add_argument('OldDepartmentId', type=int)
         parser.add_argument('DesignationId', type=int, required=True, help='DesignationId is required')
+        parser.add_argument('OldDesignationId', type=int)
         parser.add_argument('ReportingOfficerId', type=int, required=True, help='ReportingOfficerId is required')
         parser.add_argument('Transfer_initiated_by', type=int, required=True, help='Transfer_initiated_by is required')
         parser.add_argument('Transfer_approval', type=int, required=True, help='Transfer_approval is required')
@@ -3008,7 +3010,9 @@ class StaffTransferResource(Resource):
                 Transfer_from_Campus=from_campus_id,
                 Transfer_To_Campus=to_campus_id,
                 DepartmentId=args['DepartmentId'],
+                OldDepartmentId=args['OldDepartmentId'],
                 DesignationId=args['DesignationId'],
+                OldDesignationId=args['OldDesignationId'],
                 ReportingOfficerId=args['ReportingOfficerId'],
                 Transfer_initiated_by=args['Transfer_initiated_by'],
                 Transfer_approval=args['Transfer_approval'],
@@ -3025,7 +3029,7 @@ class StaffTransferResource(Resource):
                 db.session.flush()
 
                 # Update related tables
-                self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'], args['DesignationId'])
+                self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'],args['OldDepartmentId'], args['DesignationId'], args['OldDesignationId'])
                 self.update_staff_shift(args['StaffId'], to_campus_id)
                 self.update_user_campus(args['StaffId'], to_campus_id, from_campus_id)
                 self.update_user(args['StaffId'], to_campus_id)
@@ -3043,7 +3047,7 @@ class StaffTransferResource(Resource):
             db.session.rollback()
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
 
-    def update_staff_info(self, staff, to_campus_id, reporting_officer_id, department_id, designation_id):
+    def update_staff_info(self, staff, to_campus_id, reporting_officer_id, department_id, Olddepartment_id,designation_id, Olddesignation_id):
         """
         Updates the StaffInfo table with the new transfer details, 
         including setting the IsAEN flag if transferring to campus 11.
@@ -3057,7 +3061,9 @@ class StaffTransferResource(Resource):
             
             staff.CampusId = to_campus_id
             staff.DepartmentId = department_id
+            staff.OldDepartmentId = Olddepartment_id
             staff.Designation_ID = designation_id
+            staff.OldDesignation_ID = Olddesignation_id
             staff.ReportingOfficerId = reporting_officer_id
             staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(staff)
