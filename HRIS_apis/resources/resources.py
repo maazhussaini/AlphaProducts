@@ -6276,7 +6276,7 @@ class EmployeeCreationResource(Resource):
         Handles the file uploads and saves them to the appropriate locations.
         """
         file_data = {}
-        MAIN_UPLOAD_FOLDER = 'uploads\\'
+        BASE_UPLOAD_FOLDER = 'uploads\\'
         
         for key, file in files.items():
             
@@ -6292,7 +6292,7 @@ class EmployeeCreationResource(Resource):
             field_name = key_parts[2]
             
             # MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
-            MAIN_UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, table_name)
+            MAIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, table_name)
             UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
 
             if not os.path.exists(UPLOAD_FOLDER):
