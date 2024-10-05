@@ -6257,7 +6257,7 @@ class EmployeeCreationResource(Resource):
         """
         Applies the foreign key relationships based on inserted_ids.
         """
-        if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffShifts", "StaffOther"]:
+        if table_name in ["StaffCnic", "StaffChild", "StaffEducation", "StaffExperience", "StaffOther"]:
             record_fields["StaffId"] = inserted_ids.get('StaffInfo')
         elif table_name == "Salaries":
             record_fields["EmployeeId"] = inserted_ids.get('StaffInfo')
@@ -6265,6 +6265,11 @@ class EmployeeCreationResource(Resource):
             record_fields["UserId"] = inserted_ids.get('USERS')
             record_fields["StaffId"] = inserted_ids.get('StaffInfo')
         elif table_name == "ShiftMonthlySchedules":
+            record_fields["ShiftId"] = inserted_ids.get('Shifts')
+        elif table_name == "ShiftSchedules":
+            record_fields["ShiftId"] = inserted_ids.get('Shifts')
+        elif table_name == "StaffShifts":
+            record_fields["StaffId"] = inserted_ids.get('StaffInfo')
             record_fields["ShiftId"] = inserted_ids.get('Shifts')
         elif table_name == "USERS":
             record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
