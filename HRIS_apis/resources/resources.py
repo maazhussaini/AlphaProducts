@@ -2796,10 +2796,10 @@ class StaffDepartmentResource(Resource):
                 return {"error": str(BadRequest("pageNo and pageSize must be positive integers"))}
             
             if id:
-                department = StaffDepartment.query.get_or_404(id)
+                department = StaffDepartments.query.get_or_404(id)
                 return jsonify({"data": department.to_dict()})
             else:
-                query = StaffDepartment.query.order_by(StaffDepartment.Id)
+                query = StaffDepartments.query.order_by(StaffDepartments.Id)
                 total = query.count()
                 departments = query.paginate(page=page_no, per_page=page_size, error_out=False).items
                 return jsonify({
@@ -2835,7 +2835,7 @@ class StaffDepartmentResource(Resource):
         args = parser.parse_args()
 
         try:
-            new_department = StaffDepartment(
+            new_department = StaffDepartments(
                 DepartmentName=args['DepartmentName'],
                 status=args['status'],
                 UpdaterId=args['UpdaterId'],
@@ -2874,7 +2874,7 @@ class StaffDepartmentResource(Resource):
         args = parser.parse_args()
 
         try:
-            department = StaffDepartment.query.get_or_404(id)
+            department = StaffDepartments.query.get_or_404(id)
 
             if args['DepartmentName']:
                 department.DepartmentName = args['DepartmentName']
@@ -2916,7 +2916,7 @@ class StaffDepartmentResource(Resource):
 
     def delete(self, id):
         try:
-            department = StaffDepartment.query.get_or_404(id)
+            department = StaffDepartments.query.get_or_404(id)
             db.session.delete(department)
             db.session.commit()
             return {"message": "Staff department deleted"}, 200
