@@ -201,6 +201,21 @@ class cities(db.Model):
             'country_id': self.country_id
         }
 
+class Campus (db.Model):
+    __tablename__ = 'Campus'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Name = db.Column(db.String(255), nullable=True)
+
+    def __repr__(self):
+        return {"Campus": self.Name}
+    
+    def to_dict(self):
+        return {
+            "Id": self.Id,
+            "Name":self.Name
+        }
+
 class Role(db.Model):
     __tablename__ = 'ROLES'
 
@@ -1461,9 +1476,7 @@ class StaffTransfer(db.Model):
     Transfer_from_Campus = db.Column(db.Integer, nullable=True)
     Transfer_To_Campus = db.Column(db.Integer, nullable=True)
     DepartmentId = db.Column(db.Integer, nullable=True)
-    OldDepartmentId = db.Column(db.Integer, nullable=True)
     DesignationId = db.Column(db.Integer, nullable=True)
-    OldDesignationId = db.Column(db.Integer, nullable=True)
     ReportingOfficerId = db.Column(db.Integer, nullable=True)
     Transfer_initiated_by = db.Column(db.Integer, nullable=True)
     Transfer_approval = db.Column(db.Integer, nullable=True)
@@ -1488,9 +1501,7 @@ class StaffTransfer(db.Model):
             'Transfer_from_Campus': self.Transfer_from_Campus,
             'Transfer_To_Campus': self.Transfer_To_Campus,
             'DepartmentId': self.DepartmentId,
-            'OldDepartmentId': self.OldDepartmentId,
             'DesignationId': self.DesignationId,
-            'OldDesignationId': self.OldDesignationId,
             'ReportingOfficerId': self.ReportingOfficerId,
             'Transfer_initiated_by': self.Transfer_initiated_by,
             'Transfer_approval': self.Transfer_approval,
