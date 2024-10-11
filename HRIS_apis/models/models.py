@@ -201,6 +201,65 @@ class cities(db.Model):
             'country_id': self.country_id
         }
 
+class Campus (db.Model):
+    __tablename__ = 'Campus'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Name = db.Column(db.String(255), nullable=True)
+    Status =db.Column(db.Boolean, nullable=True)
+    Address=db.Column(db.String(255), nullable=True)
+    PhoneNo=db.Column(db.String(17), nullable=True)
+    CampusLogo=db.Column(db.String(50), nullable=True)
+    HeadMobileNo=db.Column(db.String(13), nullable=True)
+    Email=db.Column(db.String(50), nullable=True)
+    HeadName=db.Column(db.String(255), nullable=True)
+    HeadEmail=db.Column(db.String(50), nullable=True)
+    HeadImage=db.Column(db.String(255), nullable=True)
+    PrincipleId=db.Column(db.Integer, nullable=True)
+    PrincipleName=db.Column(db.String(max), nullable=True)
+    PrincipleSignaturePath=db.Column(db.String(max), nullable=True)
+    Priority = db.Column(db.Integer, nullable=True)
+    CoordinatorName= db.Column(db.String(255), nullable=True)
+    BankCode= db.Column(db.String(10), nullable=True)
+    IsSeparate= db.Column(db.Boolean, nullable=True)
+    ColorCode1=db.Column(db.String(20), nullable=True)
+    ColorCode2=db.Column(db.String(20), nullable=True)
+    ColorCode3=db.Column(db.String(20), nullable=True)
+    ColorCode4=db.Column(db.String(20), nullable=True)
+    ColorCode5=db.Column(db.String(20), nullable=True)
+    AppBackColorCode= db.Column(db.String(20), nullable=True)
+
+    def __repr__(self):
+        return {"Campus": self.Name}
+    
+    def to_dict(self):
+        return {
+            "Id": self.Id,
+            "Name":self.Name,
+            "Status" :self.Status,
+            "Address" :self.Address,
+            "PhoneNo" :self.PhoneNo,
+            "CampusLogo" :self.CampusLogo,
+            "HeadMobileNo" :self.HeadMobileNo,
+            "Email" : self.Email,
+            "HeadName":self.HeadName,
+            "HeadEmail":self.HeadEmail,
+            "HeadImage" :self.HeadImage,
+            "PrincipleId":self.PrincipleId,
+            "PrincipleName":self.PrincipleName,
+            "PrincipleSignaturePath":self.PrincipleSignaturePath,
+            "Priority":self.Priority,
+            "CoordinatorName":self.CoordinatorName,
+            "BankCode":self.BankCode,
+            "IsSeparate":self.IsSeparate,
+            "ColorCode1" :self.ColorCode1,
+            "ColorCode2" :self.ColorCode2,
+            "ColorCode3" :self.ColorCode3,
+            "ColorCode4" :self.ColorCode4,
+            "ColorCode5" :self.ColorCode5,
+            "AppBackColorCode":self.AppBackColorCode
+        }
+
 class Role(db.Model):
     __tablename__ = 'ROLES'
 
@@ -1461,9 +1520,7 @@ class StaffTransfer(db.Model):
     Transfer_from_Campus = db.Column(db.Integer, nullable=True)
     Transfer_To_Campus = db.Column(db.Integer, nullable=True)
     DepartmentId = db.Column(db.Integer, nullable=True)
-    OldDepartmentId = db.Column(db.Integer, nullable=True)
     DesignationId = db.Column(db.Integer, nullable=True)
-    OldDesignationId = db.Column(db.Integer, nullable=True)
     ReportingOfficerId = db.Column(db.Integer, nullable=True)
     Transfer_initiated_by = db.Column(db.Integer, nullable=True)
     Transfer_approval = db.Column(db.Integer, nullable=True)
@@ -1488,9 +1545,7 @@ class StaffTransfer(db.Model):
             'Transfer_from_Campus': self.Transfer_from_Campus,
             'Transfer_To_Campus': self.Transfer_To_Campus,
             'DepartmentId': self.DepartmentId,
-            'OldDepartmentId': self.OldDepartmentId,
             'DesignationId': self.DesignationId,
-            'OldDesignationId': self.OldDesignationId,
             'ReportingOfficerId': self.ReportingOfficerId,
             'Transfer_initiated_by': self.Transfer_initiated_by,
             'Transfer_approval': self.Transfer_approval,
