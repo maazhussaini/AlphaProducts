@@ -222,12 +222,12 @@ class Campus (db.Model):
     CoordinatorName= db.Column(db.String(255), nullable=True)
     BankCode= db.Column(db.String(10), nullable=True)
     IsSeparate= db.Column(db.Boolean, nullable=True)
-    ColorCode1=db.Column(db.String(20), nullable=True)
-    ColorCode2=db.Column(db.String(20), nullable=True)
-    ColorCode3=db.Column(db.String(20), nullable=True)
-    ColorCode4=db.Column(db.String(20), nullable=True)
-    ColorCode5=db.Column(db.String(20), nullable=True)
-    AppBackColorCode= db.Column(db.String(20), nullable=True)
+    # ColorCode1=db.Column(db.String(20), nullable=True)
+    # ColorCode2=db.Column(db.String(20), nullable=True)
+    # ColorCode3=db.Column(db.String(20), nullable=True)
+    # ColorCode4=db.Column(db.String(20), nullable=True)
+    # ColorCode5=db.Column(db.String(20), nullable=True)
+    # AppBackColorCode= db.Column(db.String(20), nullable=True)
 
     def __repr__(self):
         return {"Campus": self.Name}
@@ -252,12 +252,12 @@ class Campus (db.Model):
             "CoordinatorName":self.CoordinatorName,
             "BankCode":self.BankCode,
             "IsSeparate":self.IsSeparate,
-            "ColorCode1" :self.ColorCode1,
-            "ColorCode2" :self.ColorCode2,
-            "ColorCode3" :self.ColorCode3,
-            "ColorCode4" :self.ColorCode4,
-            "ColorCode5" :self.ColorCode5,
-            "AppBackColorCode":self.AppBackColorCode
+            # "ColorCode1" :self.ColorCode1,
+            # "ColorCode2" :self.ColorCode2,
+            # "ColorCode3" :self.ColorCode3,
+            # "ColorCode4" :self.ColorCode4,
+            # "ColorCode5" :self.ColorCode5,
+            # "AppBackColorCode":self.AppBackColorCode
         }
 
 class Role(db.Model):
@@ -842,7 +842,7 @@ class JobApplicationForms(db.Model):
     Reason_for_leaving = db.Column(db.String(250), nullable=True)
     Last_drawn_gross_salary = db.Column(db.String(250), nullable=True)
     Benefits_if_any = db.Column(db.String(250), nullable=True)
-    Preferred_campus = db.Column(db.String(250), nullable=True)
+    Preferred_campus = db.Column(db.Integer, nullable=True)
     Preferred_location = db.Column(db.String(250), nullable=True)
     Preferred_job_type = db.Column(db.String(250), nullable=True)
     Section = db.Column(db.String(250), nullable=True)
