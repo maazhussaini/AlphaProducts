@@ -1240,6 +1240,7 @@ class AvailableJobs(db.Model):
     CreatedDate = db.Column(db.DateTime, nullable=True)
     UpdatorId = db.Column(db.Integer, nullable=True)
     UpdatedDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
 
     def to_dict(self):
         return {
@@ -1251,7 +1252,8 @@ class AvailableJobs(db.Model):
             'CreatorId': self.CreatorId,
             'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
             'UpdatorId': self.UpdatorId,
-            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'CampusId': self.CampusId,
         }
 
 class StaffInfo(db.Model):
