@@ -6042,7 +6042,9 @@ class UserDetails(Resource):
             staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == 10139).first()
             countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
             cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
-            
+            campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
+
+
             try:
                 user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
                     .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
@@ -6069,6 +6071,7 @@ class UserDetails(Resource):
                     'displayName': firstName + " " + lastName,
                     'email': user.EMail,
                     'campusId': user.CampusId,
+                    'Campus': campus.Name if campus else None,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
                     'roles': [role.RoleName for role in user_roles],
                     'city': cityName,
