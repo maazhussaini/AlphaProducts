@@ -6243,8 +6243,7 @@ class EmployeeCreationResource(Resource):
                         key, record_id = result
                         # Update the record with the file path
                         self.update_file_path(table_name, record_id, field_name, file_path)
-                        if not table_name == 'StaffCnic':
-                            inserted_ids.pop(key)
+                        inserted_ids.pop(key)
                     except Exception as e:
                         db.session.rollback()
                         logging.error(f"File association error for {table_name}: {str(e)}")
