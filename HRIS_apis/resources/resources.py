@@ -6305,6 +6305,7 @@ class EmployeeCreationResource(Resource):
 
             table_name = key_parts[1]
             field_name = key_parts[2]
+            filename = key_parts[3]
             
             # MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
             MAIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, table_name)
