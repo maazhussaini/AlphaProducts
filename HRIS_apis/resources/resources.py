@@ -5968,6 +5968,7 @@ class EmailSendingResource(Resource):
 class EmailSendingResource(Resource):
 
     def generate_dynamic_email(self, template, **kwargs):
+
         """
         Generates an email by replacing placeholders in the template with actual values.
 
@@ -5975,6 +5976,7 @@ class EmailSendingResource(Resource):
         :param kwargs: The key-value pairs to replace in the template.
         :return: The formatted email string.
         """
+
         return template.format(**kwargs)
 
     def get_email_template(self, id):
@@ -5990,6 +5992,9 @@ class EmailSendingResource(Resource):
         parameters = data.get('parameters', {})
         recipients = data.get('recipients', [])
         cc = data.get('cc', [])
+        employee_cnic = data.get('Employee_Cnic')
+        creator_id = data.get('CreatorId') 
+        create_date = data.get('CreateDate')
 
         if not template_id or not parameters or not recipients:
             return {"error": "template_id, parameters, and recipients are required"}, 400
@@ -6008,16 +6013,32 @@ class EmailSendingResource(Resource):
         try:
             # Sending the email
             msg = Message(subject=subject,
-                          sender= os.environ.get('MAIL_USERNAME'),
+                          sender=os.environ.get('MAIL_USERNAME'),
                           recipients=recipients,
-                          cc=cc
-                        #   body=email_content
-                        )
+                          cc=cc)
             msg.html = email_content
             mail.send(msg)
+
+            # Log the sent email using the template_id as EmailId
+            self.log_email(template_id, subject, email_content, employee_cnic, creator_id,create_date)
+
             return {"message": f"Email sent successfully to {recipients}"}, 200
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
+
+    def log_email(self, email_id, subject, content, employee_cnic, creator_id,create_date):
+        # Create a new EmailLog_HR entry with template_id as EmailId
+        email_log = EmailLog_HR(
+            EmailId=email_id,  # Use the template_id here
+            Email_Title=subject,  # Log the subject as the title
+            Email_Subject=subject,
+            Email_Body=content,
+            Employee_Cnic=employee_cnic,
+            CreatorId=creator_id,
+            CreateDate=create_date  # Set the creation date to now
+        )
+        db.session.add(email_log)
+        db.session.commit()
 
 class UserDetails(Resource):
     
