@@ -1229,6 +1229,29 @@ class EmailStorageSystem(db.Model):
             'EmailType': self.EmailType
         }
 
+class EmailLog_HR(db.Model):
+    __tablename__ = 'EmailLog_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    EmailId = db.Column(db.Integer, nullable=False)
+    Email_Title = db.Column(db.String(100), nullable=False)
+    Email_Subject = db.Column(db.String(1000), nullable=False)
+    Email_Body = db.Column(db.Text, nullable=False)
+    Employee_Cnic = db.Column(db.String(50), nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'EmailId':self.EmailId,
+            'Email_Title': self.Email_Title,
+            'Email_Subject': self.Email_Subject,
+            'Email_Body': self.Email_Body,
+            'Employee_Cnic': self.Employee_Cnic,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+        } 
+
 class AvailableJobs(db.Model):
     __tablename__ = 'AvailableJobs'
     Job_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
