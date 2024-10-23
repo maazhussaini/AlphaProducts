@@ -6266,6 +6266,7 @@ class EmployeeCreationResource(Resource):
                         self.update_file_path(table_name, record_id, field_name, file_path)
                         if not table_name == 'StaffCnic':
                             inserted_ids.pop(key)
+
                     except Exception as e:
                         db.session.rollback()
                         logging.error(f"File association error for {table_name}: {str(e)}")
@@ -6358,9 +6359,9 @@ class EmployeeCreationResource(Resource):
                 setattr(record, field_name, file_path)
                 db.session.commit()
 
-    def put(self, employee_id):
+    def put(self):
         try:
-            logging.info(f"Received request to update employee record with ID {employee_id}.")
+            logging.info(f"Received request to update employee record.")
 
             # Ensure that both form data and files are present in the request
             if not request.files and not request.form:
@@ -6372,66 +6373,90 @@ class EmployeeCreationResource(Resource):
             updated_ids = {}  # To store updated record IDs
             file_data = {}
 
-            # Step 1: Check if employee exists
-            employee = db.session.query(self.get_model_by_tablename('StaffInfo')).filter_by(Staff_ID=employee_id).first()
-            if not employee:
-                logging.warning(f"Employee with ID {employee_id} does not exist.")
-                return {'status': 'error', 'message': 'Employee record not found'}, 404
+            # List of tables where update or insert operations should occur
+            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther']
+
+            # # Step 1: Check if employee exists
+            # employee = db.session.query(self.get_model_by_tablename('StaffInfo')).filter_by(Staff_ID=employee_id).first()
+            # if not employee:
+            #     logging.warning(f"Employee with ID {employee_id} does not exist.")
+            #     return {'status': 'error', 'message': 'Employee record not found'}, 404
 
             # Step 2: Update form data for each table
             for table_name, fields in form_data.items():
-
-                # Handle JSON string data (the fields contain lists of JSON strings)
-                if isinstance(fields, list) and len(fields) == 1:
-                    try:
-                        fields = json.loads(fields[0])
-                        if table_name in ['StaffEducation', 'StaffExperience', 'StaffOther']:
-                            for items in fields:
-                                try:
-                                    items.pop("Filename")
-                                except:
-                                    pass
-                    except json.JSONDecodeError as e:
-                        logging.error(f"JSON decoding error for table {table_name}: {str(e)}")
-                        return {'status': 'error', 'message': f'Invalid JSON data for {table_name}'}, 400
-
-                if isinstance(fields, dict):
-                    fields = [fields]  # Convert single dictionary to list for uniformity
-
                 model_class = self.get_model_by_tablename(table_name)
+                
                 if not model_class:
                     logging.error(f"Table {table_name} does not exist.")
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+                
+                # Verify if the table name is one of the allowed tables
+                if table_name in allowed_tables:
+                    logging.warning(f"Table {table_name} is not allowed for updates or inserts.")
+                    # continue  # Skip processing for this table
 
-                for record_fields in fields:
-                    # Step 3: Handle foreign key relationships based on employee ID
-                    self.apply_foreign_keys(table_name, record_fields, {'StaffInfo': employee_id})
+                    # Handle JSON string data (the fields contain lists of JSON strings)
+                    if isinstance(fields, list) and len(fields) == 1:
+                        try:
+                            fields = json.loads(fields[0])
+                            for items in fields:
+                                try:
+                                    items.pop("Filename", None)
+                                except:
+                                    pass
+                        except json.JSONDecodeError as e:
+                            logging.error(f"JSON decoding error for table {table_name}: {str(e)}")
+                            return {'status': 'error', 'message': f'Invalid JSON data for {table_name}'}, 400
 
-                    # Step 4: Update existing records
-                    try:
-                        # Find the record to update based on ID
-                        record = db.session.query(model_class).filter_by(Staff_ID=employee_id).first()
-                        if record:
-                            for key, value in record_fields.items():
-                                setattr(record, key, value)
+                    if isinstance(fields, dict):
+                        fields = [fields]  # Convert single dictionary to list for uniformity
 
+                    for record_fields in fields:
+                        # # Step 3: Handle foreign key relationships based on employee ID
+                        # self.apply_foreign_keys(table_name, record_fields, {'StaffInfo': employee_id})
+
+                        # Step 4: Check if the record has an 'id' field (update) or not (insert)
+                        record_id = record_fields.get('Id')
+
+                        if record_id:
+                            # Update existing record
+                            existing_record = db.session.query(model_class).filter_by(Id=record_id).first()
+                            if existing_record:
+                                for key, value in record_fields.items():
+                                    setattr(existing_record, key, value)
+                                logging.info(f"Updated {table_name} record with ID {existing_record.id}")
+                            else:
+                                logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
+                                return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                        else:
+                            # Insert new record
+                            new_record = model_class(**record_fields)
+                            db.session.add(new_record)
+                            logging.info(f"Inserted new record into {table_name}")
+
+                        try:
                             db.session.commit()
-                            updated_ids[table_name] = record.Staff_ID
-                            logging.info(f"Updated {table_name} with ID {record.Staff_ID}")
+                            updated_ids[table_name] = record_id if record_id else new_record.id
 
-                    except SQLAlchemyError as e:
-                        db.session.rollback()
-                        logging.error(f"Database error: {str(e)}")
-                        return {'status': 'error', 'message': str(e)}, 500
-                    except Exception as e:
-                        db.session.rollback()
-                        logging.error(f"Error updating {table_name}: {str(e)}")
-                        return {'status': 'error', 'message': str(e)}, 500
+                        except SQLAlchemyError as e:
+                            db.session.rollback()
+                            logging.error(f"Database error: {str(e)}")
+                            return {'status': 'error', 'message': str(e)}, 500
 
+                else:
+                    # Update existing record
+                    existing_record = db.session.query(model_class).filter_by(Id=record_id).first()
+                    if existing_record:
+                        for key, value in record_fields.items():
+                            setattr(existing_record, key, value)
+                        logging.info(f"Updated {table_name} record with ID {existing_record.id}")
+                    else:
+                        logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
+                        return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+            # Step 5: Process file uploads if available
             if request.files:
                 file_data = self.process_files(request.files)
 
-            # Step 5: Process file uploads and associate them with the updated records
             for file_key, file_info in file_data.items():
                 _, table_name, field_name, _ = file_info['key'].split('_')
                 file_path = file_info['path']
@@ -6442,7 +6467,9 @@ class EmployeeCreationResource(Resource):
                     try:
                         key, record_id = result
                         self.update_file_path(table_name, record_id, field_name, file_path)
-                        updated_ids.pop(key)
+                        if not table_name == 'StaffCnic':
+                            updated_ids.pop(key)
+                            
                     except Exception as e:
                         db.session.rollback()
                         logging.error(f"File association error for {table_name}: {str(e)}")
@@ -6454,4 +6481,3 @@ class EmployeeCreationResource(Resource):
         except Exception as e:
             logging.error(f"Unexpected error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
-
