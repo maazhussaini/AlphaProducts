@@ -12,6 +12,7 @@ import os
 from decimal import Decimal
 import pandas as pd
 from datetime import datetime
+import logging
 
 # Custom function to handle both Decimal and Timestamp objects
 def custom_serializer(obj):
@@ -80,6 +81,53 @@ class DynamicGetResource(Resource):
                 }
         except Exception as e:
             return {'message': str(e)}, 500
+
+class DetailNotificationProcedure(Resource):
+    def post(self):
+        logging.info("Received a POST request at /detailnotification/procedure")
+        # Get JSON data from the request
+        data = request.get_json()
+        if not data:
+            return {"error": "No input data provided"}, 400
+
+        # Log incoming data
+        logging.info("Incoming data: %s", data)
+
+        procedure_name = data.get("procedure_name")
+        staff_ids = data.get("parameters", {}).get("StaffIds", [])
+        notification_id = data.get("parameters", {}).get("NotificationId")
+
+        if not procedure_name or not staff_ids or notification_id is None:
+            return {"error": "Missing required parameters"}, 400
+
+        try:
+            # Use SQLAlchemy's raw connection
+            connection = db.engine.raw_connection()
+            cursor = connection.cursor()
+
+            # Prepare the SQL command
+            sql_command = f"EXEC {procedure_name} @StaffIds = '{staff_ids}', @NotificationId = {notification_id}"
+            logging.info("Executing SQL command: %s", sql_command)
+
+            # Execute the stored procedure 
+            cursor.execute(sql_command)
+
+            # Commit the transaction
+            connection.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+            return {"message": "Procedure executed successfully."}, 200
+
+        except SQLAlchemyError as e:
+            connection.rollback()
+            logging.error("SQLAlchemy error: %s", str(e))
+            return {"error": str(e)}, 500
+        except Exception as e:
+            logging.error("Error executing procedure: %s", str(e))
+            return {"error": str(e)}, 500
 
 class CallProcedureResource(Resource):
     def post(self):
@@ -182,35 +230,51 @@ class DynamicPostResource(Resource):
         insert_data = data.get('Data')
 
         if not table_name or not insert_data:
-            return {'status': 'error',
-                'message': 'Table_Name and Data are required'}, 400
+            return {
+                'status': 'error',
+                'message': 'Table_Name and Data are required'
+            }, 400
 
         # Get the model class based on the table name
         model_class = get_model_by_tablename(table_name)
         if not model_class:
-            return {'status': 'error',
-                'message': f'Table {table_name} does not exist'}, 400
+            return {
+                'status': 'error',
+                'message': f'Table {table_name} does not exist'
+            }, 400
 
         # Validate that insert_data is a list of dictionaries
         if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
-            return {'status': 'error',
-                'message': 'Data should be a list of dictionaries'}, 400
+            return {
+                'status': 'error',
+                'message': 'Data should be a list of dictionaries'
+            }, 400
 
         # Insert records
         try:
             records = [model_class(**item) for item in insert_data]
-            db.session.bulk_save_objects(records)
+            db.session.add_all(records)  # Use add_all to track the objects
             db.session.commit()
-            return {'status': 'success',
-                'message': f'{len(records)} records inserted into {table_name} successfully'}, 201
+
+            # Collect primary keys of inserted records
+            inserted_ids = [record.Id for record in records]
+            return {
+                'status': 'success',
+                'message': f'{len(records)} records inserted into {table_name} successfully',
+                'inserted_ids': inserted_ids  # Return the primary keys
+            }, 201
         except SQLAlchemyError as e:
             db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
+            return {
+                'status': 'error',
+                'message': str(e)
+            }, 500
         except Exception as e:
             db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
+            return {
+                'status': 'error',
+                'message': str(e)
+            }, 500
 
 class DynamicUpdateResource(Resource):
     def put(self):

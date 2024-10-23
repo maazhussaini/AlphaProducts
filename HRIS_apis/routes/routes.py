@@ -4,7 +4,7 @@ from flask_cors import CORS, cross_origin
 from resources.resources import *
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
-    DynamicUpdateResource, DynamicInsertOrUpdateResource, UploadFileResource
+    DynamicUpdateResource, DynamicInsertOrUpdateResource, UploadFileResource,DetailNotificationProcedure
 )
 from resources.auth import UserLoginResource
 
@@ -24,6 +24,7 @@ def register_routes(app):
     
     ## Dynamic APIs
     api.add_resource(CallProcedureResource, '/callProcedure')
+    api.add_resource(DetailNotificationProcedure, '/detailnotification/procedure')
     api.add_resource(DynamicGetResource, '/dynamicGet', '/dynamicGet/<int:id>')
     api.add_resource(DynamicPostResource, '/dynamicPost')
     api.add_resource(DynamicUpdateResource, '/dynamicUpdate')
@@ -65,4 +66,5 @@ def register_routes(app):
     api.add_resource(ScheduledAllowanceResource, '/scheduledAllowance', '/scheduledAllowance/<int:id>')
     
     api.add_resource(EmployeeCreationResource, '/employeeCreation')
+    
     
