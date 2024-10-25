@@ -6422,6 +6422,7 @@ class EmployeeCreationResource(Resource):
                         record_id = record_fields.get('Id')
 
                         if record_id:
+                            print(f"Table: {model_class}, record_id: {record_id}")
                             # Update existing record
                             if table_name == 'StaffInfo':
                                 existing_record = db.session.query(model_class).filter_by(Staff_ID=record_id).first()
@@ -6452,6 +6453,8 @@ class EmployeeCreationResource(Resource):
 
                 else:
                     # Update existing record
+                    print(f"Table: {model_class}, record_id: {record_id}")
+                    record_id = record_fields.get('User_Id')
                     existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
                     if existing_record:
                         for key, value in record_fields.items():
