@@ -6392,7 +6392,6 @@ class EmployeeCreationResource(Resource):
                 
                 # Verify if the table name is one of the allowed tables
                 if table_name in allowed_tables:
-                    logging.warning(f"Table {table_name} is allowed for updates or inserts.")
                     # continue  # Skip processing for this table
 
                     # Handle JSON string data (the fields contain lists of JSON strings)
@@ -6416,15 +6415,18 @@ class EmployeeCreationResource(Resource):
                         # self.apply_foreign_keys(table_name, record_fields, {'StaffInfo': employee_id})
 
                         # Step 4: Check if the record has an 'id' field (update) or not (insert)
-                        if model_class == 'StaffInfo':
+                        if table_name == 'StaffInfo':
                             record_id = record_fields.get('Staff_ID')
                         
                         record_id = record_fields.get('Id')
                         
-                        logging.warning(f"\n\nTable: {model_class} \nFields: {record_fields}")
+                        logging.warning(f"\n\nTable: {table_name} \nFields: {record_fields}")
 
                         if record_id:
+                            logging.warning(f"Table {table_name} is allowed for updates")
+                            
                             print(f"Table: {model_class}, record_id: {record_id}")
+                            
                             # Update existing record
                             if table_name == 'StaffInfo':
                                 existing_record = db.session.query(model_class).filter_by(Staff_ID=record_id).first()
@@ -6439,7 +6441,9 @@ class EmployeeCreationResource(Resource):
                                 logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
                                 return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
                         else:
-                            if model_class == 'StaffInfo':
+                            logging.warning(f"Table {table_name} is allowed for inserts.")
+                            
+                            if table_name == 'StaffInfo':
                                 logging.warning("URGENT!! SOMETHING IS FISHY")
                                 continue
                             # Insert new record
