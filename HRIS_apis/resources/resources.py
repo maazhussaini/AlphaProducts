@@ -6374,7 +6374,7 @@ class EmployeeCreationResource(Resource):
             file_data = {}
 
             # List of tables where update or insert operations should occur
-            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther']
+            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo']
 
             # # Step 1: Check if employee exists
             # employee = db.session.query(self.get_model_by_tablename('StaffInfo')).filter_by(Staff_ID=employee_id).first()
@@ -6416,15 +6416,22 @@ class EmployeeCreationResource(Resource):
                         # self.apply_foreign_keys(table_name, record_fields, {'StaffInfo': employee_id})
 
                         # Step 4: Check if the record has an 'id' field (update) or not (insert)
+                        if table_name == 'StaffInfo':
+                            record_id = record_fields.get('Staff_ID')
+                        
                         record_id = record_fields.get('Id')
 
                         if record_id:
                             # Update existing record
-                            existing_record = db.session.query(model_class).filter_by(Id=record_id).first()
+                            if table_name == 'StaffInfo':
+                                existing_record = db.session.query(model_class).filter_by(Staff_ID=record_id).first()
+                            else:
+                                existing_record = db.session.query(model_class).filter_by(Id=record_id).first()
+                            
                             if existing_record:
                                 for key, value in record_fields.items():
                                     setattr(existing_record, key, value)
-                                logging.info(f"Updated {table_name} record with ID {existing_record.id}")
+                                logging.info(f"Updated {table_name} record with ID {record_id}")
                             else:
                                 logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
                                 return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
@@ -6445,7 +6452,7 @@ class EmployeeCreationResource(Resource):
 
                 else:
                     # Update existing record
-                    existing_record = db.session.query(model_class).filter_by(Id=record_id).first()
+                    existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
                     if existing_record:
                         for key, value in record_fields.items():
                             setattr(existing_record, key, value)
