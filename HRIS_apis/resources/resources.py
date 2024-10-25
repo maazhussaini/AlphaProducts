@@ -6376,12 +6376,6 @@ class EmployeeCreationResource(Resource):
             # List of tables where update or insert operations should occur
             allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo']
 
-            # # Step 1: Check if employee exists
-            # employee = db.session.query(self.get_model_by_tablename('StaffInfo')).filter_by(Staff_ID=employee_id).first()
-            # if not employee:
-            #     logging.warning(f"Employee with ID {employee_id} does not exist.")
-            #     return {'status': 'error', 'message': 'Employee record not found'}, 404
-
             # Step 2: Update form data for each table
             for table_name, fields in form_data.items():
                 model_class = self.get_model_by_tablename(table_name)
@@ -6392,7 +6386,6 @@ class EmployeeCreationResource(Resource):
                 
                 # Verify if the table name is one of the allowed tables
                 if table_name in allowed_tables:
-                    # continue  # Skip processing for this table
 
                     # Handle JSON string data (the fields contain lists of JSON strings)
                     if isinstance(fields, list) and len(fields) == 1:
@@ -6417,15 +6410,15 @@ class EmployeeCreationResource(Resource):
                         # Step 4: Check if the record has an 'id' field (update) or not (insert)
                         if table_name == 'StaffInfo':
                             record_id = record_fields.get('Staff_ID')
-                        
-                        record_id = record_fields.get('Id')
+                        else:
+                            record_id = record_fields.get('Id')
                         
                         logging.warning(f"\n\nTable: {table_name} \nFields: {record_fields}")
 
                         if record_id:
                             logging.warning(f"Table {table_name} is allowed for updates")
                             
-                            print(f"Table: {model_class}, record_id: {record_id}")
+                            # print(f"Table: {model_class}, record_id: {record_id}")
                             
                             # Update existing record
                             if table_name == 'StaffInfo':
