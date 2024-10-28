@@ -6374,7 +6374,7 @@ class EmployeeCreationResource(Resource):
             file_data = {}
 
             # List of tables where update or insert operations should occur
-            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo']
+            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo', 'StaffCnic']
 
             # Step 2: Update form data for each table
             for table_name, fields in form_data.items():
@@ -6458,13 +6458,19 @@ class EmployeeCreationResource(Resource):
 
                 else:
                     # Update existing record
-                    print(f"Table: {model_class}, record_id: {record_id}")
-                    record_id = record_fields.get('User_Id')
+                    logging.info(f"\n\nTable: {table_name}, \nFields: {fields[0]}\n\n")
+                    try:
+                        fields = json.loads(fields[0])
+                    except:
+                        fields = json.loads(fields)
+
+                    record_id = fields.get('User_Id')
+                    logging.info(f"Table: {table_name}, record_id: {record_id}")
                     existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
                     if existing_record:
                         for key, value in record_fields.items():
                             setattr(existing_record, key, value)
-                        logging.info(f"Updated {table_name} record with ID {existing_record.id}")
+                        logging.info(f"Updated {table_name} record with ID {existing_record.User_Id}")
                     else:
                         logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
                         return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
