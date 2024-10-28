@@ -6446,7 +6446,10 @@ class EmployeeCreationResource(Resource):
 
                         try:
                             db.session.commit()
-                            updated_ids[table_name] = record_id if record_id else new_record.id
+                            if table_name == 'StaffInfo':
+                                updated_ids[table_name] = record_id if record_id else new_record.Staff_ID
+                            else:
+                                updated_ids[table_name] = record_id if record_id else new_record.Id
 
                         except SQLAlchemyError as e:
                             db.session.rollback()
