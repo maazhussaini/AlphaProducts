@@ -6307,11 +6307,10 @@ class EmployeeCreationResource(Resource):
             record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
             record_fields["Username"] = encrypt(str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk")
             record_fields["Password"] = encrypt(str(inserted_ids.get('StaffInfo')))
-
+    """
     def process_files(self, files):
-        """
-        Handles the file uploads and saves them to the appropriate locations.
-        """
+        # Handles the file uploads and saves them to the appropriate locations.
+        
         file_data = {}
         BASE_UPLOAD_FOLDER = 'uploads\\'
         
@@ -6343,9 +6342,8 @@ class EmployeeCreationResource(Resource):
         return file_data
 
     def update_file_path(self, table_name, record_id, field_name, file_path):
-        """
-        Updates the record in the database with the file path.
-        """
+        # Updates the record in the database with the file path.
+        
         logging.warning("NOW UPDATING FILES")
         logging.info(f"file_path: {file_path} \n")
         model_class = self.get_model_by_tablename(table_name)
@@ -6404,8 +6402,6 @@ class EmployeeCreationResource(Resource):
                         fields = [fields]  # Convert single dictionary to list for uniformity
 
                     for record_fields in fields:
-                        # # Step 3: Handle foreign key relationships based on employee ID
-                        # self.apply_foreign_keys(table_name, record_fields, {'StaffInfo': employee_id})
 
                         # Step 4: Check if the record has an 'id' field (update) or not (insert)
                         if table_name == 'StaffInfo':
@@ -6478,23 +6474,23 @@ class EmployeeCreationResource(Resource):
             if request.files:
                 file_data = self.process_files(request.files)
 
-            for file_key, file_info in file_data.items():
-                _, table_name, field_name, _ = file_info['key'].split('_')
-                file_path = file_info['path']
+                for file_key, file_info in file_data.items():
+                    _, table_name, field_name, _ = file_info['key'].split('_')
+                    file_path = file_info['path']
 
-                result = next(((key, value) for key, value in updated_ids.items() if table_name in key), None)
+                    result = next(((key, value) for key, value in updated_ids.items() if table_name in key), None)
 
-                if result is not None:
-                    try:
-                        key, record_id = result
-                        self.update_file_path(table_name, record_id, field_name, file_path)
-                        if not table_name == 'StaffCnic':
-                            updated_ids.pop(key)
-                            
-                    except Exception as e:
-                        db.session.rollback()
-                        logging.error(f"File association error for {table_name}: {str(e)}")
-                        return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
+                    if result is not None:
+                        try:
+                            key, record_id = result
+                            self.update_file_path(table_name, record_id, field_name, file_path)
+                            if not table_name == 'StaffCnic':
+                                updated_ids.pop(key)
+                                
+                        except Exception as e:
+                            db.session.rollback()
+                            logging.error(f"File association error for {table_name}: {str(e)}")
+                            return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
 
             logging.info("Employee record updated successfully.")
             return {'status': 'success', 'message': 'Records updated successfully', 'updated_ids': updated_ids}, 200
@@ -6502,3 +6498,124 @@ class EmployeeCreationResource(Resource):
         except Exception as e:
             logging.error(f"Unexpected error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
+
+    """
+    def process_files(self, files):
+        """
+        Handles the file uploads and saves them to the appropriate locations.
+        """
+        file_data = {}
+        BASE_UPLOAD_FOLDER = 'uploads'
+        
+        for key, file in files.items():
+            if file.filename == '':
+                continue
+
+            filename = secure_filename(file.filename)
+            key_parts = key.split('_')
+            table_name, field_name = key_parts[1], key_parts[2]
+            filename = key_parts[3]
+
+            # Define folders
+            MAIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, table_name)
+            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            file_data[key] = {'key': key, 'path': file_path}
+
+        return file_data
+
+    def update_file_path(self, table_name, record_id, field_name, file_path):
+        """
+        Updates the record in the database with the file path.
+        """
+        model_class = self.get_model_by_tablename(table_name)
+        if model_class:
+            record_field = 'Staff_ID' if table_name == 'StaffInfo' else 'Id'
+            record = db.session.query(model_class).filter_by(**{record_field: record_id}).first()
+            if record:
+                setattr(record, field_name, file_path)
+                db.session.commit()
+
+    def put(self):
+        try:
+            logging.info("Received request to update employee record.")
+
+            # Validate form data or files
+            if not request.files and not request.form:
+                return {'message': 'No file or form data in the request'}, 400
+
+            # Process form data
+            form_data = request.form.to_dict(flat=False)
+            updated_ids = {}
+            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo', 'StaffCnic']
+
+            # Process form data for each table
+            for table_name, fields in form_data.items():
+                model_class = self.get_model_by_tablename(table_name)
+                if not model_class:
+                    logging.error(f"Table {table_name} does not exist.")
+                    return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+                if table_name in allowed_tables:
+                    fields = self._parse_fields(fields)
+
+                    for record_fields in fields:
+                        record_id = record_fields.get('Staff_ID') if table_name == 'StaffInfo' else record_fields.get('Id')
+                        if record_id:
+                            existing_record = self._fetch_existing_record(model_class, table_name, record_id)
+                            if existing_record:
+                                self._update_record(existing_record, record_fields)
+                            else:
+                                return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                        else:
+                            new_record = model_class(**record_fields)
+                            db.session.add(new_record)
+                        db.session.commit()
+                        updated_ids[table_name] = record_id if record_id else getattr(new_record, 'Id', None)
+
+            # Process file uploads if available
+            if request.files:
+                file_data = self.process_files(request.files)
+
+                for file_key, file_info in file_data.items():
+                    _, table_name, field_name, _ = file_info['key'].split('_')
+                    file_path = file_info['path']
+                    record_id = updated_ids.get(table_name)
+                    
+                    if record_id:
+                        self.update_file_path(table_name, record_id, field_name, file_path)
+                    else:
+                        logging.warning(f"No matching record ID in {table_name} to associate file path.")
+
+            logging.info("Employee record updated successfully.")
+            return {'status': 'success', 'message': 'Records updated successfully', 'updated_ids': updated_ids}, 200
+
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Unexpected error in processing request: {str(e)}")
+            return {'status': 'error', 'message': str(e)}, 500
+
+    # Helper functions
+    def _parse_fields(self, fields):
+        """Helper to parse and clean JSON fields."""
+        if isinstance(fields, list) and len(fields) == 1:
+            try:
+                fields = json.loads(fields[0])
+            except json.JSONDecodeError as e:
+                logging.error(f"JSON decoding error: {str(e)}")
+                raise ValueError("Invalid JSON data")
+        return [fields] if isinstance(fields, dict) else fields
+
+    def _fetch_existing_record(self, model_class, table_name, record_id):
+        """Helper to fetch an existing record by ID."""
+        filter_field = 'Staff_ID' if table_name == 'StaffInfo' else 'Id'
+        return db.session.query(model_class).filter(getattr(model_class, filter_field) == record_id).first()
+
+    def _update_record(self, record, fields):
+        """Helper to update an existing record."""
+        for key, value in fields.items():
+            setattr(record, key, value)
+        logging.info(f"Updated record with ID {fields.get('Staff_ID') or fields.get('Id')}")
