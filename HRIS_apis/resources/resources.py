@@ -6598,19 +6598,32 @@ class EmployeeCreationResource(Resource):
             logging.error(f"Unexpected error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
 
-    # Helper functions
     def _parse_fields(self, fields):
-        """Helper to parse and clean JSON fields."""
-        if isinstance(fields, list) and len(fields) == 1:
+        """Helper to parse and clean JSON fields, removing 'Filename' key if present."""
+        # Check if fields is a list containing a single JSON string
+        if isinstance(fields, list) and len(fields) == 1 and isinstance(fields[0], str):
             try:
+                # Parse JSON string into a list of dictionaries
                 fields = json.loads(fields[0])
+
+                # Ensure fields is a list of dictionaries
+                if isinstance(fields, dict):
+                    fields = [fields]
+                
                 # Remove 'Filename' from each item if it exists
                 for item in fields:
-                    item.pop("Filename", None)
+                    if isinstance(item, dict):
+                        item.pop("Filename", None)
             except json.JSONDecodeError as e:
                 logging.error(f"JSON decoding error: {str(e)}")
-                raise ValueError("Invalid JSON data")
-        return [fields] if isinstance(fields, dict) else fields
+                raise ValueError("Invalid JSON data format")
+        
+        # Handle case where fields is a single dictionary, not a list
+        elif isinstance(fields, dict):
+            fields = [fields]
+        
+        return fields
+
 
     def _fetch_existing_record(self, model_class, table_name, record_id):
         """Helper to fetch an existing record by ID."""
