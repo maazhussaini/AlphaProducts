@@ -6604,6 +6604,9 @@ class EmployeeCreationResource(Resource):
         if isinstance(fields, list) and len(fields) == 1:
             try:
                 fields = json.loads(fields[0])
+                # Remove 'Filename' from each item if it exists
+                for item in fields:
+                    item.pop("Filename", None)
             except json.JSONDecodeError as e:
                 logging.error(f"JSON decoding error: {str(e)}")
                 raise ValueError("Invalid JSON data")
