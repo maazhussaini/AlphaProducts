@@ -6580,7 +6580,7 @@ class EmployeeCreationResource(Resource):
 
             db.session.commit()  # Final commit after all updates for this table
 
-            # Process file uploads if available
+           # Step 5: Process file uploads if available
             if request.files:
                 file_data = self.process_files(request.files)
 
@@ -6588,15 +6588,19 @@ class EmployeeCreationResource(Resource):
                     _, table_name, field_name, _ = file_info['key'].split('_')
                     file_path = file_info['path']
 
-                    # Iterate over all record IDs for the table and update file path
-                    for composite_key, record_id in updated_ids.items():
-                        # Only apply file path to records in the current table
-                        if composite_key.startswith(table_name) and record_id:
-                            self.update_file_path(table_name, record_id, field_name, file_path)
-                            if not table_name == 'StaffCnic':
-                                updated_ids.pop(composite_key)
-                        else:
-                            logging.warning(f"No matching record ID in {table_name} to associate file path.")
+                    # Find a matching record in updated_ids for the current table
+                    for key, record_id in list(updated_ids.items()):  # Use list() to iterate safely while removing items
+                        if table_name in key:
+                            try:
+                                self.update_file_path(table_name, record_id, field_name, file_path)
+                                # Remove the key directly after updating if it's not 'StaffCnic'
+                                if table_name != 'StaffCnic':
+                                    del updated_ids[key]
+                                break  # Exit after finding the first match for efficiency
+                            except Exception as e:
+                                db.session.rollback()
+                                logging.error(f"File association error for {table_name}: {str(e)}")
+                                return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
 
             logging.info("Employee record updated successfully.")
             return {'status': 'success', 'message': 'Records updated successfully', 'updated_ids': updated_ids}, 200
