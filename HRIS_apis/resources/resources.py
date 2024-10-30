@@ -6307,6 +6307,7 @@ class EmployeeCreationResource(Resource):
             record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
             record_fields["Username"] = encrypt(str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]) + "@alpha.edu.pk")
             record_fields["Password"] = encrypt(str(inserted_ids.get('StaffInfo')))
+    
     """
     def process_files(self, files):
         # Handles the file uploads and saves them to the appropriate locations.
@@ -6500,6 +6501,7 @@ class EmployeeCreationResource(Resource):
             return {'status': 'error', 'message': str(e)}, 500
 
     """
+    
     def process_files(self, files):
         """
         Handles the file uploads and saves them to the appropriate locations.
@@ -6538,7 +6540,7 @@ class EmployeeCreationResource(Resource):
             if record:
                 setattr(record, field_name, file_path)
                 db.session.commit()
-
+    
     def put(self):
         try:
             logging.info("Received request to update employee record.")
@@ -6550,7 +6552,6 @@ class EmployeeCreationResource(Resource):
             # Process form data
             form_data = request.form.to_dict(flat=False)
             updated_ids = {}
-            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo', 'StaffCnic']
 
             # Process form data for each table
             for table_name, fields in form_data.items():
@@ -6559,22 +6560,25 @@ class EmployeeCreationResource(Resource):
                     logging.error(f"Table {table_name} does not exist.")
                     return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
 
-                if table_name in allowed_tables:
-                    fields = self._parse_fields(fields)
+                fields = self._parse_fields(fields)
 
-                    for record_fields in fields:
-                        record_id = record_fields.get('Staff_ID') if table_name == 'StaffInfo' else record_fields.get('Id')
-                        if record_id:
-                            existing_record = self._fetch_existing_record(model_class, table_name, record_id)
-                            if existing_record:
-                                self._update_record(existing_record, record_fields)
-                            else:
-                                return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                for record_fields in fields:
+                    record_id = record_fields.get('Staff_ID') if table_name == 'StaffInfo' else record_fields.get('Id')
+                    if record_id:
+                        existing_record = self._fetch_existing_record(model_class, table_name, record_id)
+                        if existing_record:
+                            self._update_record(existing_record, record_fields)
+                            updated_ids[f"{table_name}_{record_id}"] = record_id  # Store with composite key
                         else:
-                            new_record = model_class(**record_fields)
-                            db.session.add(new_record)
-                        db.session.commit()
-                        updated_ids[table_name] = record_id if record_id else getattr(new_record, 'Id', None)
+                            return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                    else:
+                        new_record = model_class(**record_fields)
+                        db.session.add(new_record)
+                        db.session.commit()  # Commit here to get the ID for the new record
+                        new_record_id = getattr(new_record, 'Id', None)
+                        updated_ids[f"{table_name}_{new_record_id}"] = new_record_id  # Store with composite key
+
+            db.session.commit()  # Final commit after all updates for this table
 
             # Process file uploads if available
             if request.files:
@@ -6583,12 +6587,14 @@ class EmployeeCreationResource(Resource):
                 for file_key, file_info in file_data.items():
                     _, table_name, field_name, _ = file_info['key'].split('_')
                     file_path = file_info['path']
-                    record_id = updated_ids.get(table_name)
-                    
-                    if record_id:
-                        self.update_file_path(table_name, record_id, field_name, file_path)
-                    else:
-                        logging.warning(f"No matching record ID in {table_name} to associate file path.")
+
+                    # Iterate over all record IDs for the table and update file path
+                    for composite_key, record_id in updated_ids.items():
+                        # Only apply file path to records in the current table
+                        if composite_key.startswith(table_name) and record_id:
+                            self.update_file_path(table_name, record_id, field_name, file_path)
+                        else:
+                            logging.warning(f"No matching record ID in {table_name} to associate file path.")
 
             logging.info("Employee record updated successfully.")
             return {'status': 'success', 'message': 'Records updated successfully', 'updated_ids': updated_ids}, 200
@@ -6623,7 +6629,6 @@ class EmployeeCreationResource(Resource):
             fields = [fields]
         
         return fields
-
 
     def _fetch_existing_record(self, model_class, table_name, record_id):
         """Helper to fetch an existing record by ID."""
