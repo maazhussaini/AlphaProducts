@@ -6580,6 +6580,7 @@ class EmployeeCreationResource(Resource):
 
             db.session.commit()  # Final commit after all updates for this table
 
+            print(updated_ids)
             # Process file uploads if available
             if request.files:
                 file_data = self.process_files(request.files)
