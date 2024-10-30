@@ -6580,7 +6580,6 @@ class EmployeeCreationResource(Resource):
 
             db.session.commit()  # Final commit after all updates for this table
 
-            print(updated_ids)
             # Process file uploads if available
             if request.files:
                 file_data = self.process_files(request.files)
@@ -6594,6 +6593,8 @@ class EmployeeCreationResource(Resource):
                         # Only apply file path to records in the current table
                         if composite_key.startswith(table_name) and record_id:
                             self.update_file_path(table_name, record_id, field_name, file_path)
+                            if not table_name == 'StaffCnic':
+                                updated_ids.pop(composite_key)
                         else:
                             logging.warning(f"No matching record ID in {table_name} to associate file path.")
 
