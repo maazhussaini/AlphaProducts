@@ -134,22 +134,14 @@ class CallProcedureResource(Resource):
         
         parser = reqparse.RequestParser()
         parser.add_argument('procedure_name', type=str, required=True, location='json', help='Stored Procedure or Table name must be given')
-        parser.add_argument('pageNo', type=int, location='json', help='Page number must be an integer')
-        parser.add_argument('per_page', type=int, location='json', help='Page size must be an integer')
         parser.add_argument('parameters', type=dict, default={}, location='json', help='Parameters must be a dictionary')
         
         args = parser.parse_args()
         
         procedure_name = args['procedure_name']
-        page = args['pageNo']
-        per_page = args['per_page']
         parameters = args['parameters']
         
-        
-        # procedure_name = data.get('procedure_name')
-        # parameters = data.get('parameters', {})
-        # page = data.get('pageNo', 1)
-        # per_page = data.get('per_page', 10)
+        results = []
 
         if not procedure_name:
             return {'error': 'Procedure name is required'}, 400
@@ -159,11 +151,8 @@ class CallProcedureResource(Resource):
             return {'error': 'Parameters should be a dictionary if provided'}, 400
 
         # Prepare the parameters if they exist
-        # custom_parameters = [f'@{key} = {value}' for key, value in parameters.items()]
         custom_parameters = [f'@{key} = "{value}"' if isinstance(value, str) else f"@{key} = {value}" for key, value in parameters.items()]
         param_placeholders = ', '.join(custom_parameters)
-
-        print(parameters, custom_parameters, param_placeholders)
         
         # Connect to the database
         connection = db.engine.raw_connection()
@@ -176,43 +165,32 @@ class CallProcedureResource(Resource):
                 call_procedure_query = f"exec {procedure_name};"
                 cursor.execute(call_procedure_query)
 
-            print(call_procedure_query)
+            print(f"Executing query: {call_procedure_query}")  # Debugging step to verify the query
             
-            columns = [column[0] for column in cursor.description]
-            results = cursor.fetchall()
+            if cursor.description:
+                columns = [column[0] for column in cursor.description]
+                results = cursor.fetchall()
             cursor.close()
             connection.commit()
             
-            # Convert results to a list of dictionaries for JSON response
-            result_list = [dict(zip(columns, row)) for row in results]
-            
-            # Create a pandas DataFrame from the result
-            temp = pd.DataFrame(result_list)
+            if results:
+                # Convert results to a list of dictionaries for JSON response
+                result_list = [dict(zip(columns, row)) for row in results]
+                
+                # Create a pandas DataFrame from the result
+                temp = pd.DataFrame(result_list)
 
-            # Convert DataFrame to a list of dictionaries
-            results = temp.to_dict(orient='records')
+                # Convert DataFrame to a list of dictionaries
+                results = temp.to_dict(orient='records')
 
-            # Use json.dumps with the custom decimal-to-float converter
-            json_data = json.dumps({"data": results}, default=custom_serializer)
+                # Use json.dumps with the custom decimal-to-float converter
+                json_data = json.dumps({"data": results}, default=custom_serializer)
 
-            json_data = json.loads(json_data)
+                json_data = json.loads(json_data)
 
-            return json_data
-            if page and per_page:
-                # Apply pagination
-                total = len(result_list)
-                start = (page - 1) * per_page
-                end = start + per_page
-                paginated_results = result_list[start:end]
-
-                return jsonify({
-                    'data': paginated_results,
-                    'page': page,
-                    'per_page': per_page,
-                    'total': total
-                })
+                return json_data
             else:
-                return {"data": result_list}
+                return {"data": results}
 
         except SQLAlchemyError as e:
             connection.rollback()
