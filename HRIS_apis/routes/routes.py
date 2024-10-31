@@ -53,7 +53,6 @@ def register_routes(app):
     api.add_resource(StaffDepartmentResource, '/staffDepartment', '/staffDepartment/<int:id>')
     api.add_resource(StaffTransferResource, '/staffTransfer', '/staffTransfer/<int:id>')
     api.add_resource(StaffIncrementResource, '/staffIncrement', '/staffIncrement/<int:id>')
-    api.add_resource(StaffLeaveRequestResource, '/staffLeaveRequest')
     api.add_resource(StaffLeaveRequestTempResource, '/staffLeaveRequestTemp')
     
     api.add_resource(StaffShiftResource, '/staffShift/<int:staff_id>/<int:shift_id>')
