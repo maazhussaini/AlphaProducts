@@ -6552,6 +6552,7 @@ class EmployeeCreationResource(Resource):
             # Process form data
             form_data = request.form.to_dict(flat=False)
             updated_ids = {}
+            allowed_tables = ['StaffChild', 'StaffEducation', 'StaffExperience', 'StaffOther', 'StaffInfo', 'StaffCnic']
 
             # Process form data for each table
             for table_name, fields in form_data.items():
@@ -6562,21 +6563,33 @@ class EmployeeCreationResource(Resource):
 
                 fields = self._parse_fields(fields)
 
-                for record_fields in fields:
-                    record_id = record_fields.get('Staff_ID') if table_name == 'StaffInfo' else record_fields.get('Id')
-                    if record_id:
-                        existing_record = self._fetch_existing_record(model_class, table_name, record_id)
-                        if existing_record:
-                            self._update_record(existing_record, record_fields)
-                            updated_ids[f"{table_name}_{record_id}"] = record_id  # Store with composite key
+                if table_name in allowed_tables:
+                    for record_fields in fields:
+                        record_id = record_fields.get('Staff_ID') if table_name == 'StaffInfo' else record_fields.get('Id')
+                        if record_id:
+                            existing_record = self._fetch_existing_record(model_class, table_name, record_id)
+                            if existing_record:
+                                self._update_record(existing_record, record_fields)
+                                updated_ids[f"{table_name}_{record_id}"] = record_id  # Store with composite key
+                            else:
+                                return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
                         else:
-                            return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                            new_record = model_class(**record_fields)
+                            db.session.add(new_record)
+                            db.session.commit()  # Commit here to get the ID for the new record
+                            new_record_id = getattr(new_record, 'Id', None)
+                            updated_ids[f"{table_name}_{new_record_id}"] = new_record_id  # Store with composite key
+                else:
+                    record_id = fields.get('User_Id')
+                    logging.info(f"Table: {table_name}, record_id: {record_id}")
+                    existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
+                    if existing_record:
+                        for key, value in record_fields.items():
+                            setattr(existing_record, key, value)
+                        logging.info(f"Updated {table_name} record with ID {existing_record.User_Id}")
                     else:
-                        new_record = model_class(**record_fields)
-                        db.session.add(new_record)
-                        db.session.commit()  # Commit here to get the ID for the new record
-                        new_record_id = getattr(new_record, 'Id', None)
-                        updated_ids[f"{table_name}_{new_record_id}"] = new_record_id  # Store with composite key
+                        logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
+                        return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
 
             db.session.commit()  # Final commit after all updates for this table
 
