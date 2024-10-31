@@ -1251,17 +1251,46 @@ class EmailLog_HR(db.Model):
             'CreatorId': self.CreatorId,
             'CreateDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
         } 
-    
+
+class On_boardingtask_HR(db.Model):
+    __tablename__ = 'On_boardingtask_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Tasks = db.Column(db.String(500), nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Tasks':self.Tasks,
+            'Status': self.Status,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatorId': self.CreatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdaterId': self.UpdaterId,
+            'CampusId': self.CampusId,
+        } 
+
+
 class On_boardingprocesstask_HR(db.Model):
     __tablename__ = 'On_boardingprocesstask_HR'
     Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     TaskId = db.Column(db.Integer, nullable=False)
-    StakeHolder_Dept = db.Column(db.Integer, nullable=False)
+    StakeHolder_Dept = db.Column(db.Integer, nullable= True)
     StakeHolder_Staff = db.Column(db.Integer, nullable=False)
-    EmployeeCheck = db.Column(db.Boolean, nullable=False)
-    EmployeeCheckDate = db.Column(db.DateTime, nullable=False)
-    StakeHolderCheck = db.Column(db.Boolean, nullable=False)
-    StakeHolderCheckDate = db.Column(db.DateTime, nullable=False)
+    New_Staff = db.Column(db.Integer, nullable=False)
+    EmployeeStatus = db.Column(db.Integer, nullable=True)
+    EmployeeCheckDate = db.Column(db.DateTime, nullable=True)
+    StakeHolderStatus = db.Column(db.Integer, nullable=True)
+    StakeHolderCheckDate = db.Column(db.DateTime, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
 
     def to_dict(self):
         return {
@@ -1269,10 +1298,17 @@ class On_boardingprocesstask_HR(db.Model):
             'TaskId':self.TaskId,
             'StakeHolder_Dept': self.StakeHolder_Dept,
             'StakeHolder_Staff': self.StakeHolder_Staff,
-            'EmployeeCheck': self.EmployeeCheck,
+            'EmployeeStatus': self.EmployeeStatus,
             'EmployeeCheckDate': self.EmployeeCheckDate.isoformat() if self.EmployeeCheckDate else None,
-            'StakeHolderCheck': self.StakeHolderCheck,
+            'StakeHolderStatus': self.StakeHolderStatus,
             'StakeHolderCheckDate': self.StakeHolderCheckDate.isoformat() if self.StakeHolderCheckDate else None,
+            'New_Staff': self.New_Staff,
+            'Status':self.Status,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatorId': self.CreatorId,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'UpdaterId': self.UpdaterId,
+
         } 
 
 class MasterNotification_HR(db.Model):
