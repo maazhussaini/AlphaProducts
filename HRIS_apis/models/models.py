@@ -1251,6 +1251,112 @@ class EmailLog_HR(db.Model):
             'CreatorId': self.CreatorId,
             'CreateDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
         } 
+#new models
+class On_boardingtask_HR(db.Model):
+    __tablename__ = 'On_boardingtask_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Tasks = db.Column(db.String(500), nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Tasks':self.Tasks,
+            'Status': self.Status,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatorId': self.CreatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdaterId': self.UpdaterId,
+            'CampusId': self.CampusId,
+        } 
+
+
+class On_boardingprocesstask_HR(db.Model):
+    __tablename__ = 'On_boardingprocesstask_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    TaskId = db.Column(db.Integer, nullable=False)
+    StakeHolder_Dept = db.Column(db.Integer, nullable= True)
+    StakeHolder_Staff = db.Column(db.Integer, nullable=False)
+    New_Staff = db.Column(db.Integer, nullable=False)
+    EmployeeStatus = db.Column(db.Integer, nullable=True)
+    EmployeeCheckDate = db.Column(db.DateTime, nullable=True)
+    StakeHolderStatus = db.Column(db.Integer, nullable=True)
+    StakeHolderCheckDate = db.Column(db.DateTime, nullable=True)
+    Status = db.Column(db.Boolean, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'TaskId':self.TaskId,
+            'StakeHolder_Dept': self.StakeHolder_Dept,
+            'StakeHolder_Staff': self.StakeHolder_Staff,
+            'EmployeeStatus': self.EmployeeStatus,
+            'EmployeeCheckDate': self.EmployeeCheckDate.isoformat() if self.EmployeeCheckDate else None,
+            'StakeHolderStatus': self.StakeHolderStatus,
+            'StakeHolderCheckDate': self.StakeHolderCheckDate.isoformat() if self.StakeHolderCheckDate else None,
+            'New_Staff': self.New_Staff,
+            'Status':self.Status,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatorId': self.CreatorId,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'UpdaterId': self.UpdaterId,
+
+        } 
+
+class MasterNotification_HR(db.Model):
+    __tablename__ = 'MasterNotification_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Notification = db.Column(db.String(500), nullable=False)
+    Status = db.Column(db.Boolean, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+    FromDate = db.Column(db.DateTime, nullable=True)
+    ToDate = db.Column(db.DateTime, nullable=True)
+    def __repr__(self):
+        return f"<MasterNotification_HR Id={self.Id}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Notification':self.Notification,
+            'Status': self.Status,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatorId': self.CreatorId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdaterId': self.UpdaterId,
+            'FromDate': self.FromDate.isoformat() if self.FromDate else None,
+            'ToDate': self.ToDate.isoformat() if self.ToDate else None,          
+        }
+    
+
+class DetailsNotification_HR(db.Model):
+    __tablename__ = 'DetailsNotification_HR'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    NotificationId = db.Column(db.Integer, nullable=False)
+    StaffId = db.Column(db.Integer, nullable=False)
+    IsRead = db.Column(db.Boolean, nullable=False)
+    IsReadDate = db.Column(db.DateTime, nullable=True)
+    
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'NotificationId':self.NotificationId,
+            'StaffId': self.StaffId,
+            'IsRead': self.IsRead,
+            'IsReadDate': self.IsReadDate.isoformat() if self.IsReadDate else None,
+        }
+
 
 class AvailableJobs(db.Model):
     __tablename__ = 'AvailableJobs'
