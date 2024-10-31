@@ -6580,7 +6580,7 @@ class EmployeeCreationResource(Resource):
                             new_record_id = getattr(new_record, 'Id', None)
                             updated_ids[f"{table_name}_{new_record_id}"] = new_record_id  # Store with composite key
                 else:
-                    record_id = fields.get('User_Id')
+                    record_id = fields[0].get('User_Id')
                     logging.info(f"Table: {table_name}, record_id: {record_id}")
                     existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
                     if existing_record:
@@ -6609,7 +6609,7 @@ class EmployeeCreationResource(Resource):
                                 # Remove the key directly after updating if it's not 'StaffCnic'
                                 if table_name != 'StaffCnic':
                                     del updated_ids[key]
-                                break  # Exit after finding the first match for efficiency
+                                # break  # Exit after finding the first match for efficiency
                             except Exception as e:
                                 db.session.rollback()
                                 logging.error(f"File association error for {table_name}: {str(e)}")
