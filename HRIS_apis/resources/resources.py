@@ -6501,11 +6501,43 @@ class EmployeeCreationResource(Resource):
             return {'status': 'error', 'message': str(e)}, 500
 
     """
-    
     def process_files(self, files):
-        """
-        Handles the file uploads and saves them to the appropriate locations.
-        """
+        # Handles the file uploads and saves them to the appropriate locations.
+        
+        file_data = {}
+        BASE_UPLOAD_FOLDER = 'uploads\\'
+        
+        for key, file in files.items():
+            
+            logging.info(f"fileName: {key}")
+            
+            if file.filename == '':
+                continue
+
+            filename = secure_filename(file.filename)
+            key_parts = key.split('_')
+
+            table_name = key_parts[1]
+            field_name = key_parts[2]
+            filename = key_parts[3]
+            
+            # MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
+            MAIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, table_name)
+            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
+
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            file_data[key] = {'key': key, 'path': file_path}
+
+        return file_data
+    """
+    def process_files(self, files):
+        
+        # Handles the file uploads and saves them to the appropriate locations.
+        
         file_data = {}
         BASE_UPLOAD_FOLDER = 'uploads'
         
@@ -6528,7 +6560,7 @@ class EmployeeCreationResource(Resource):
             file_data[key] = {'key': key, 'path': file_path}
 
         return file_data
-
+    """
     def update_file_path(self, table_name, record_id, field_name, file_path):
         """
         Updates the record in the database with the file path.
