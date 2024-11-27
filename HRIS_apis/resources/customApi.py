@@ -9,9 +9,12 @@ import pyodbc
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 import os
+import logging
 from decimal import Decimal
 import pandas as pd
 from datetime import datetime
+from werkzeug.datastructures import FileStorage
+
 
 # Custom function to handle both Decimal and Timestamp objects
 def custom_serializer(obj):
@@ -80,6 +83,247 @@ class DynamicGetResource(Resource):
                 }
         except Exception as e:
             return {'message': str(e)}, 500
+
+
+class CallProcedureResourceLeave(Resource):
+    ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+    UPLOAD_FOLDER = 'uploads/StaffLeaveRequest/'
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('procedure_name', type=str, required=True, location='form',
+                            help='Stored Procedure or Table name must be given')
+        parser.add_argument('attachments[]', type=FileStorage, location='files', action='append',
+                            help='Attachments must be uploaded as files')
+
+        args = parser.parse_args()
+        procedure_name = args['procedure_name']
+        attachments = args['attachments[]']
+
+        parameters = {
+            'UserId': request.form.get('parameters[UserId]'),
+            'LeaveTypeId': request.form.get('parameters[LeaveTypeId]'),
+            'FromDate': request.form.get('parameters[FromDate]'),
+            'ToDate': request.form.get('parameters[ToDate]'),
+            'Reason': request.form.get('parameters[Reason]'),
+            'CampusId': request.form.get('parameters[CampusId]')
+        }
+
+        logging.info(f"Parameters: {parameters}")
+
+        if not procedure_name:
+            return {'error': 'Procedure name is required'}, 400
+
+        param_values = tuple(parameters.values())
+        call_procedure_query = f"EXEC {procedure_name} {', '.join(['?'] * len(parameters))};"
+        logging.info(f"Executing SQL: {call_procedure_query} with values: {param_values}")
+
+        connection = db.engine.raw_connection()
+        last_record_id = None  # Initialize here
+
+        try:
+            cursor = connection.cursor()
+            cursor.execute(call_procedure_query, param_values)
+
+            if cursor.description:
+                columns = [column[0] for column in cursor.description]
+                results = cursor.fetchall()
+
+                logging.info(f"Raw results: {results}")
+                result_list = [dict(zip(columns, row)) for row in results]
+                logging.info(f"Structured results: {result_list}")
+
+                results_df = pd.DataFrame(result_list)
+                status_message = results_df.loc[0, 'Status'] if not results_df.empty else None
+
+                if status_message == 'Your leave request has been submitted successfully.':
+                    # Check if the last record ID is properly fetched
+                    cursor.execute("SELECT MAX(Id) FROM StaffLeaveRequest")
+                    last_record_row = cursor.fetchone()
+                    last_record_id = last_record_row[0] if last_record_row else None
+                    saved_file_paths = []
+
+                    if attachments:
+                        for attachment in attachments:
+                            current_date = datetime.now().strftime("%y%m%d")
+                            # Handle the case where last_record_id is None
+                            new_filename = f"{last_record_id if last_record_id else 'default'}_{current_date}{os.path.splitext(attachment.filename)[1]}"
+                            file_path, error_response, status_code = self.save_attachment(attachment, new_filename)
+                            if error_response:  # Stop further processing if any attachment fails
+                                return error_response, status_code
+                            saved_file_paths.append(file_path)
+
+                    if saved_file_paths:
+                        for file_path in saved_file_paths:
+                            update_query = (
+                                "UPDATE StaffLeaveRequest "
+                                "SET LeaveApplicationPath = ? "
+                                "OUTPUT INSERTED.Id "
+                                "WHERE Id = (SELECT TOP 1 Id FROM StaffLeaveRequest ORDER BY Id DESC);"
+                            )
+                            cursor.execute(update_query, (file_path,))
+                            last_record_row = cursor.fetchone()
+                            last_record_id = last_record_row[0] if last_record_row else None
+
+
+                    return {
+                        "data": results_df.to_dict(orient='records'),
+                        "last_record_id": last_record_id
+                    }, 200
+
+                else:
+                    return {"data": results_df.to_dict(orient='records'),
+                    "last_record_id": last_record_id}, 200
+
+        except SQLAlchemyError as e:
+            connection.rollback()
+            logging.error(f"Database error while executing {call_procedure_query} with values {param_values}: {e}")
+            return {'error': 'Database error occurred.'}, 500
+        except Exception as e:
+            connection.rollback()
+            logging.error(f"General error while executing {call_procedure_query}: {e}")
+            return {'error': 'An unexpected error occurred.'}, 500
+        finally:
+            cursor.close()
+            connection.commit()
+            connection.close()
+
+   
+
+    def put(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('procedure_name', type=str, required=True, location='form',
+                            help='Stored Procedure or Table name must be given')
+        parser.add_argument('attachments[]', type=FileStorage, location='files', action='append',
+                            help='Attachments must be uploaded as files')
+
+        args = parser.parse_args()
+        procedure_name = args['procedure_name']
+        attachments = args['attachments[]']
+        leave_id = request.form.get('parameters[Id]')  # Ensure this is provided
+
+        parameters = {
+            'UserId': request.form.get('parameters[UserId]'),
+            'LeaveTypeId': request.form.get('parameters[LeaveTypeId]'),
+            'FromDate': request.form.get('parameters[FromDate]'),
+            'ToDate': request.form.get('parameters[ToDate]'),
+            'Reason': request.form.get('parameters[Reason]'),
+            'Id': leave_id
+        }
+
+        logging.info(f"Parameters: {parameters}")
+
+        if not procedure_name or not leave_id:
+            return {'error': 'Procedure name and leave ID are required'}, 400
+
+        param_values = tuple(parameters.values())
+        call_procedure_query = f"EXEC {procedure_name} {', '.join(['?'] * len(parameters))};"
+        logging.info(f"Executing SQL: {call_procedure_query} with values: {param_values}")
+
+        connection = db.engine.raw_connection()
+        saved_file_paths = []  # Initialize the variable here to avoid uninitialized reference
+
+        try:
+            cursor = connection.cursor()
+            cursor.execute(call_procedure_query, param_values)
+
+            # Fetch results (for the status message)
+            columns = [column[0] for column in cursor.description] if cursor.description else []
+            results = cursor.fetchall()
+            result_list = [dict(zip(columns, row)) for row in results] if results else []
+
+            # Check for the status message
+            status_message = None
+            if result_list:
+                status_message = result_list[0].get('Status', None)
+
+            # If the status message is not 'Leave request updated successfully.', return the result
+            if status_message != 'Leave request updated successfully.':
+                return {
+                    "data": result_list,
+                    "leave_id": leave_id,
+                }, 200
+
+            # Check if the leave ID already has an attachment
+            cursor.execute("SELECT LeaveApplicationPath FROM StaffLeaveRequest WHERE Id = ?", (leave_id,))
+            existing_file_row = cursor.fetchone()
+            existing_file_path = existing_file_row[0] if existing_file_row else None
+
+            # If no attachments are provided, delete existing file and set path to NULL
+            if not attachments:
+                if existing_file_path:
+                    try:
+                        if os.path.exists(existing_file_path):
+                            os.remove(existing_file_path)
+                            logging.info(f"Deleted existing file at: {existing_file_path}")
+                    except Exception as delete_error:
+                        logging.error(f"Error deleting file at {existing_file_path}: {delete_error}")
+                cursor.execute("UPDATE StaffLeaveRequest SET LeaveApplicationPath = NULL WHERE Id = ?", (leave_id,))
+                logging.info(f"Updated LeaveApplicationPath to NULL for leave ID: {leave_id}")
+            
+            # If attachments are provided, update the file path in the database
+            else:
+                for attachment in attachments:
+                    current_date = datetime.now().strftime("%y%m%d")
+                    new_filename = f"{leave_id}_{current_date}{os.path.splitext(attachment.filename)[1]}"
+                    file_path, error_response, status_code = self.save_attachment(attachment, new_filename)
+                    if error_response:
+                        return error_response, status_code
+                    saved_file_paths.append(file_path)
+
+                if saved_file_paths:
+                    cursor.execute("UPDATE StaffLeaveRequest SET LeaveApplicationPath = ? WHERE Id = ?", 
+                                (saved_file_paths[0], leave_id))
+                    logging.info(f"Updated LeaveApplicationPath with new file path for leave ID: {leave_id}")
+
+            # Commit changes after file update
+            connection.commit()
+
+            # Return success message if leave request is updated successfully
+            return {
+                    "data": result_list,
+                    "leave_id": leave_id,
+                }, 200
+
+        except Exception as e:
+            connection.rollback()
+            logging.error(f"Error: {e}")
+            return {'error': str(e)}, 500
+        finally:
+            cursor.close()
+            connection.close()
+
+    def save_attachment(self, attachment, new_filename):
+        if attachment and self.allowed_file(attachment.filename):
+            if attachment.filename == '':
+                return None, {"error": "No selected file"}, 400
+
+            file_path = os.path.join(self.UPLOAD_FOLDER, new_filename)
+            os.makedirs(self.UPLOAD_FOLDER, exist_ok=True)
+
+            try:
+                attachment.save(file_path)
+                logging.info(f'Saved file: {file_path}')
+                return file_path, None, None
+            except Exception as e:
+                logging.error(f'Failed to save file {new_filename}: {str(e)}')
+                return None, {"error": "Failed to save attachment"}, 500
+        else:
+            return None, {"error": f'Invalid file type for attachment: {attachment.filename}'}, 400
+
+    def allowed_file(self, filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
+
+
+
+
+
+
+
+
 
 class CallProcedureResource(Resource):
     def post(self):
@@ -152,6 +396,47 @@ class CallProcedureResource(Resource):
             return {'error': str(e)}, 500
         finally:
             connection.close()
+
+class DynamicPostResource_With_PKReturn(Resource):
+    def post(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        insert_data = data.get('Data')
+
+        if not table_name or not insert_data:
+            return {'status': 'error', 'message': 'Table_Name and Data are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+        # Validate that insert_data is a list of dictionaries
+        if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
+            return {'status': 'error', 'message': 'Data should be a list of dictionaries'}, 400
+
+        # Insert records
+        try:
+            records = [model_class(**item) for item in insert_data]
+            db.session.add_all(records)  # Add the records using add_all
+            db.session.commit()
+
+            # Extract the primary key values after commit
+            pk_values = [getattr(record, model_class.__mapper__.primary_key[0].name) for record in records]
+
+            return {
+                'status': 'success',
+                'message': f'{len(records)} records inserted into {table_name} successfully',
+                'primary_keys': pk_values
+            }, 201
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+
 
 class DynamicPostResource(Resource):
     def post(self):

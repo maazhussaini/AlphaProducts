@@ -5059,10 +5059,11 @@ class PayrollCloseResource(Resource):
             db.session.rollback()
             return {'error': str(e)}, 500
 
+import re
+
 class EmailSendingResource(Resource):
 
     def generate_dynamic_email(self, template, **kwargs):
-
         """
         Generates an email by replacing placeholders in the template with actual values.
 
@@ -5070,8 +5071,17 @@ class EmailSendingResource(Resource):
         :param kwargs: The key-value pairs to replace in the template.
         :return: The formatted email string.
         """
-
         return template.format(**kwargs)
+
+    def strip_html_tags(self, text):
+        """
+        Strips HTML tags from the given text.
+
+        :param text: The text potentially containing HTML.
+        :return: The text without HTML tags.
+        """
+        clean_text = re.sub(r'<.*?>', '', text)  # Remove anything between < and >
+        return clean_text
 
     def get_email_template(self, id):
         email = EmailStorageSystem.query.get(id)
@@ -5098,7 +5108,12 @@ class EmailSendingResource(Resource):
             return {"error": "Template not found"}, 404
 
         try:
+            # Replace placeholders in both body and subject
             email_content = self.generate_dynamic_email(template, **parameters)
+            email_subject = self.generate_dynamic_email(subject, **parameters)
+
+            # Strip HTML tags from the subject (if any)
+            email_subject = self.strip_html_tags(email_subject)
         except KeyError as e:
             return {"error": f"Missing parameter: {e}"}, 400
         except Exception as e:
@@ -5106,21 +5121,22 @@ class EmailSendingResource(Resource):
 
         try:
             # Sending the email
-            msg = Message(subject=subject,
+            msg = Message(subject=email_subject,  # Use the dynamically generated and cleaned subject
                           sender=os.environ.get('MAIL_USERNAME'),
                           recipients=recipients,
                           cc=cc)
-            msg.html = email_content
+            msg.html = email_content  # The body is already set dynamically
             mail.send(msg)
+            print(os.environ.get('MAIL_USERNAME'))
 
             # Log the sent email using the template_id as EmailId
-            self.log_email(template_id, subject, email_content, employee_cnic, creator_id,create_date)
+            self.log_email(template_id, email_subject, email_content, employee_cnic, creator_id, create_date)
 
             return {"message": f"Email sent successfully to {recipients}"}, 200
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
 
-    def log_email(self, email_id, subject, content, employee_cnic, creator_id,create_date):
+    def log_email(self, email_id, subject, content, employee_cnic, creator_id, create_date):
         # Create a new EmailLog_HR entry with template_id as EmailId
         email_log = EmailLog_HR(
             EmailId=email_id,  # Use the template_id here
@@ -5133,6 +5149,8 @@ class EmailSendingResource(Resource):
         )
         db.session.add(email_log)
         db.session.commit()
+
+
 
 class UserDetails(Resource):
     
@@ -5565,3 +5583,181 @@ class EmployeeCreationResource(Resource):
         for key, value in fields.items():
             setattr(record, key, value)
         logging.info(f"Updated record with ID {fields.get('Staff_ID') or fields.get('Id')}")
+
+
+
+class TrainingPostResource(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Ensure that the 'Data' key exists
+        insert_data = data.get('Data')
+        if not insert_data:
+            return {'status': 'error', 'message': 'Data is required'}, 400
+
+        # Validate that insert_data is a list of dictionaries
+        if not isinstance(insert_data, list) or not all(isinstance(item, dict) for item in insert_data):
+            return {'status': 'error', 'message': 'Data should be a list of dictionaries'}, 400
+
+        try:
+            # Loop through each record in insert_data
+            for item in insert_data:
+                # Handle nullable fields by providing default values if not present
+                training_record = Training(
+                    Training_Trainer=item.get('Training_Trainer'),
+                    Training_Location=item.get('Training_Location'),
+                    Training_TotalCost=item.get('Training_TotalCost'),
+                    Training_FromDate=item.get('Training_FromDate') if item.get('Training_FromDate') else None,  # Allow null for Training_Date
+                    Training_ToDate=item.get('Training_ToDate') if item.get('Training_ToDate') else None,  # Allow null for Training_Date
+                    Training_CompletionStatus=item.get('Training_CompletionStatus'),  # Allow null for Training_Date
+                    Training_Remarks=item.get('Training_Remarks', None),  # Default to None if missing
+                    Training_StaffContributionPercentage=item.get('Training_StaffContributionPercentage'),
+                    CreatedBy=item.get('CreatedBy'),
+                    CreatedDate=item.get('CreatedDate') if item.get('CreatedDate') else datetime.utcnow(),  # Default to current time if missing
+                    UpdatedBy=item.get('UpdatedBy'),
+                    UpdatedDate=item.get('UpdateDate'),
+                    InActive=item.get('InActive', False)  # Default to False if missing
+                )
+                db.session.add(training_record)
+                db.session.flush()  # Flush to get the `Training_Id` after insertion
+
+                # Extract and process the related TrainingStaff data
+                training_staff_data = item.get('TrainingStaff', [])
+                num_staff = len(training_staff_data)  # Get the number of staff in the current Training record
+
+                if num_staff > 0:
+                    # Calculate the contribution amount per staff based on the formula
+                    total_cost = training_record.Training_TotalCost
+                    staff_percentage = training_record.Training_StaffContributionPercentage
+                    contribution_per_staff = (total_cost / 100 * staff_percentage) / num_staff
+
+                    # Loop through each staff record and assign the calculated values
+                    for staff_item in training_staff_data:
+                        staff_record = TrainingStaff(
+                            TrainingStaff_TrainingId=training_record.Training_Id,  # Linking to the Training record
+                            TrainingStaff_StaffId=staff_item.get('TrainingStaff_StaffId'),
+                            TrainingStaff_ContributionAmount=contribution_per_staff,
+                            TrainingStaff_Survey=staff_item.get('TrainingStaff_Survey', None),  # Default to None if missing
+                            TrainingStaff_Bond=staff_item.get('TrainingStaff_Bond', None),  # Default to None if missing
+                            TrainingStaff_BondStartDate=staff_item.get('TrainingStaff_BondStartDate', None),  # Allow null
+                            TrainingStaff_BondEndDate=staff_item.get('TrainingStaff_BondEndDate', None),  # Allow null
+                            TrainingStaff_RemainingAmount=contribution_per_staff  # Set the remaining amount equal to the contribution
+                        )
+                        db.session.add(staff_record)
+
+                else:
+                    # If there are no staff, raise an error
+                    return {'status': 'error', 'message': 'At least one staff member is required in the TrainingStaff'}, 400
+
+            # Commit the transaction to save both the Training and TrainingStaff records
+            db.session.commit()
+
+            return {'status': 'success', 
+                    # 'message': f'{len(insert_data)} Training records and {num_staff} TrainingStaff records inserted successfully'}, 201
+                    'message': f'{len(insert_data)} records inserted into Training successfully'}, 201
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': f'SQLAlchemy Error: {str(e)}'}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': f'Error: {str(e)}'}, 500
+
+    def put(self):
+        data = request.get_json()
+
+        # Validate input
+        update_data = data.get('Data')
+        if not update_data:
+            return {'status': 'error', 'message': 'Data is required'}, 400
+
+        if not isinstance(update_data, list) or not all(isinstance(item, dict) for item in update_data):
+            return {'status': 'error', 'message': 'Data should be a list of dictionaries'}, 400
+
+        try:
+            for item in update_data:
+                training_id = item.get('Training_Id')
+                if not training_id:
+                    return {'status': 'error', 'message': 'Training_Id is required for update'}, 400
+
+                # Find the existing training record
+                training_record = Training.query.filter_by(Training_Id=training_id).first()
+
+                if training_record:
+                    # Update fields for the training record
+                    training_record.Training_Trainer = item.get('Training_Trainer', training_record.Training_Trainer)
+                    training_record.Training_Location = item.get('Training_Location', training_record.Training_Location)
+                    training_record.Training_TotalCost = item.get('Training_TotalCost', training_record.Training_TotalCost)
+                    training_record.Training_FromDate = item.get('Training_FromDate', training_record.Training_FromDate)
+                    training_record.Training_ToDate = item.get('Training_ToDate', training_record.Training_ToDate)
+                    training_record.Training_CompletionStatus = item.get('Training_CompletionStatus', training_record.Training_CompletionStatus)
+                    training_record.Training_Remarks = item.get('Training_Remarks', training_record.Training_Remarks)
+                    training_record.Training_StaffContributionPercentage = item.get('Training_StaffContributionPercentage', training_record.Training_StaffContributionPercentage)
+                    training_record.UpdatedBy = item.get('UpdatedBy', training_record.UpdatedBy)
+                    training_record.UpdatedDate = datetime.utcnow()
+                    training_record.InActive = item.get('InActive', training_record.InActive)
+
+                    # Handle TrainingStaff records
+                    existing_staff_records = TrainingStaff.query.filter_by(TrainingStaff_TrainingId=training_id).all()
+                    existing_staff_ids = {record.TrainingStaff_StaffId for record in existing_staff_records}
+
+                    # Process new staff records
+                    training_staff_data = item.get('TrainingStaff', [])
+                    new_staff_ids = {staff.get('TrainingStaff_StaffId') for staff in training_staff_data}
+                    num_staff = len(training_staff_data)
+
+                    if num_staff > 0:
+                        total_cost = training_record.Training_TotalCost
+                        staff_percentage = training_record.Training_StaffContributionPercentage
+                        contribution_per_staff = (total_cost / 100 * staff_percentage) / num_staff
+
+                        # Update existing staff records
+                        for staff in training_staff_data:
+                            staff_id = staff.get('TrainingStaff_StaffId')
+                            if staff_id in existing_staff_ids:
+                                staff_record = next((r for r in existing_staff_records if r.TrainingStaff_StaffId == staff_id), None)
+                                staff_record.TrainingStaff_Survey = staff.get('TrainingStaff_Survey', staff_record.TrainingStaff_Survey)
+                                staff_record.TrainingStaff_Bond = staff.get('TrainingStaff_Bond', staff_record.TrainingStaff_Bond)
+                                staff_record.TrainingStaff_BondStartDate = staff.get('TrainingStaff_BondStartDate', staff_record.TrainingStaff_BondStartDate)
+                                staff_record.TrainingStaff_BondEndDate = staff.get('TrainingStaff_BondEndDate', staff_record.TrainingStaff_BondEndDate)
+                                staff_record.TrainingStaff_ContributionAmount = contribution_per_staff
+                                staff_record.TrainingStaff_RemainingAmount = contribution_per_staff
+
+                        # Add new staff records
+                        for staff in training_staff_data:
+                            if staff.get('TrainingStaff_StaffId') not in existing_staff_ids:
+                                new_staff_record = TrainingStaff(
+                                    TrainingStaff_TrainingId=training_id,
+                                    TrainingStaff_StaffId=staff.get('TrainingStaff_StaffId'),
+                                    TrainingStaff_ContributionAmount=contribution_per_staff,
+                                    TrainingStaff_Survey=staff.get('TrainingStaff_Survey', None),
+                                    TrainingStaff_Bond=staff.get('TrainingStaff_Bond', None),
+                                    TrainingStaff_BondStartDate=staff.get('TrainingStaff_BondStartDate', None),
+                                    TrainingStaff_BondEndDate=staff.get('TrainingStaff_BondEndDate', None),
+                                    TrainingStaff_RemainingAmount=contribution_per_staff
+                                )
+                                db.session.add(new_staff_record)
+
+                        # Remove staff records not in the updated list
+                        for existing_record in existing_staff_records:
+                            if existing_record.TrainingStaff_StaffId not in new_staff_ids:
+                                db.session.delete(existing_record)
+
+                    else:
+                        return {'status': 'error', 'message': 'At least one staff member is required in the TrainingStaff'}, 400
+
+                else:
+                    return {'status': 'error', 'message': f'Training record with Training_Id {training_id} not found'}, 404
+
+            # Commit all changes
+            db.session.commit()
+            return {'status': 'success', 'message': 'Training and TrainingStaff records updated successfully'}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': f'SQLAlchemy Error: {str(e)}'}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': f'Error: {str(e)}'}, 500
+
+    

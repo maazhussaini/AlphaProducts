@@ -1906,72 +1906,6 @@ class SalaryHold(db.Model):
             'InActive': self.InActive
         }
 
-class MarkDayOffDeps(db.Model):
-    __tablename__ = 'MarkDayOffDeps'
-
-    Id = db.Column(db.Integer, primary_key=True)
-    Date = db.Column(db.DateTime, nullable=False)
-    Staff_Id = db.Column(db.Integer, nullable=False)
-    Description = db.Column(db.String(250))
-    CreatorId = db.Column(db.Integer)
-    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
-    UpdatorId = db.Column(db.Integer)
-    UpdateDate = db.Column(db.DateTime)
-    status = db.Column(db.Boolean)
-    CampusId = db.Column(db.Integer)
-    AcademicYearId = db.Column(db.Integer)
-
-    def __repr__(self):
-        return f'<id {self.Id}>'
-    
-    def to_dict(self):
-        """
-        Serializes the MarkDayOffDeps object to a dictionary.
-        """
-        return {
-            'Id': self.Id,
-            'Date': self.Date.isoformat() if self.Date else None,
-            'Staff_Id': self.Staff_Id,
-            'Description': self.Description,
-            'CreatorId': self.CreatorId,
-            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
-            'UpdatorId': self.UpdatorId,
-            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
-            'status': self.status,
-            'CampusId': self.CampusId,
-            'AcademicYearId': self.AcademicYearId
-        }
-
-class MarkDayOffHRs(db.Model):
-    __tablename__ = 'MarkDayOffHRs'
-
-    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Date = db.Column(db.DateTime, nullable=False)
-    CampusIds = db.Column(db.Integer, nullable=False)
-    Description = db.Column(db.String(250))
-    CreatorId = db.Column(db.Integer)
-    CreateDate = db.Column(db.DateTime, default=datetime.utcnow)
-    UpdatorId = db.Column(db.Integer)
-    UpdateDate = db.Column(db.DateTime)
-    Status = db.Column(db.Boolean)
-    AcademicYearId = db.Column(db.Integer)
-
-    def __repr__(self):
-        return f'<id {self.Id}>'
-    
-    def to_dict(self):
-        return {
-            "Id": self.Id,
-            "Date": self.Date.isoformat() if self.Date else None,
-            "CampusIds": self.CampusIds,
-            "Description": self.Description,
-            "CreatorId": self.CreatorId,
-            "CreateDate": self.CreateDate.isoformat() if self.CreateDate else None,
-            "UpdatorId": self.UpdatorId,
-            "UpdateDate": self.UpdateDate.isoformat() if self.UpdateDate else None,
-            "Status": self.Status,
-            "AcademicYearId": self.AcademicYearId
-        }
 
 class AllowanceHead(db.Model):
     __tablename__ = 'AllowanceHead'
@@ -3737,12 +3671,854 @@ class StaffOther(db.Model):
             'OtherDocumentPath': self.OtherDocumentPath
         }
 
+class AppraisalSecurityForm(db.Model):
+    __tablename__ = 'AppraisalSecurityForm'
+
+    AppraisalSecurityForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AppraisalSecurityForm_StaffId = db.Column(db.Integer, nullable=False)
+    AppraisalSecurityForm_JobTitle = db.Column(db.String(255), nullable=False)
+    AppraisalSecurityForm_CampusId = db.Column(db.Integer, nullable=False)
+    AppraisalSecurityForm_Location = db.Column(db.String(255), nullable=False)
+    AppraisalSecurityForm_DepartmentId = db.Column(db.Integer, nullable=False)
+    AppraisalSecurityForm_DateOfAppraisal = db.Column(db.DateTime, nullable=False)
+    AppraisalSecurityForm_SupervisorId = db.Column(db.Integer, nullable=False)
+    AppraisalSecurityForm_AttendancePuntualPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_AlertnessPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_IncidentRespPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_PatrollingPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_Interact_With_StaffPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_WorkplaceSafetyPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_ProbSolvingPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_CommunicationPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_PerCleanlinessPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalSecurityForm_PerfTotalScore = db.Column(db.Integer, nullable=False)
+    AppraisalSecurityForm_DevepAreas_SpecImprovNeed = db.Column(db.String(500), nullable=False)
+    AppraisalSecurityForm_DevepAreas_TrainGuideReq = db.Column(db.String(500), nullable=False)
+    AppraisalSecurityForm_EmpComments = db.Column(db.String(500), nullable=False)
+    AppraisalSecurityForm_SupervisorComments = db.Column(db.String(500), nullable=False)
+    AppraisalSecurityForm_ManagersHodComments = db.Column(db.String(500), nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<AppraisalSecurityForm {self.AppraisalSecurityForm_Id}>"
+    
+    def to_dict(self):
+        return {
+            'AppraisalSecurityForm_Id': self.AppraisalSecurityForm_Id,
+            'AppraisalSecurityForm_StaffId': self.AppraisalSecurityForm_StaffId,
+            'AppraisalSecurityForm_JobTitle': self.AppraisalSecurityForm_JobTitle,
+            'AppraisalSecurityForm_CampusId': self.AppraisalSecurityForm_CampusId,
+            'AppraisalSecurityForm_Location': self.AppraisalSecurityForm_Location,
+            'AppraisalSecurityForm_DepartmentId': self.AppraisalSecurityForm_DepartmentId,
+            'AppraisalSecurityForm_DateOfAppraisal': self.AppraisalSecurityForm_DateOfAppraisal,
+            'AppraisalSecurityForm_SupervisorId': self.AppraisalSecurityForm_SupervisorId,
+            'AppraisalSecurityForm_AttendancePuntualPerf_Score': self.AppraisalSecurityForm_AttendancePuntualPerf_Score,
+            'AppraisalSecurityForm_AlertnessPerf_Score': self.AppraisalSecurityForm_AlertnessPerf_Score,
+            'AppraisalSecurityForm_IncidentRespPerf_Score': self.AppraisalSecurityForm_IncidentRespPerf_Score,
+            'AppraisalSecurityForm_PatrollingPerf_Score': self.AppraisalSecurityForm_PatrollingPerf_Score,
+            'AppraisalSecurityForm_Interact_With_StaffPerf_Score': self.AppraisalSecurityForm_Interact_With_StaffPerf_Score,
+            'AppraisalSecurityForm_WorkplaceSafetyPerf_Score': self.AppraisalSecurityForm_WorkplaceSafetyPerf_Score,
+            'AppraisalSecurityForm_ProbSolvingPerf_Score': self.AppraisalSecurityForm_ProbSolvingPerf_Score,
+            'AppraisalSecurityForm_CommunicationPerf_Score': self.AppraisalSecurityForm_CommunicationPerf_Score,
+            'AppraisalSecurityForm_PerCleanlinessPerf_Score': self.AppraisalSecurityForm_PerCleanlinessPerf_Score,
+            'AppraisalSecurityForm_PerfTotalScore': self.AppraisalSecurityForm_PerfTotalScore,
+            'AppraisalSecurityForm_DevepAreas_SpecImprovNeed': self.AppraisalSecurityForm_DevepAreas_SpecImprovNeed,
+            'AppraisalSecurityForm_DevepAreas_TrainGuideReq': self.AppraisalSecurityForm_DevepAreas_TrainGuideReq,
+            'AppraisalSecurityForm_EmpComments': self.AppraisalSecurityForm_EmpComments,
+            'AppraisalSecurityForm_SupervisorComments': self.AppraisalSecurityForm_SupervisorComments,
+            'AppraisalSecurityForm_ManagersHodComments': self.AppraisalSecurityForm_ManagersHodComments,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatorId': self.UpdatorId,
+            'UpdatDate': self.UpdatDate,
+            'CampusId': self.CampusId,
+            'InActive': self.InActive
+        }
+
+
+class AppraisalDomesticForm(db.Model):
+    __tablename__ = 'AppraisalDomesticForm'  
+
+    AppraisalDomesticForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AppraisalDomesticForm_StaffId = db.Column(db.Integer, nullable=False)
+    AppraisalDomesticForm_JobTitle = db.Column(db.String(255), nullable=False)
+    AppraisalDomesticForm_CampusId = db.Column(db.Integer, nullable=False)
+    AppraisalDomesticForm_Location = db.Column(db.String(255), nullable=False)
+    AppraisalDomesticForm_DepartmentId = db.Column(db.Integer, nullable=False)
+    AppraisalDomesticForm_DateOfAppraisal = db.Column(db.DateTime, nullable=False)
+    AppraisalDomesticForm_SupervisorId = db.Column(db.Integer, nullable=False)
+    AppraisalDomesticForm_AttendancePuntualPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_WorkQualityPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_TimeManagePerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_WorkplaceSafetyPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_AttitudeBehavPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_InitiativePerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_EquipToolHandlePerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_CommunicationPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_PerCleanlinessPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalDomesticForm_PerfTotalScore = db.Column(db.Integer, nullable=False)
+    AppraisalDomesticForm_DevepAreas_SpecImprovNeed = db.Column(db.String(500), nullable=False)
+    AppraisalDomesticForm_DevepAreas_TrainGuideReq = db.Column(db.String(500), nullable=False)
+    AppraisalDomesticForm_EmpComments = db.Column(db.String(500), nullable=False)
+    AppraisalDomesticForm_SupervisorComments = db.Column(db.String(500), nullable=False)
+    AppraisalDomesticForm_ManagersHodComments = db.Column(db.String(500), nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<AppraisalDomesticForm {self.AppraisalDomesticForm_Id}>"
+
+    def to_dict(self):
+        return {
+            'AppraisalDomesticForm_Id': self.AppraisalDomesticForm_Id,
+            'AppraisalDomesticForm_StaffId': self.AppraisalDomesticForm_StaffId,
+            'AppraisalDomesticForm_JobTitle': self.AppraisalDomesticForm_JobTitle,
+            'AppraisalDomesticForm_CampusId': self.AppraisalDomesticForm_CampusId,
+            'AppraisalDomesticForm_Location': self.AppraisalDomesticForm_Location,
+            'AppraisalDomesticForm_DepartmentId': self.AppraisalDomesticForm_DepartmentId,
+            'AppraisalDomesticForm_DateOfAppraisal': self.AppraisalDomesticForm_DateOfAppraisal,
+            'AppraisalDomesticForm_SupervisorId': self.AppraisalDomesticForm_SupervisorId,
+            'AppraisalDomesticForm_AttendancePuntualPerf_Score': self.AppraisalDomesticForm_AttendancePuntualPerf_Score,
+            'AppraisalDomesticForm_WorkQualityPerf_Score': self.AppraisalDomesticForm_WorkQualityPerf_Score,
+            'AppraisalDomesticForm_TimeManagePerf_Score': self.AppraisalDomesticForm_TimeManagePerf_Score,
+            'AppraisalDomesticForm_WorkplaceSafetyPerf_Score': self.AppraisalDomesticForm_WorkplaceSafetyPerf_Score,
+            'AppraisalDomesticForm_AttitudeBehavPerf_Score': self.AppraisalDomesticForm_AttitudeBehavPerf_Score,
+            'AppraisalDomesticForm_InitiativePerf_Score': self.AppraisalDomesticForm_InitiativePerf_Score,
+            'AppraisalDomesticForm_EquipToolHandlePerf_Score': self.AppraisalDomesticForm_EquipToolHandlePerf_Score,
+            'AppraisalDomesticForm_CommunicationPerf_Score': self.AppraisalDomesticForm_CommunicationPerf_Score,
+            'AppraisalDomesticForm_PerCleanlinessPerf_Score': self.AppraisalDomesticForm_PerCleanlinessPerf_Score,
+            'AppraisalDomesticForm_PerfTotalScore': self.AppraisalDomesticForm_PerfTotalScore,
+            'AppraisalDomesticForm_DevepAreas_SpecImprovNeed': self.AppraisalDomesticForm_DevepAreas_SpecImprovNeed,
+            'AppraisalDomesticForm_DevepAreas_TrainGuideReq': self.AppraisalDomesticForm_DevepAreas_TrainGuideReq,
+            'AppraisalDomesticForm_EmpComments': self.AppraisalDomesticForm_EmpComments,
+            'AppraisalDomesticForm_SupervisorComments': self.AppraisalDomesticForm_SupervisorComments,
+            'AppraisalDomesticForm_ManagersHodComments': self.AppraisalDomesticForm_ManagersHodComments,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatorId': self.UpdatorId,
+            'UpdatDate': self.UpdatDate,
+            'CampusId': self.CampusId,
+            'InActive': self.InActive
+        }
+
+class AppraisalCompDriverForm(db.Model):
+    __tablename__ = 'AppraisalCompDriverForm'  
+
+    
+    AppraisalCompDriver_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AppraisalCompDriver_StaffId = db.Column(db.Integer, nullable=False)
+    AppraisalCompDriver_JobTitle = db.Column(db.String(255), nullable=False, default='Driver')
+    AppraisalCompDriver_CampusId = db.Column(db.Integer, nullable=False)
+    AppraisalCompDriver_Location = db.Column(db.String(255), nullable=False)
+    AppraisalCompDriver_DepartmentId = db.Column(db.Integer, nullable=False)
+    AppraisalCompDriver_DateOfAppraisal = db.Column(db.DateTime, nullable=False)
+    AppraisalCompDriver_SupervisorId = db.Column(db.Integer, nullable=False)
+    AppraisalCompDriver_AttendancePuntualPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_DriveSkillSafetyPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_KnowledgeRoutesPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_VehicleMaintainPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_TimeManagePerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_AttitudeBehavPerf_Score_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_CommunicationPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_PerCleanlinessPerf_Score = db.Column(db.Integer, nullable=True)
+    AppraisalCompDriver_PerfTotalScore = db.Column(db.Integer, nullable=False)
+    AppraisalCompDriver_DevepAreas_SpecImprovNeed = db.Column(db.String(500), nullable=False)
+    AppraisalCompDriver_DevepAreas_TrainGuideReq = db.Column(db.String(500), nullable=False)
+    AppraisalCompDriver_EmpComments = db.Column(db.String(500), nullable=False)
+    AppraisalCompDriver_SupervisorComments = db.Column(db.String(500), nullable=False)
+    AppraisalCompDriver_ManagersHodComments = db.Column(db.String(500), nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<AppraisalCompDriverForm {self.AppraisalCompDriver_Id}>"
+
+    def to_dict(self):
+        return {
+            'AppraisalCompDriver_Id': self.AppraisalCompDriver_Id,
+            'AppraisalCompDriver_StaffId': self.AppraisalCompDriver_StaffId,
+            'AppraisalCompDriver_JobTitle': self.AppraisalCompDriver_JobTitle,
+            'AppraisalCompDriver_CampusId': self.AppraisalCompDriver_CampusId,
+            'AppraisalCompDriver_Location': self.AppraisalCompDriver_Location,
+            'AppraisalCompDriver_DepartmentId': self.AppraisalCompDriver_DepartmentId,
+            'AppraisalCompDriver_DateOfAppraisal': self.AppraisalCompDriver_DateOfAppraisal,
+            'AppraisalCompDriver_SupervisorId': self.AppraisalCompDriver_SupervisorId,
+            'AppraisalCompDriver_AttendancePuntualPerf_Score': self.AppraisalCompDriver_AttendancePuntualPerf_Score,
+            'AppraisalCompDriver_DriveSkillSafetyPerf_Score': self.AppraisalCompDriver_DriveSkillSafetyPerf_Score,
+            'AppraisalCompDriver_KnowledgeRoutesPerf_Score': self.AppraisalCompDriver_KnowledgeRoutesPerf_Score,
+            'AppraisalCompDriver_VehicleMaintainPerf_Score': self.AppraisalCompDriver_VehicleMaintainPerf_Score,
+            'AppraisalCompDriver_TimeManagePerf_Score': self.AppraisalCompDriver_TimeManagePerf_Score,
+            'AppraisalCompDriver_AttitudeBehavPerf_Score_Score': self.AppraisalCompDriver_AttitudeBehavPerf_Score_Score,
+            'AppraisalCompDriver_CommunicationPerf_Score': self.AppraisalCompDriver_CommunicationPerf_Score,
+            'AppraisalCompDriver_PerCleanlinessPerf_Score': self.AppraisalCompDriver_PerCleanlinessPerf_Score,
+            'AppraisalCompDriver_PerfTotalScore': self.AppraisalCompDriver_PerfTotalScore,
+            'AppraisalCompDriver_DevepAreas_SpecImprovNeed': self.AppraisalCompDriver_DevepAreas_SpecImprovNeed,
+            'AppraisalCompDriver_DevepAreas_TrainGuideReq': self.AppraisalCompDriver_DevepAreas_TrainGuideReq,
+            'AppraisalCompDriver_EmpComments': self.AppraisalCompDriver_EmpComments,
+            'AppraisalCompDriver_SupervisorComments': self.AppraisalCompDriver_SupervisorComments,
+            'AppraisalCompDriver_ManagersHodComments': self.AppraisalCompDriver_ManagersHodComments,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatorId': self.UpdatorId,
+            'UpdatDate': self.UpdatDate,
+            'CampusId': self.CampusId,
+            'InActive': self.InActive
+        }
+
+
+class AppraisalForm(db.Model):
+    __tablename__ = 'AppraisalForm'  
+
+    AppraisalForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AppraisalForm_StaffId = db.Column(db.Integer, nullable=False)
+    AppraisalForm_JobTitle = db.Column(db.String(255), nullable=False)
+    AppraisalForm_CampusId = db.Column(db.Integer, nullable=False)
+    AppraisalForm_Location = db.Column(db.String(255), nullable=False)
+    AppraisalForm_DepartmentId = db.Column(db.Integer, nullable=False)
+    AppraisalForm_DateOfAppraisal = db.Column(db.DateTime, nullable=False)
+    AppraisalForm_SupervisorId = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_IndBehavComp_Perf_Attitude = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_IndBehavComp_Perf_Stress = db.Column(db.String(500), nullable=False)
+    AppraisalForm_IndBehavComp_Attitude_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_IndBehavComp_Stress_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_TechnicalComp_Perf_Indepth = db.Column(db.String(500), nullable=False)
+    AppraisalForm_TechnicalComp_Indepth_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_AdminLeadSkillsComp_Perf_Supervision = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_AdminLeadSkillsComp_Perf_Creativity = db.Column(db.String(500), nullable=False)
+    AppraisalForm_AdminLeadSkillsComp_Supervision_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_AdminLeadSkillsComp_Creativity_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_DependCommitComp_Perf_SelfReliance = db.Column(db.String(500), nullable=False)
+    AppraisalForm_DependCommitComp_SelfReliance_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_CostConsiousComp_Perf_Judicious = db.Column(db.String(500), nullable=False)
+    AppraisalForm_CostConsiousComp_Judicious_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_CommComp_Perf_Expression = db.Column(db.String(500), nullable=False)
+    AppraisalForm_CommComp_Expression_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_WorkManageComp_Perf_QualityOfWork = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_WorkManageComp_Perf_AttainOfObj = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_WorkManageComp_Perf_TimeManage = db.Column(db.String(500), nullable=False)
+    AppraisalForm_WorkManageComp_QualityOfWork_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_WorkManageComp_AttainOfObj_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_WorkManageComp_TimeManage_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_ProbSolveComp_Perf_ProbSolve = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_ProbSolveComp_Perf_DescMake = db.Column(db.String(500), nullable=False)
+    AppraisalForm_ProbSolveComp_ProbSolve_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_ProbSolveComp_DescMake_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_InterPerComp_Perf_CommPeers = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_InterPerComp_Perf_Rapport = db.Column(db.String(500), nullable=False)
+    AppraisalForm_InterPerComp_CommPeers_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_InterPerComp_Rapport_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_KnowledgeComp_Perf_Prod = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_KnowledgeComp_Prod_Rating = db.Column(db.Integer, nullable=False)
+    # AppraisalForm_AttendPunctComp_Perf_AttendPunct = db.Column(db.String(500), nullable=False)
+    AppraisalForm_AttendPunctComp_AttendPunct_Rating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_CompTotalPointsRating = db.Column(db.Integer, nullable=False)
+    AppraisalForm_DevepAreas_TrainDevelopNeeds = db.Column(db.String(500), nullable=False)
+    # AppraisalForm_DevepAreas_PerfImpPlans = db.Column(db.String(500), nullable=False)
+    AppraisalForm_EvalCommentRecommend_MajorAcheive = db.Column(db.String(500), nullable=False)
+    AppraisalForm_EvalCommentRecommend_RemarksRecommend = db.Column(db.String(500), nullable=False)
+    AppraisalForm_EmpComments = db.Column(db.String(500), nullable=False)
+    AppraisalForm_SupervisorComments = db.Column(db.String(500), nullable=False)
+    AppraisalForm_ManagersHodComments = db.Column(db.String(500), nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<AppraisalForm {self.AppraisalForm_Id}>"
+
+    def to_dict(self):
+        return {
+            'AppraisalForm_Id': self.AppraisalForm_Id,
+            'AppraisalForm_StaffId': self.AppraisalForm_StaffId,
+            'AppraisalForm_JobTitle': self.AppraisalForm_JobTitle,
+            'AppraisalForm_CampusId': self.AppraisalForm_CampusId,
+            'AppraisalForm_Location': self.AppraisalForm_Location,
+            'AppraisalForm_DepartmentId': self.AppraisalForm_DepartmentId,
+            'AppraisalForm_DateOfAppraisal': self.AppraisalForm_DateOfAppraisal,
+            'AppraisalForm_SupervisorId': self.AppraisalForm_SupervisorId,
+            # 'AppraisalForm_IndBehavComp_Perf_Attitude': self.AppraisalForm_IndBehavComp_Perf_Attitude,
+            # 'AppraisalForm_IndBehavComp_Perf_Stress': self.AppraisalForm_IndBehavComp_Perf_Stress,
+            'AppraisalForm_IndBehavComp_Attitude_Rating': self.AppraisalForm_IndBehavComp_Attitude_Rating,
+            'AppraisalForm_IndBehavComp_Stress_Rating': self.AppraisalForm_IndBehavComp_Stress_Rating,
+            # 'AppraisalForm_TechnicalComp_Perf_Indepth': self.AppraisalForm_TechnicalComp_Perf_Indepth,
+            'AppraisalForm_TechnicalComp_Indepth_Rating': self.AppraisalForm_TechnicalComp_Indepth_Rating,
+            # 'AppraisalForm_AdminLeadSkillsComp_Perf_Supervision': self.AppraisalForm_AdminLeadSkillsComp_Perf_Supervision,
+            # 'AppraisalForm_AdminLeadSkillsComp_Perf_Creativity': self.AppraisalForm_AdminLeadSkillsComp_Perf_Creativity,
+            'AppraisalForm_AdminLeadSkillsComp_Supervision_Rating': self.AppraisalForm_AdminLeadSkillsComp_Supervision_Rating,
+            'AppraisalForm_AdminLeadSkillsComp_Creativity_Rating': self.AppraisalForm_AdminLeadSkillsComp_Creativity_Rating,
+            # 'AppraisalForm_DependCommitComp_Perf_SelfReliance': self.AppraisalForm_DependCommitComp_Perf_SelfReliance,
+            # 'AppraisalForm_DependCommitComp_SelfReliance_Rating': self.AppraisalForm_DependCommitComp_SelfReliance_Rating,
+            # 'AppraisalForm_CostConsiousComp_Perf_Judicious': self.AppraisalForm_CostConsiousComp_Perf_Judicious,
+            'AppraisalForm_CostConsiousComp_Judicious_Rating': self.AppraisalForm_CostConsiousComp_Judicious_Rating,
+            # 'AppraisalForm_CommComp_Perf_Expression': self.AppraisalForm_CommComp_Perf_Expression,
+            'AppraisalForm_CommComp_Expression_Rating': self.AppraisalForm_CommComp_Expression_Rating,
+            # 'AppraisalForm_WorkManageComp_Perf_QualityOfWork': self.AppraisalForm_WorkManageComp_Perf_QualityOfWork,
+            # 'AppraisalForm_WorkManageComp_Perf_AttainOfObj': self.AppraisalForm_WorkManageComp_Perf_AttainOfObj,
+            # 'AppraisalForm_WorkManageComp_Perf_TimeManage': self.AppraisalForm_WorkManageComp_Perf_TimeManage,
+            'AppraisalForm_WorkManageComp_QualityOfWork_Rating': self.AppraisalForm_WorkManageComp_QualityOfWork_Rating,
+            'AppraisalForm_WorkManageComp_AttainOfObj_Rating': self.AppraisalForm_WorkManageComp_AttainOfObj_Rating,
+            'AppraisalForm_WorkManageComp_TimeManage_Rating': self.AppraisalForm_WorkManageComp_TimeManage_Rating,
+            # 'AppraisalForm_ProbSolveComp_Perf_ProbSolve': self.AppraisalForm_ProbSolveComp_Perf_ProbSolve,
+            # 'AppraisalForm_ProbSolveComp_Perf_DescMake': self.AppraisalForm_ProbSolveComp_Perf_DescMake,
+            'AppraisalForm_ProbSolveComp_ProbSolve_Rating': self.AppraisalForm_ProbSolveComp_ProbSolve_Rating,
+            'AppraisalForm_ProbSolveComp_DescMake_Rating': self.AppraisalForm_ProbSolveComp_DescMake_Rating,
+            # 'AppraisalForm_InterPerComp_Perf_CommPeers': self.AppraisalForm_InterPerComp_Perf_CommPeers,
+            # 'AppraisalForm_InterPerComp_Perf_Rapport': self.AppraisalForm_InterPerComp_Perf_Rapport,
+            'AppraisalForm_InterPerComp_CommPeers_Rating': self.AppraisalForm_InterPerComp_CommPeers_Rating,
+            'AppraisalForm_InterPerComp_Rapport_Rating': self.AppraisalForm_InterPerComp_Rapport_Rating,
+            # 'AppraisalForm_KnowledgeComp_Perf_Prod': self.AppraisalForm_KnowledgeComp_Perf_Prod,
+            'AppraisalForm_KnowledgeComp_Prod_Rating': self.AppraisalForm_KnowledgeComp_Prod_Rating,
+            # 'AppraisalForm_AttendPunctComp_Perf_AttendPunct': self.AppraisalForm_AttendPunctComp_Perf_AttendPunct,
+            'AppraisalForm_AttendPunctComp_AttendPunct_Rating': self.AppraisalForm_AttendPunctComp_AttendPunct_Rating,
+            'AppraisalForm_CompTotalPointsRating': self.AppraisalForm_CompTotalPointsRating,
+            'AppraisalForm_DevepAreas_TrainDevelopNeeds': self.AppraisalForm_DevepAreas_TrainDevelopNeeds,
+            # 'AppraisalForm_DevepAreas_PerfImpPlans': self.AppraisalForm_DevepAreas_PerfImpPlans,
+            'AppraisalForm_EvalCommentRecommend_MajorAcheive': self.AppraisalForm_EvalCommentRecommend_MajorAcheive,
+            'AppraisalForm_EvalCommentRecommend_RemarksRecommend': self.AppraisalForm_EvalCommentRecommend_RemarksRecommend,
+            'AppraisalForm_EmpComments': self.AppraisalForm_EmpComments,
+            'AppraisalForm_SupervisorComments': self.AppraisalForm_SupervisorComments,
+            'AppraisalForm_ManagersHodComments': self.AppraisalForm_ManagersHodComments,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatDate': self.UpdatDate,
+            'UpdatorId': self.UpdatorId,
+            'CampusId': self.CampusId,
+            'InActive': self.InActive
+        }
+
+
+class PerfAppraisalDoc(db.Model):
+    __tablename__ = 'PerfAppraisalDoc'  
+
+    
+    PerfAppraisalDoc_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    PerfAppraisalDoc_StaffId = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_DesignationId = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_DepartmentId = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_YearsInService = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_ImmediateSupervisorId = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_DateOfFinalizationOfObjectives = db.Column(db.DateTime, nullable=False)
+    PerfAppraisalDoc_DateOfLastReview = db.Column(db.DateTime, nullable=False)
+    PerfAppraisalDoc_Objective1 = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective1_PerfAchievement = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective1_Weight = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective1_Rating = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective2 = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective2_PerfAchievement = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective2_Weight = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective2_Rating = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective3 = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective3_PerfAchievement = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective3_Weight = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective3_Rating = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective4 = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective4_PerfAchievement = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_Objective4_Weight = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_Objective4_Rating = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_StrategicThinkingPlanning_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_ProjectManagement_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_DataAnalysisReporting_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_CommunicationSkills_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_CrossFunctionalCollaboration_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_ProblemSolvingDecisionMaking_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_CustomerStakeholderFocus_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_LeadershipTeamDevelopment_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_AdaptabilityChangeManagement_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_ComplianceEthicalPractice_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_InnovationProcessImprovement_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_BudgetManagementResourceAlloc_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_TechnologyUtilization_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_CrisisManagement_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_CulturalSensitivityInclusivity_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_AttendancePunctuality_YER = db.Column(db.Integer, nullable=False)
+    PerfAppraisalDoc_EmpComments = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_SupervisorComments = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_ManagersHodComments = db.Column(db.String(255), nullable=False)
+    PerfAppraisalDoc_AchievementRating = db.Column(db.Numeric(18, 2), nullable=True)
+    PerfAppraisalDoc_CompetencyRating = db.Column(db.Numeric(18, 2), nullable=True)
+    PerfAppraisalDoc_FinalRating = db.Column(db.Numeric(18, 2), nullable=True)
+    RespSupervisor_IdentifyPerf = db.Column(db.Boolean, nullable=False, default=False)
+    RespSupervisor_ContFeedback = db.Column(db.Boolean, nullable=False, default=False)
+    RespEmp_Jobduties = db.Column(db.Boolean, nullable=False, default=False)
+    RespEmp_GrowthStrength = db.Column(db.Boolean, nullable=False, default=False)
+    EmpStrength_StrongLeadership = db.Column(db.Boolean, nullable=False, default=False)
+    EmpStrength_HighEngagement = db.Column(db.Boolean, nullable=False, default=False)
+    EmpAreasForImprove_Focus = db.Column(db.Boolean, nullable=False, default=False)
+    EmpAreasForImprove_Punctual = db.Column(db.Boolean, nullable=False, default=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+
+    def __repr__(self):
+        return f"<PerfAppraisalDoc {self.PerfAppraisalDoc_Id}>"
+
+    def to_dict(self):
+        return {
+            'PerfAppraisalDoc_Id': self.PerfAppraisalDoc_Id,
+            'PerfAppraisalDoc_StaffId': self.PerfAppraisalDoc_StaffId,
+            'PerfAppraisalDoc_DesignationId': self.PerfAppraisalDoc_DesignationId,
+            'PerfAppraisalDoc_DepartmentId': self.PerfAppraisalDoc_DepartmentId,
+            'PerfAppraisalDoc_YearsInService': self.PerfAppraisalDoc_YearsInService,
+            'PerfAppraisalDoc_ImmediateSupervisorId': self.PerfAppraisalDoc_ImmediateSupervisorId,
+            'PerfAppraisalDoc_DateOfFinalizationOfObjectives': self.PerfAppraisalDoc_DateOfFinalizationOfObjectives,
+            'PerfAppraisalDoc_DateOfLastReview': self.PerfAppraisalDoc_DateOfLastReview,
+            'PerfAppraisalDoc_Objective1': self.PerfAppraisalDoc_Objective1,
+            'PerfAppraisalDoc_Objective1_PerfAchievement': self.PerfAppraisalDoc_Objective1_PerfAchievement,
+            'PerfAppraisalDoc_Objective1_Weight': self.PerfAppraisalDoc_Objective1_Weight,
+            'PerfAppraisalDoc_Objective1_Rating': self.PerfAppraisalDoc_Objective1_Rating,
+            'PerfAppraisalDoc_Objective2': self.PerfAppraisalDoc_Objective2,
+            'PerfAppraisalDoc_Objective2_PerfAchievement': self.PerfAppraisalDoc_Objective2_PerfAchievement,
+            'PerfAppraisalDoc_Objective2_Weight': self.PerfAppraisalDoc_Objective2_Weight,
+            'PerfAppraisalDoc_Objective2_Rating': self.PerfAppraisalDoc_Objective2_Rating,
+            'PerfAppraisalDoc_Objective3': self.PerfAppraisalDoc_Objective3,
+            'PerfAppraisalDoc_Objective3_PerfAchievement': self.PerfAppraisalDoc_Objective3_PerfAchievement,
+            'PerfAppraisalDoc_Objective3_Weight': self.PerfAppraisalDoc_Objective3_Weight,
+            'PerfAppraisalDoc_Objective3_Rating': self.PerfAppraisalDoc_Objective3_Rating,
+            'PerfAppraisalDoc_Objective4': self.PerfAppraisalDoc_Objective4,
+            'PerfAppraisalDoc_Objective4_PerfAchievement': self.PerfAppraisalDoc_Objective4_PerfAchievement,
+            'PerfAppraisalDoc_Objective4_Weight': self.PerfAppraisalDoc_Objective4_Weight,
+            'PerfAppraisalDoc_Objective4_Rating': self.PerfAppraisalDoc_Objective4_Rating,
+            'PerfAppraisalDoc_StrategicThinkingPlanning_YER': self.PerfAppraisalDoc_StrategicThinkingPlanning_YER,
+            'PerfAppraisalDoc_ProjectManagement_YER': self.PerfAppraisalDoc_ProjectManagement_YER,
+            'PerfAppraisalDoc_DataAnalysisReporting_YER': self.PerfAppraisalDoc_DataAnalysisReporting_YER,
+            'PerfAppraisalDoc_CommunicationSkills_YER': self.PerfAppraisalDoc_CommunicationSkills_YER,
+            'PerfAppraisalDoc_CrossFunctionalCollaboration_YER': self.PerfAppraisalDoc_CrossFunctionalCollaboration_YER,
+            'PerfAppraisalDoc_ProblemSolvingDecisionMaking_YER': self.PerfAppraisalDoc_ProblemSolvingDecisionMaking_YER,
+            'PerfAppraisalDoc_CustomerStakeholderFocus_YER': self.PerfAppraisalDoc_CustomerStakeholderFocus_YER,
+            'PerfAppraisalDoc_LeadershipTeamDevelopment_YER': self.PerfAppraisalDoc_LeadershipTeamDevelopment_YER,
+            'PerfAppraisalDoc_AdaptabilityChangeManagement_YER': self.PerfAppraisalDoc_AdaptabilityChangeManagement_YER,
+            'PerfAppraisalDoc_ComplianceEthicalPractice_YER': self.PerfAppraisalDoc_ComplianceEthicalPractice_YER,
+            'PerfAppraisalDoc_InnovationProcessImprovement_YER': self.PerfAppraisalDoc_InnovationProcessImprovement_YER,
+            'PerfAppraisalDoc_BudgetManagementResourceAlloc_YER': self.PerfAppraisalDoc_BudgetManagementResourceAlloc_YER,
+            'PerfAppraisalDoc_TechnologyUtilization_YER': self.PerfAppraisalDoc_TechnologyUtilization_YER,
+            'PerfAppraisalDoc_CrisisManagement_YER': self.PerfAppraisalDoc_CrisisManagement_YER,
+            'PerfAppraisalDoc_CulturalSensitivityInclusivity_YER': self.PerfAppraisalDoc_CulturalSensitivityInclusivity_YER,
+            'PerfAppraisalDoc_AttendancePunctuality_YER': self.PerfAppraisalDoc_AttendancePunctuality_YER,
+            'PerfAppraisalDoc_EmpComments': self.PerfAppraisalDoc_EmpComments,
+            'PerfAppraisalDoc_SupervisorComments': self.PerfAppraisalDoc_SupervisorComments,
+            'PerfAppraisalDoc_ManagersHodComments': self.PerfAppraisalDoc_ManagersHodComments,
+            'PerfAppraisalDoc_AchievementRating': self.PerfAppraisalDoc_AchievementRating,
+            'PerfAppraisalDoc_CompetencyRating': self.PerfAppraisalDoc_CompetencyRating,
+            'PerfAppraisalDoc_FinalRating': self.PerfAppraisalDoc_FinalRating,
+            'RespSupervisor_IdentifyPerf': self.RespSupervisor_IdentifyPerf,
+            'RespSupervisor_ContFeedback': self.RespSupervisor_ContFeedback,
+            'RespEmp_Jobduties': self.RespEmp_Jobduties,
+            'RespEmp_GrowthStrength': self.RespEmp_GrowthStrength,
+            'EmpStrength_StrongLeadership': self.EmpStrength_StrongLeadership,
+            'EmpStrength_HighEngagement': self.EmpStrength_HighEngagement,
+            'EmpAreasForImprove_Focus': self.EmpAreasForImprove_Focus,
+            'EmpAreasForImprove_Punctual': self.EmpAreasForImprove_Punctual,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatDate': self.UpdatDate,
+            'UpdatorId': self.UpdatorId,
+            'CampusId': self.CampusId,
+            'InActive': self.InActive
+        }
+
+
+class ClassRoomObeserveForm(db.Model):
+    __tablename__ = 'ClassRoomObeserveForm'  
+
+    
+    ClassRoomObs_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ClassRoomObs_TeacherId = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ObserverId = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_TeacherSubjectId = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_TeacherTopic = db.Column(db.String(255), nullable=False)
+    ClassRoomObs_TeacherClassId = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_TeacherCampusId = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_DateTime = db.Column(db.DateTime, nullable=False)
+    ClassRoomObs_ReviewSubjContent_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewSubjContent_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewOrg_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewOrg_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewRapport_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewRapport_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewTeachMthd_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewTeachMthd_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewPresentation_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewPresentation_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewManagement_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewManagement_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewSensitivity_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewSensitivity_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewAsstStudents_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewAsstStudents_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewPersonal_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewPersonal_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_ReviewPhyAspClass_Points = db.Column(db.Integer, nullable=False)
+    ClassRoomObs_ReviewPhyAspClass_Cmnt = db.Column(db.Text, nullable=False)
+    ClassRoomObs_Remarks_StrObs = db.Column(db.Text, nullable=False)
+    ClassRoomObs_Remarks_SuggImp = db.Column(db.Text, nullable=False)
+    ClassRoomObs_Remarks_OverallImp = db.Column(db.Text, nullable=False)
+    ClassRoomObs_Remarks_TeachCmnts = db.Column(db.Text, nullable=False)
+    No_of_StudentsInClass = db.Column(db.Integer, nullable=False)
+    CreateDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<ClassRoomObserveForm {self.ClassRoomObs_Id}>"
+
+    def to_dict(self):
+        return {
+            'ClassRoomObs_Id': self.ClassRoomObs_Id,
+            'ClassRoomObs_TeacherId': self.ClassRoomObs_TeacherId,
+            'ClassRoomObs_ObserverId': self.ClassRoomObs_ObserverId,
+            'ClassRoomObs_TeacherSubjectId': self.ClassRoomObs_TeacherSubjectId,
+            'ClassRoomObs_TeacherTopic': self.ClassRoomObs_TeacherTopic,
+            'ClassRoomObs_TeacherClassId': self.ClassRoomObs_TeacherClassId,
+            'ClassRoomObs_TeacherCampusId': self.ClassRoomObs_TeacherCampusId,
+            'ClassRoomObs_DateTime': self.ClassRoomObs_DateTime,
+            'ClassRoomObs_ReviewSubjContent_Points': self.ClassRoomObs_ReviewSubjContent_Points,
+            'ClassRoomObs_ReviewSubjContent_Cmnt': self.ClassRoomObs_ReviewSubjContent_Cmnt,
+            'ClassRoomObs_ReviewOrg_Points': self.ClassRoomObs_ReviewOrg_Points,
+            'ClassRoomObs_ReviewOrg_Cmnt': self.ClassRoomObs_ReviewOrg_Cmnt,
+            'ClassRoomObs_ReviewRapport_Points': self.ClassRoomObs_ReviewRapport_Points,
+            'ClassRoomObs_ReviewRapport_Cmnt': self.ClassRoomObs_ReviewRapport_Cmnt,
+            'ClassRoomObs_ReviewTeachMthd_Points': self.ClassRoomObs_ReviewTeachMthd_Points,
+            'ClassRoomObs_ReviewTeachMthd_Cmnt': self.ClassRoomObs_ReviewTeachMthd_Cmnt,
+            'ClassRoomObs_ReviewPresentation_Points': self.ClassRoomObs_ReviewPresentation_Points,
+            'ClassRoomObs_ReviewPresentation_Cmnt': self.ClassRoomObs_ReviewPresentation_Cmnt,
+            'ClassRoomObs_ReviewManagement_Points': self.ClassRoomObs_ReviewManagement_Points,
+            'ClassRoomObs_ReviewManagement_Cmnt': self.ClassRoomObs_ReviewManagement_Cmnt,
+            'ClassRoomObs_ReviewSensitivity_Points': self.ClassRoomObs_ReviewSensitivity_Points,
+            'ClassRoomObs_ReviewSensitivity_Cmnt': self.ClassRoomObs_ReviewSensitivity_Cmnt,
+            'ClassRoomObs_ReviewAsstStudents_Points': self.ClassRoomObs_ReviewAsstStudents_Points,
+            'ClassRoomObs_ReviewAsstStudents_Cmnt': self.ClassRoomObs_ReviewAsstStudents_Cmnt,
+            'ClassRoomObs_ReviewPersonal_Points': self.ClassRoomObs_ReviewPersonal_Points,
+            'ClassRoomObs_ReviewPersonal_Cmnt': self.ClassRoomObs_ReviewPersonal_Cmnt,
+            'ClassRoomObs_ReviewPhyAspClass_Points': self.ClassRoomObs_ReviewPhyAspClass_Points,
+            'ClassRoomObs_ReviewPhyAspClass_Cmnt': self.ClassRoomObs_ReviewPhyAspClass_Cmnt,
+            'ClassRoomObs_Remarks_StrObs': self.ClassRoomObs_Remarks_StrObs,
+            'ClassRoomObs_Remarks_SuggImp': self.ClassRoomObs_Remarks_SuggImp,
+            'ClassRoomObs_Remarks_OverallImp': self.ClassRoomObs_Remarks_OverallImp,
+            'ClassRoomObs_Remarks_TeachCmnts': self.ClassRoomObs_Remarks_TeachCmnts,
+            'No_of_StudentsInClass': self.No_of_StudentsInClass,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatorId': self.UpdatorId,
+            'UpdatDate': self.UpdatDate,
+            'InActive': self.InActive
+        }
 
 
 
+class TeachingAppraisalForm(db.Model):
+    __tablename__ = 'TeachingAppraisalForm'
+
+    TeachingAppraisalForm_Id = db.Column(db.Integer, primary_key=True)
+    TeachingAppraisalForm_TeacherId = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_ClassId = db.Column(db.String, nullable=False)
+    TeachingAppraisalForm_SubjectId = db.Column(db.String, nullable=False)
+    TeachingAppraisalForm_SchoolYear = db.Column(db.String, nullable=False)
+    TeachingAppraisalForm_CampusId = db.Column(db.String, nullable=False)
+
+    TeachingAppraisalForm_PF1_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF1_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF1_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF1_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF1_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF1_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF2_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF2_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF2_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF2_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF2_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF2_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF3_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF3_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF3_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF3_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF3_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF3_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF4_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF4_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF4_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF4_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF4_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF4_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF5_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF5_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF5_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF5_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF5_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF5_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF6_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF6_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF6_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF6_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF6_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF6_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF7_Exemplary = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF7_Proficient = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF7_NeedsDevelop = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF7_NeedsImprove = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF7_Unaccept = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_PF7_Comments = db.Column(db.String, nullable=True)
+
+    TeachingAppraisalForm_PF1_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF2_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF3_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF4_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF5_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF6_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF7_PointsAward = db.Column(db.Integer, nullable=False)
+    TeachingAppraisalForm_PF_CummulativeRating = db.Column(db.Double, nullable=False)
+
+    TeachingAppraisalForm_EvalSumm_ContdEmp = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_EvalSumm_ExtendProb = db.Column(db.Boolean, default=False, nullable=False)
+    TeachingAppraisalForm_EvalSumm_ExtendProbMonths = db.Column(db.Integer, nullable=False, default=0)
+    TeachingAppraisalForm_EvalSumm_RecomdDismissal = db.Column(db.Boolean, default=False, nullable=False)
+
+    TeachingAppraisalForm_Cmnt_Recommend = db.Column(db.String, nullable=True)
+    TeachingAppraisalForm_Cmnt_AreasImprove = db.Column(db.String, nullable=True)
+    TeachingAppraisalForm_Cmnt_Apparaiser = db.Column(db.String, nullable=True)
+
+    CreateDate = db.Column(db.DateTime, nullable=False)
+    CreatorId = db.Column(db.Integer, nullable=False)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<TeachingAppraisalForm {self.TeachingAppraisalForm_Id}>"
+
+    def to_dict(self):
+        return {
+            'TeachingAppraisalForm_Id': self.TeachingAppraisalForm_Id,
+            'TeachingAppraisalForm_TeacherId': self.TeachingAppraisalForm_TeacherId,
+            'TeachingAppraisalForm_ClassId': self.TeachingAppraisalForm_ClassId,
+            'TeachingAppraisalForm_SubjectId': self.TeachingAppraisalForm_SubjectId,
+            'TeachingAppraisalForm_SchoolYear': self.TeachingAppraisalForm_SchoolYear,
+            'TeachingAppraisalForm_CampusId': self.TeachingAppraisalForm_CampusId,
+            'TeachingAppraisalForm_PF1_Exemplary': self.TeachingAppraisalForm_PF1_Exemplary,
+            'TeachingAppraisalForm_PF1_Proficient': self.TeachingAppraisalForm_PF1_Proficient,
+            'TeachingAppraisalForm_PF1_NeedsDevelop': self.TeachingAppraisalForm_PF1_NeedsDevelop,
+            'TeachingAppraisalForm_PF1_NeedsImprove': self.TeachingAppraisalForm_PF1_NeedsImprove,
+            'TeachingAppraisalForm_PF1_Unaccept': self.TeachingAppraisalForm_PF1_Unaccept,
+            'TeachingAppraisalForm_PF1_Comments': self.TeachingAppraisalForm_PF1_Comments,
+            'TeachingAppraisalForm_PF2_Exemplary': self.TeachingAppraisalForm_PF2_Exemplary,
+            'TeachingAppraisalForm_PF2_Proficient': self.TeachingAppraisalForm_PF2_Proficient,
+            'TeachingAppraisalForm_PF2_NeedsDevelop': self.TeachingAppraisalForm_PF2_NeedsDevelop,
+            'TeachingAppraisalForm_PF2_NeedsImprove': self.TeachingAppraisalForm_PF2_NeedsImprove,
+            'TeachingAppraisalForm_PF2_Unaccept': self.TeachingAppraisalForm_PF2_Unaccept,
+            'TeachingAppraisalForm_PF2_Comments': self.TeachingAppraisalForm_PF2_Comments,
+            'TeachingAppraisalForm_PF3_Exemplary': self.TeachingAppraisalForm_PF3_Exemplary,
+            'TeachingAppraisalForm_PF3_Proficient': self.TeachingAppraisalForm_PF3_Proficient,
+            'TeachingAppraisalForm_PF3_NeedsDevelop': self.TeachingAppraisalForm_PF3_NeedsDevelop,
+            'TeachingAppraisalForm_PF3_NeedsImprove': self.TeachingAppraisalForm_PF3_NeedsImprove,
+            'TeachingAppraisalForm_PF3_Unaccept': self.TeachingAppraisalForm_PF3_Unaccept,
+            'TeachingAppraisalForm_PF3_Comments': self.TeachingAppraisalForm_PF3_Comments,
+            'TeachingAppraisalForm_PF4_Exemplary': self.TeachingAppraisalForm_PF4_Exemplary,
+            'TeachingAppraisalForm_PF4_Proficient': self.TeachingAppraisalForm_PF4_Proficient,
+            'TeachingAppraisalForm_PF4_NeedsDevelop': self.TeachingAppraisalForm_PF4_NeedsDevelop,
+            'TeachingAppraisalForm_PF4_NeedsImprove': self.TeachingAppraisalForm_PF4_NeedsImprove,
+            'TeachingAppraisalForm_PF4_Unaccept': self.TeachingAppraisalForm_PF4_Unaccept,
+            'TeachingAppraisalForm_PF4_Comments': self.TeachingAppraisalForm_PF4_Comments,
+            'TeachingAppraisalForm_PF5_Exemplary': self.TeachingAppraisalForm_PF5_Exemplary,
+            'TeachingAppraisalForm_PF5_Proficient': self.TeachingAppraisalForm_PF5_Proficient,
+            'TeachingAppraisalForm_PF5_NeedsDevelop': self.TeachingAppraisalForm_PF5_NeedsDevelop,
+            'TeachingAppraisalForm_PF5_NeedsImprove': self.TeachingAppraisalForm_PF5_NeedsImprove,
+            'TeachingAppraisalForm_PF5_Unaccept': self.TeachingAppraisalForm_PF5_Unaccept,
+            'TeachingAppraisalForm_PF5_Comments': self.TeachingAppraisalForm_PF5_Comments,
+            'TeachingAppraisalForm_PF6_Exemplary': self.TeachingAppraisalForm_PF6_Exemplary,
+            'TeachingAppraisalForm_PF6_Proficient': self.TeachingAppraisalForm_PF6_Proficient,
+            'TeachingAppraisalForm_PF6_NeedsDevelop': self.TeachingAppraisalForm_PF6_NeedsDevelop,
+            'TeachingAppraisalForm_PF6_NeedsImprove': self.TeachingAppraisalForm_PF6_NeedsImprove,
+            'TeachingAppraisalForm_PF6_Unaccept': self.TeachingAppraisalForm_PF6_Unaccept,
+            'TeachingAppraisalForm_PF6_Comments': self.TeachingAppraisalForm_PF6_Comments,
+            'TeachingAppraisalForm_PF7_Exemplary': self.TeachingAppraisalForm_PF7_Exemplary,
+            'TeachingAppraisalForm_PF7_Proficient': self.TeachingAppraisalForm_PF7_Proficient,
+            'TeachingAppraisalForm_PF7_NeedsDevelop': self.TeachingAppraisalForm_PF7_NeedsDevelop,
+            'TeachingAppraisalForm_PF7_NeedsImprove': self.TeachingAppraisalForm_PF7_NeedsImprove,
+            'TeachingAppraisalForm_PF7_Unaccept': self.TeachingAppraisalForm_PF7_Unaccept,
+            'TeachingAppraisalForm_PF7_Comments': self.TeachingAppraisalForm_PF7_Comments,
+            'TeachingAppraisalForm_PF1_PointsAward': self.TeachingAppraisalForm_PF1_PointsAward,
+            'TeachingAppraisalForm_PF2_PointsAward': self.TeachingAppraisalForm_PF2_PointsAward,
+            'TeachingAppraisalForm_PF3_PointsAward': self.TeachingAppraisalForm_PF3_PointsAward,
+            'TeachingAppraisalForm_PF4_PointsAward': self.TeachingAppraisalForm_PF4_PointsAward,
+            'TeachingAppraisalForm_PF5_PointsAward': self.TeachingAppraisalForm_PF5_PointsAward,
+            'TeachingAppraisalForm_PF6_PointsAward': self.TeachingAppraisalForm_PF6_PointsAward,
+            'TeachingAppraisalForm_PF7_PointsAward': self.TeachingAppraisalForm_PF7_PointsAward,
+            'TeachingAppraisalForm_PF_CummulativeRating': self.TeachingAppraisalForm_PF_CummulativeRating,
+            'TeachingAppraisalForm_EvalSumm_ContdEmp': self.TeachingAppraisalForm_EvalSumm_ContdEmp,
+            'TeachingAppraisalForm_EvalSumm_ExtendProb': self.TeachingAppraisalForm_EvalSumm_ExtendProb,
+            'TeachingAppraisalForm_EvalSumm_ExtendProbMonths': self.TeachingAppraisalForm_EvalSumm_ExtendProbMonths,
+            'TeachingAppraisalForm_EvalSumm_RecomdDismissal': self.TeachingAppraisalForm_EvalSumm_RecomdDismissal,
+            'TeachingAppraisalForm_Cmnt_Recommend': self.TeachingAppraisalForm_Cmnt_Recommend,
+            'TeachingAppraisalForm_Cmnt_AreasImprove': self.TeachingAppraisalForm_Cmnt_AreasImprove,
+            'TeachingAppraisalForm_Cmnt_Apparaiser': self.TeachingAppraisalForm_Cmnt_Apparaiser,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatorId': self.UpdatorId,
+            'UpdatDate': self.UpdatDate,
+            'InActive': self.InActive,
+            'CampusId': self.CampusId
+        }
+
+class Training(db.Model):
+    __tablename__ = 'Training'
+
+    # Define the columns
+    Training_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Training_Trainer = db.Column(db.String(200), nullable=False)
+    Training_Location = db.Column(db.String(200), nullable=False)
+    Training_CompletionStatus = db.Column(db.String(30), nullable=True)
+    Training_TotalCost = db.Column(db.Integer, nullable=False)
+    Training_FromDate = db.Column(db.DateTime, nullable=False)
+    Training_ToDate = db.Column(db.DateTime, nullable=False)
+    Training_Remarks = db.Column(db.String(500), nullable=True)
+    Training_StaffContributionPercentage = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False)
+
+    # Representation of the object (for debugging or logs)
+    def __repr__(self):
+        return f"<Training {self.Training_Id}>"
+
+    # Method to return the object as a dictionary
+    def to_dict(self):
+        return {
+            'Training_Id': self.Training_Id,
+            'Training_Trainer': self.Training_Trainer,
+            'Training_Location': self.Training_Location,
+            'Training_TotalCost': self.Training_TotalCost,
+            'Training_Date': self.Training_Date.isoformat() if self.Training_Date else None,
+            'Training_Remarks': self.Training_Remarks,
+            'Training_StaffContributionPercentage': self.Training_StaffContributionPercentage,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'InActive': self.InActive
+        }
+
+class TrainingStaff(db.Model):
+    __tablename__ = 'TrainingStaff'
+
+    # Define the columns
+    TrainingStaff_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    TrainingStaff_TrainingId = db.Column(db.Integer, nullable=False)
+    TrainingStaff_StaffId = db.Column(db.Integer, nullable=False)
+    TrainingStaff_ContributionAmount = db.Column(db.Integer, nullable=False)
+    TrainingStaff_Survey = db.Column(db.String(50), nullable=True)
+    TrainingStaff_Bond = db.Column(db.String(200), nullable=True)
+    TrainingStaff_BondStartDate = db.Column(db.DateTime, nullable=True)
+    TrainingStaff_BondEndDate = db.Column(db.DateTime, nullable=True)
+    TrainingStaff_RemainingAmount = db.Column(db.Integer, nullable=False)
+    # Representation of the object (for debugging or logs)
+    def __repr__(self):
+        return f"<TrainingStaff {self.TrainingStaff_Id}>"
+
+    # Method to return the object as a dictionary
+    def to_dict(self):
+        return {
+            'TrainingStaff_Id': self.TrainingStaff_Id,
+            'TrainingStaff_TrainingId': self.TrainingStaff_TrainingId,
+            'TrainingStaff_StaffId': self.TrainingStaff_StaffId,
+            'TrainingStaff_ContributionAmount': self.TrainingStaff_ContributionAmount,
+            'TrainingStaff_Survey': self.TrainingStaff_Survey,
+            'TrainingStaff_Bond': self.TrainingStaff_Bond,
+            'TrainingStaff_BondStartDate': self.TrainingStaff_BondStartDate.isoformat() if self.TrainingStaff_BondStartDate else None,
+            'TrainingStaff_BondEndDate': self.TrainingStaff_BondEndDate.isoformat() if self.TrainingStaff_BondEndDate else None,
+            'TrainingStaff_RemainingAmount': self.TrainingStaff_RemainingAmount
+        }
+
+class MarkDayOffHRs(db.Model):
+    __tablename__ = 'MarkDayOffHRs'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Date = db.Column(db.DateTime, nullable=False)
+    CampusIds = db.Column(db.Integer, nullable=False)
+    Description = db.Column(db.String(250), nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    AcademicYearId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<Id {self.Id}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Date': self.Date,
+            'CampusIds': self.CampusIds,
+            'Description': self.Description,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate,
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate,
+            'status': self.status,
+            'AcademicYearId': self.AcademicYearId
+        }
 
 
+class MarkDayOffDeps(db.Model):
+    __tablename__ = 'MarkDayOffDeps'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Date = db.Column(db.DateTime, nullable=False)
+    Staff_Id = db.Column(db.Integer, nullable=False)
+    Description = db.Column(db.String(250), nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.Boolean, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    AcademicYearId = db.Column(db.Integer, nullable=True)
 
+    def __repr__(self):
+        return f"<Id {self.Id}>"
 
-
-
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Date': self.Date,
+            'Staff_Id': self.Staff_Id,
+            'Description': self.Description,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate,
+            'UpdatorId': self.UpdatorId,
+            'UpdateDate': self.UpdateDate,
+            'status': self.status,
+            'CampusId': self.CampusId,
+            'AcademicYearId': self.AcademicYearId
+        }
