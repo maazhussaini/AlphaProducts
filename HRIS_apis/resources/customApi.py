@@ -88,7 +88,7 @@ class DynamicGetResource(Resource):
 class CallProcedureResourceLeave(Resource):
     ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
     UPLOAD_FOLDER = 'uploads/StaffLeaveRequest/'
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)     
     logger = logging.getLogger(__name__)
 
     def post(self):
@@ -146,6 +146,7 @@ class CallProcedureResourceLeave(Resource):
                     saved_file_paths = []
 
                     if attachments:
+                        print("attachments",attachments)
                         for attachment in attachments:
                             current_date = datetime.now().strftime("%y%m%d")
                             # Handle the case where last_record_id is None
@@ -164,6 +165,7 @@ class CallProcedureResourceLeave(Resource):
                                 "WHERE Id = (SELECT TOP 1 Id FROM StaffLeaveRequest ORDER BY Id DESC);"
                             )
                             cursor.execute(update_query, (file_path,))
+                            print(file_path)
                             last_record_row = cursor.fetchone()
                             last_record_id = last_record_row[0] if last_record_row else None
 
@@ -265,6 +267,13 @@ class CallProcedureResourceLeave(Resource):
             
             # If attachments are provided, update the file path in the database
             else:
+                #If there's an existing file delete it before saving the new one
+                if existing_file_path and os.path.exists(existing_file_path):
+                    try:
+                        os.remove(existing_file_path)
+                        logging.info(f"Deleted existing file at: {existing_file_path}")
+                    except Exception as delete_error:
+                        logging.error(f"Error deleting file at {existing_file_path}: {delete_error}")
                 for attachment in attachments:
                     current_date = datetime.now().strftime("%y%m%d")
                     new_filename = f"{leave_id}_{current_date}{os.path.splitext(attachment.filename)[1]}"

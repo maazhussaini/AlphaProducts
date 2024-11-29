@@ -842,14 +842,16 @@ class JobApplicationForms(db.Model):
     Reason_for_leaving = db.Column(db.String(250), nullable=True)
     Last_drawn_gross_salary = db.Column(db.String(250), nullable=True)
     Benefits_if_any = db.Column(db.String(250), nullable=True)
-    Preferred_campus = db.Column(db.Integer, nullable=True)
+    Preferred_campus = db.Column(db.String(200), nullable=True)
     Preferred_location = db.Column(db.String(250), nullable=True)
     Preferred_job_type = db.Column(db.String(250), nullable=True)
     Section = db.Column(db.String(250), nullable=True)
     Subject = db.Column(db.String(250), nullable=True)
     Expected_salary = db.Column(db.String(250), nullable=True)
     CV_Path = db.Column(db.String(250), nullable=True)
+    Talent_Pool = db.Column(db.String(100), nullable=True)
     CoverLetter_Path = db.Column(db.String(250), nullable=True)
+    How_much_time_do_you_need = db.Column(db.String(200), nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     Status = db.Column(db.Boolean, nullable=True)
     JobApplied_For = db.Column(db.String(250), nullable=True)
@@ -896,6 +898,8 @@ class JobApplicationForms(db.Model):
             'Expected_salary': self.Expected_salary,
             'CV_Path': self.CV_Path,
             'CoverLetter_Path': self.CoverLetter_Path,
+            'Talent_Pool': self.Talent_Pool,
+            'How_much_time_do_you_need': self.How_much_time_do_you_need,
             'CreateDate': self.CreateDate,
             'Status': self.Status,
             'JobApplied_For': self.JobApplied_For
