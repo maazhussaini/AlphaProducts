@@ -2687,8 +2687,8 @@ class StaffLeaveRequest(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     CampusId = db.Column(db.Integer, nullable=True)
     LeaveTypeId = db.Column(db.Integer, nullable=True)
-    BirthDate = db.Column (db.Date,nullable=True)
-    ExpectedDelievery_Date = db.Column(db.Date, nullable=True)
+    # BirthDate = db.Column (db.Date,nullable=True)
+    # ExpectedDelievery_Date = db.Column(db.Date, nullable=True)
 
     def __repr__(self):
         return f"<StaffLeaveRequest Id={self.Id}, StaffId={self.StaffId}, FromDate={self.FromDate}, ToDate={self.ToDate}>"
@@ -2716,8 +2716,8 @@ class StaffLeaveRequest(db.Model):
             'CreateDate': self.CreateDate,
             'CampusId': self.CampusId,
             'LeaveTypeId': self.LeaveTypeId,
-            'BirthDate': self.BirthDate,
-            'ExpectedDelievery_Date': self.ExpectedDelievery_Date
+            # 'BirthDate': self.BirthDate,
+            # 'ExpectedDelievery_Date': self.ExpectedDelievery_Date
         }
 
 class StaffLeaveAssign(db.Model):

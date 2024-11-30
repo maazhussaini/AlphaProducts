@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 import os
@@ -22,6 +22,17 @@ def create_app():
     
     UPLOAD_FOLDER = 'uploads/'  # Directory where you want to save uploaded files
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+    # # Using add_url_rule to dynamically serve files from subdirectories within 'uploads'
+    # app.add_url_rule('/uploads/<foldername>/<filename>', 'uploaded_file',
+    #                  lambda foldername, filename: send_from_directory(
+    #                      os.path.join(app.config['UPLOAD_FOLDER'], foldername), filename))
+
+    # Using add_url_rule to dynamically serve files from subdirectories within 'uploads'
+    # The '<path:subpath>' captures any number of path segments after 'uploads/'
+    app.add_url_rule('/uploads/<path:subpath>', 'uploaded_file',
+                     lambda subpath: send_from_directory(app.config['UPLOAD_FOLDER'], subpath))
+
     
     jwt = JWTManager(app)
     
