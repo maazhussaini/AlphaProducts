@@ -137,47 +137,48 @@ class CallProcedureResourceLeave(Resource):
 
                 results_df = pd.DataFrame(result_list)
                 status_message = results_df.loc[0, 'Status'] if not results_df.empty else None
+                last_record_id = results_df.loc[0, 'LastRecordId'] if 'LastRecordId' in results_df.columns else None
 
-                if status_message == 'Your leave request has been submitted successfully.':
-                    # Check if the last record ID is properly fetched
-                    cursor.execute("SELECT MAX(Id) FROM StaffLeaveRequest")
-                    last_record_row = cursor.fetchone()
-                    last_record_id = last_record_row[0] if last_record_row else None
-                    saved_file_paths = []
+                # Ensure LastRecordId is correctly fetched from the result set
+                last_record_id = int(last_record_id) if last_record_id is not None else None
+                logging.info(f"Last record ID: {last_record_id}")
+
+                # If the status is success, proceed with saving attachments
+                if status_message.strip() == 'Your Leave request has been submitted successfully.' and last_record_id:
+                    # Proceed with file saving and other actions
+                    saved_file_paths = []  # Track saved file paths
 
                     if attachments:
-                        print("attachments",attachments)
                         for attachment in attachments:
                             current_date = datetime.now().strftime("%y%m%d")
-                            # Handle the case where last_record_id is None
-                            new_filename = f"{last_record_id if last_record_id else 'default'}_{current_date}{os.path.splitext(attachment.filename)[1]}"
+                            new_filename = f"{last_record_id}_{current_date}{os.path.splitext(attachment.filename)[1]}"
                             file_path, error_response, status_code = self.save_attachment(attachment, new_filename)
                             if error_response:  # Stop further processing if any attachment fails
                                 return error_response, status_code
                             saved_file_paths.append(file_path)
 
+                    # After saving attachments, update the LeaveApplicationPath in the database
                     if saved_file_paths:
                         for file_path in saved_file_paths:
                             update_query = (
                                 "UPDATE StaffLeaveRequest "
                                 "SET LeaveApplicationPath = ? "
-                                "OUTPUT INSERTED.Id "
-                                "WHERE Id = (SELECT TOP 1 Id FROM StaffLeaveRequest ORDER BY Id DESC);"
+                                "WHERE Id = ?;"
                             )
-                            cursor.execute(update_query, (file_path,))
-                            print(file_path)
-                            last_record_row = cursor.fetchone()
-                            last_record_id = last_record_row[0] if last_record_row else None
-
+                            logging.info(f"Executing update query: {update_query} with params: {file_path}, {last_record_id}")
+                            cursor.execute(update_query, (file_path, last_record_id))
+                            logging.info(f"Updated file path: {file_path}")
 
                     return {
-                        "data": results_df.to_dict(orient='records'),
-                        "last_record_id": last_record_id
+                        "data": results_df.to_dict(orient='records')
                     }, 200
 
                 else:
-                    return {"data": results_df.to_dict(orient='records'),
-                    "last_record_id": last_record_id}, 200
+                    logging.error(f"Leave request status failed: {status_message.strip()}"), 400
+                    return {
+                        "data": results_df.to_dict(orient='records')
+                    }, 200
+
 
         except SQLAlchemyError as e:
             connection.rollback()
@@ -191,8 +192,7 @@ class CallProcedureResourceLeave(Resource):
             cursor.close()
             connection.commit()
             connection.close()
-
-   
+    
 
     def put(self):
         parser = reqparse.RequestParser()
@@ -236,10 +236,11 @@ class CallProcedureResourceLeave(Resource):
             results = cursor.fetchall()
             result_list = [dict(zip(columns, row)) for row in results] if results else []
 
-            # Check for the status message
+            # Log status message for debugging
             status_message = None
             if result_list:
                 status_message = result_list[0].get('Status', None)
+            logging.info(f"Status message from procedure: {status_message}")
 
             # If the status message is not 'Leave request updated successfully.', return the result
             if status_message != 'Leave request updated successfully.':
@@ -267,7 +268,7 @@ class CallProcedureResourceLeave(Resource):
             
             # If attachments are provided, update the file path in the database
             else:
-                #If there's an existing file delete it before saving the new one
+                # If there's an existing file, delete it before saving the new one
                 if existing_file_path and os.path.exists(existing_file_path):
                     try:
                         os.remove(existing_file_path)
@@ -282,9 +283,10 @@ class CallProcedureResourceLeave(Resource):
                         return error_response, status_code
                     saved_file_paths.append(file_path)
 
+                # Update the LeaveApplicationPath with the new file(s)
                 if saved_file_paths:
                     cursor.execute("UPDATE StaffLeaveRequest SET LeaveApplicationPath = ? WHERE Id = ?", 
-                                (saved_file_paths[0], leave_id))
+                                (saved_file_paths[0], leave_id))  # You could update for multiple files if necessary
                     logging.info(f"Updated LeaveApplicationPath with new file path for leave ID: {leave_id}")
 
             # Commit changes after file update
@@ -292,9 +294,9 @@ class CallProcedureResourceLeave(Resource):
 
             # Return success message if leave request is updated successfully
             return {
-                    "data": result_list,
-                    "leave_id": leave_id,
-                }, 200
+                "data": result_list,
+                "leave_id": leave_id,
+            }, 200
 
         except Exception as e:
             connection.rollback()
