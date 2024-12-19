@@ -1,3 +1,4 @@
+import base64
 from flask_restful import Resource, reqparse, abort
 from models.models import *
 from datetime import datetime, date, timedelta
@@ -5095,6 +5096,7 @@ class EmailSendingResource(Resource):
         return email.Email_Body, email.Email_Subject
 
     def post(self):
+        # Get data from the request
         data = request.get_json()
         template_id = data.get('template_id')
         parameters = data.get('parameters', {})
@@ -5103,20 +5105,20 @@ class EmailSendingResource(Resource):
         employee_cnic = data.get('Employee_Cnic')
         creator_id = data.get('CreatorId') 
         create_date = data.get('CreateDate')
+        attachment = data.get('attachment')
 
         if not template_id or not parameters or not recipients:
             return {"error": "template_id, parameters, and recipients are required"}, 400
 
+        # Fetch template and subject
         template, subject = self.get_email_template(template_id)
         if not template:
             return {"error": "Template not found"}, 404
 
         try:
-            # Replace placeholders in both body and subject
+            # Generate dynamic email content
             email_content = self.generate_dynamic_email(template, **parameters)
             email_subject = self.generate_dynamic_email(subject, **parameters)
-
-            # Strip HTML tags from the subject (if any)
             email_subject = self.strip_html_tags(email_subject)
         except KeyError as e:
             return {"error": f"Missing parameter: {e}"}, 400
@@ -5124,21 +5126,46 @@ class EmailSendingResource(Resource):
             return {"error": f"An unexpected error occurred: {e}"}, 500
 
         try:
-            # Sending the email
-            msg = Message(subject=email_subject,  # Use the dynamically generated and cleaned subject
+            # Create the email message
+            msg = Message(subject=email_subject,
                           sender=os.environ.get('MAIL_USERNAME'),
                           recipients=recipients,
                           cc=cc)
-            msg.html = email_content  # The body is already set dynamically
-            mail.send(msg)
-            print(os.environ.get('MAIL_USERNAME'))
+            msg.html = email_content  # Set the email body
 
-            # Log the sent email using the template_id as EmailId
+            # Handle attachment (if provided)
+            if attachment:
+                file = attachment
+                file_data = file.get('data')  # This will be the base64-encoded file data
+                filename = file.get('name')
+                file_type = file.get('type')
+
+                # Decode the base64-encoded file data
+                file_binary = base64.b64decode(file_data)
+
+                # Attach file to email
+                msg.attach(filename, file_type, file_binary)
+
+            # Send the email
+            mail.send(msg)
+
+            # Log the sent email
             self.log_email(template_id, email_subject, email_content, employee_cnic, creator_id, create_date)
 
             return {"message": f"Email sent successfully to {recipients}"}, 200
         except Exception as e:
             return {"error": f"Failed to send email: {e}"}, 500
+
+    def handle_attachment(self, file):
+        """Helper function to encode file to base64 (if needed)"""
+        filename = secure_filename(file.filename)
+        file_type = file.mimetype
+        file_data = file.read()
+
+        # Base64 encode the file data
+        file_base64 = base64.b64encode(file_data).decode('utf-8')
+
+        return filename, file_type, file_base64
 
     def log_email(self, email_id, subject, content, employee_cnic, creator_id, create_date):
         # Create a new EmailLog_HR entry with template_id as EmailId
