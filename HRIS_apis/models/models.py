@@ -69,7 +69,9 @@ class USERS(db.Model):
     ispasswordchanged = db.Column(db.Boolean, nullable=False)
     IsAEN = db.Column(db.Integer, nullable=True)
 
-    # user_campus = db.relationship('UserCampus', back_populates='user')
+    # Define the reverse relationship for UserCampus
+    USERCAMPUS = db.relationship('UserCampus', back_populates='Users')
+
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -146,6 +148,10 @@ class UserCampus(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     Status = db.Column(db.Boolean, nullable=False)
     
+    # Define the reverse relationship to USERS
+    Users = db.relationship('USERS', back_populates='USERCAMPUS')
+
+
     def __repr__(self):
         return {"Campus": self.CampusId}
     
@@ -260,8 +266,8 @@ class Campus (db.Model):
             # "AppBackColorCode":self.AppBackColorCode
         }
 
-class Role(db.Model):
-    __tablename__ = 'ROLES'
+class Roles(db.Model):
+    __tablename__ = 'Roles'
 
     Role_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     RoleName = db.Column(db.String(150), nullable=False)
@@ -292,6 +298,7 @@ class Role(db.Model):
     CampusId = db.Column(db.Integer, db.ForeignKey('UserCampus.Id'), nullable=True)
     RoomBunkAndAbsent = db.Column(db.Boolean, nullable=True)
     BooksDueWidget = db.Column(db.Boolean, nullable=True)
+
 
     # campus = db.relationship('UserCampus', back_populates='roles')
     
@@ -4530,3 +4537,57 @@ class MarkDayOffDeps(db.Model):
             'CampusId': self.CampusId,
             'AcademicYearId': self.AcademicYearId
         }
+
+
+class CampusWiseUsersAEN(db.Model):
+    __tablename__ = 'CampusWiseUsersAEN'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AEN_user_ids = db.Column(db.Integer, nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"<CampusWiseUsersAEN AEN_user_ids={self.AEN_user_ids}>"
+    
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'Date': self.AEN_user_ids
+            }
+    
+class UserClassAccess(db.Model):
+    __tablename__ = 'UserClassAccess'  # Corrected to use double underscores
+    
+    # Define the columns as per the SQL table
+    Id = db.Column(db.Integer, primary_key=True)
+    UserId = db.Column(db.Integer, nullable=True)
+    ClassId = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.BigInteger, nullable=True)
+    UpdaterIP = db.Column(db.String(20), nullable=True)
+    UpdaterTerminal = db.Column(db.String(255), nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreatorIP = db.Column(db.String(20), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f"<UserClassAccess Id={self.Id}>"
+    
+    # Method to convert the SQLAlchemy model object into a dictionary
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'UserId': self.UserId,
+            'ClassId': self.ClassId,
+            'UpdaterId': self.UpdaterId,
+            'UpdaterIP': self.UpdaterIP,
+            'UpdaterTerminal': self.UpdaterTerminal,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'CreatorId': self.CreatorId,
+            'CreatorIP': self.CreatorIP,
+            'CreatorTerminal': self.CreatorTerminal,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CampusId': self.CampusId
+        }
+

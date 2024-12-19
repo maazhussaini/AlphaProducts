@@ -67,6 +67,6 @@ def register_routes(app):
     
     api.add_resource(EmployeeCreationResource, '/employeeCreation')
 
-# Register routes for both POST and PUT methods
-    api.add_resource(TrainingPostResource, '/training')  # For creating new training records
+    api.add_resource(TrainingPostResource, '/training')  
+    api.add_resource(CampusWiseUser, '/getCampuswiseUser')
     

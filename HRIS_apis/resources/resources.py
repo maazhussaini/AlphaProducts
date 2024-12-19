@@ -7,6 +7,7 @@ from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
 from sqlalchemy import extract
+from sqlalchemy.orm import joinedload
 import json
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
@@ -16,11 +17,14 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
 from exceptions import *
-from sqlalchemy import text
+from sqlalchemy import text, literal
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from resources.crypto_utils import encrypt
+from resources.crypto_utils import encrypt, decrypt
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+import ast
+
 
 load_dotenv()
 
@@ -5759,5 +5763,830 @@ class TrainingPostResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'status': 'error', 'message': f'Error: {str(e)}'}, 500
+
+class CampusWiseUser(Resource):
+    def post(self):
+        try:
+            if request.content_type == 'application/json':
+                # Parse the JSON body
+                data = request.get_json()
+                # raw_data = request.data
+                # data = json.loads(raw_data)
+                # print(request.json)
+                # print(request.content_type)
+
+                # Validate that all required fields are present
+                if 'User' not in data or 'campus_id' not in data or 'User_Id' not in data:
+                    raise BadRequest("User and campus are required fields")
+
+                User = data.get('User')
+                User_Id = data.get('User_Id')
+                campus_id = data.get('campus_id')
+                student_id = data.get('student_id', None)
+
+            else:
+                # Handle query parameters using reqparse for non-JSON requests
+                parser = reqparse.RequestParser()
+                parser.add_argument('User', type=int, location='args', required=True, help='User is required')
+                parser.add_argument('User_Id', type=int, location='args')
+                parser.add_argument('campus_id', type=int, location='args', required=True, help='campus_id is required')
+                parser.add_argument('student_id', type=int, location='args', default=None)
+
+                # Parse arguments
+                args = parser.parse_args()
+                User = args['User']
+                User_Id = args['User_Id']
+                campus_id = args['campus_id']
+                student_id = args['student_id']
+
+            # Fetching user IDs from the CampusWiseUsersAENTable
+            user_ids_query = CampusWiseUsersAEN.query.with_entities(CampusWiseUsersAEN.AEN_user_ids).all()
+            userid = [user.AEN_user_ids for user in user_ids_query]
+
+            excluded_user_ids = [2, 16471, 16472, 18203]
+
+            # Fetching based on campus_id and user_type
+            if campus_id == 11:
+                if User == 1:  # Staffs/Teachers
+                    # Get all user type IDs excluding 3 and 7
+                    excluded_user_types = [3, 7]
+                    user_types = UserType.query.filter(UserType.UserTypeId.notin_(excluded_user_types)).all()
+                    UserTypeId = [user_type.UserTypeId for user_type in user_types]
+
+                    if User_Id in [2, 16471, 16472, 18203]:  # Check if user_id matches any of these
+                        query = (
+                            USERS.query
+                            .filter(
+                                USERS.Inactive == False,USERS.Status == True,USERS.IsAEN == 1,USERS.UserType_Id.in_(UserTypeId),
+                                USERS.Firstname != None                               
+                            )
+                            .join(Campus, Campus.Id == USERS.CampusId)
+                            .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Join the UserType table to get the UserTypeName
+                            .add_columns(
+                                USERS.User_Id.label('id'),
+                                USERS.Firstname.label('Name'),
+                                Campus.Name.label('CampusName'),
+                                USERS.Status.label('Status'),
+                                UserType.UserTypeName.label('UserType'),  # Select UserTypeName from UserType table
+                                USERS.Username,
+                                USERS.Password
+                            )
+                        )
+                        # Collect the query result into a list of dictionaries
+                        users_data = [
+                            {
+                                'id': user.id,
+                                'Name': user.Name,
+                                'CampusName': user.CampusName,
+                                'Status': "Unblocked" if user.Status else "Blocked", 
+                                'UserType': user.UserType,
+                                'Username': decrypt(user.Username),
+                                'Password': decrypt(user.Password),
+                            }
+                            for user in query.all()
+                        ]
+
+                        # Add password visibility flag
+                        return {"data": users_data, "password_hide": False}, 200
+
+                    else:  # If user_id is not in the list [2, 16471, 16472, 18203]
+                        query = (
+                            USERS.query
+                            .filter(
+                                USERS.Inactive == False,USERS.Status == True,USERS.IsAEN == 1,
+                                USERS.UserType_Id.in_(UserTypeId),
+                                USERS.Firstname != None,
+                                USERS.User_Id.notin_(userid) # Fetch users whose IDs are not in the user_ids list
+                            )
+                            .join(Campus, Campus.Id == USERS.CampusId)
+                            .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Join the UserType table to get the UserTypeName
+                            .add_columns(
+                                USERS.User_Id.label('id'),
+                                Campus.Name.label('CampusName'),
+                                USERS.Status.label('Status'),
+                                USERS.Firstname.label('Name'),
+                                UserType.UserTypeName.label('UserType'),  # Select UserTypeName from UserType table
+                                USERS.Username,
+                                literal('Not applicable').label('Password') # Set Password to "Not Applicable"
+                            )
+                        )
+                        # Collect the query result into a list of dictionaries
+                        users_data = [
+                            {
+                                'id': user.id,
+                                'Name': user.Name,
+                                'UserType': user.UserType,
+                                'CampusName': user.CampusName,
+                                'Status': "Unblocked" if user.Status else "Blocked",
+                                'Username': decrypt(user.Username),
+                                'Password': user.Password,
+                            }
+                            for user in query.all()
+                        ]
+
+                        # Add password visibility flag
+                        return {"data": users_data, "password_hide": True}, 200
+
+                elif User == 2:
+                      # Parent Users
+                    # Get all Parent user types (assumed to be UserTypeId = 3)
+                    query = (
+                        USERS.query
+                        .filter(
+                            USERS.Inactive == False,USERS.Status == True, USERS.IsAEN == 1,USERS.UserType_Id == 3,  # Assuming 3 is Parent
+                            USERS.Firstname != None,
+                            USERS.User_Id.notin_(userid)  # Exclude specific user_ids
+                        )
+                        .join(Campus, Campus.Id == USERS.CampusId)
+                        .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)
+                        .add_columns(
+                            USERS.User_Id.label('id'),
+                            USERS.Firstname.label('Name'),
+                            Campus.Name.label('CampusName'),
+                            USERS.Status.label('Status'),
+                            UserType.UserTypeName.label('UserType'),
+                            USERS.Username,
+                            USERS.Password  # Password shown for Parent users
+                        )
+                    )
+
+                    # Collect the query result into a list of dictionaries
+                    users_data = [
+                        {
+                            'id': user.id,
+                            'Name': user.Name,
+                            'UserType': user.UserType,
+                            'CampusName': user.CampusName,
+                            'Status': "Unblocked" if user.Status else "Blocked",
+                            'Username': decrypt(user.Username),
+                            'Password': decrypt(user.Password),
+                        }
+                        for user in query.all()
+                    ]
+
+                    # Add password visibility flag
+                    return {"data": users_data, "password_hide": False,"isparentuser":1}, 200
+                
+                elif User == 3:  # Student Users
+                    # Get all Student user types (assumed to be UserTypeId = 7)
+                    query = (
+                        USERS.query
+                        .filter(
+                            USERS.Inactive == False,USERS.Status == True, USERS.IsAEN == 1,USERS.UserType_Id == 7,  # Assuming 7 is for Students
+                            USERS.Firstname != None,
+                            USERS.User_Id.notin_(userid)  # Exclude specific user_ids
+                        )
+                        .join(Campus, Campus.Id == USERS.CampusId)
+                        .join(UserType, UserType.UserTypeId == USERS.UserType_Id)  # Join the UserType table to get the UserTypeName
+                        .join(StudentInfo, StudentInfo.UserId == USERS.User_Id)  # Join with Students table to fetch Student info
+                        .add_columns(
+                            USERS.User_Id.label('id'),
+                            USERS.Firstname.label('Name'),                           
+                            Campus.Name.label('CampusName'),
+                            USERS.Status.label('Status'),
+                            UserType.UserTypeName.label('UserType'),
+                            USERS.Username,
+                            USERS.Password,  # Password shown for Student users
+                            StudentInfo.Student_ID.label('StudentId')
+                                # Add the StudentId from StudentsInformations table
+                        )
+                    )
+
+                    # Collect the query result into a list of dictionaries
+                    users_data = [
+                        {
+                            'id': user.id,
+                            'Name': user.Name,
+                            'UserType': user.UserType,
+                            'CampusName': user.CampusName,
+                            'Status': "Unblocked" if user.Status else "Blocked",
+                            'Username': decrypt(user.Username),
+                            'Password': decrypt(user.Password),
+                            'StudentId': user.StudentId if hasattr(user, 'StudentId') else None,  # Include StudentId from Students table
+                        }
+                        for user in query.all()
+                    ]
+
+                    # Add password visibility flag and student user flag
+                    return {"data": users_data, "password_hide": False, "isstudentuser": 1}, 200
+
+            else:
+                if (User == 1 ):
+                    excluded_user_types = [3, 7]
+                    user_types = UserType.query.filter(UserType.UserTypeId.notin_(excluded_user_types)).all()
+                    UserTypeId = [user_type.UserTypeId for user_type in user_types]
+
+                    
+
+                    if User_Id in [2, 16471, 16472, 18203]:  # Check if user_id matches any of these
+                        query = (
+                            USERS.query
+                            .filter(
+                                USERS.Inactive == False,USERS.Status == True,USERS.IsAEN == 0,USERS.CampusId == campus_id,
+                                USERS.UserType_Id.in_(UserTypeId),
+                                USERS.User_Id.notin_(excluded_user_ids),
+                                USERS.Firstname != None                               
+                            )
+                            .join(Campus, Campus.Id == USERS.CampusId)
+                            .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Join the UserType table to get the UserTypeName
+                            .add_columns(
+                                USERS.User_Id.label('id'),
+                                USERS.Firstname.label('Name'),
+                                Campus.Name.label('CampusName'),
+                                USERS.Status.label('Status'),
+                                UserType.UserTypeName.label('UserType'),  # Select UserTypeName from UserType table
+                                USERS.Username,
+                                USERS.Password
+                            )
+                        )
+                        # Collect the query result into a list of dictionaries
+                        users_data = [
+                            {
+                                'id': user.id,
+                                'Name': user.Name,
+                                'UserType': user.UserType,
+                                'CampusName': user.CampusName,
+                                'Status': "Unblocked" if user.Status else "Blocked",
+                                'Username': decrypt(user.Username),
+                                'Password': decrypt(user.Password),
+                            }
+                            for user in query.all()
+                        ]
+
+                        # Add password visibility flag
+                        return {"data": users_data, "password_hide": False}, 200
+                    
+                    else:  # If user_id is not in the list [2, 16471, 16472, 18203]
+                        query = (
+                            USERS.query
+                            .filter(
+                                USERS.Inactive == False,USERS.Status == True,USERS.IsAEN == 0,USERS.CampusId == campus_id,
+                                USERS.UserType_Id.in_(UserTypeId),
+                                USERS.Firstname != None,
+                                USERS.User_Id.notin_(userid)  # Fetch users whose IDs are not in the user_ids list
+                            )
+                            .join(Campus, Campus.Id == USERS.CampusId)
+                            .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Join the UserType table to get the UserTypeName
+                            .add_columns(
+                                USERS.User_Id.label('id'),
+                                Campus.Name.label('CampusName'),
+                                USERS.Status.label('Status'),
+                                USERS.Firstname.label('Name'),
+                                UserType.UserTypeName.label('UserType'),  # Select UserTypeName from UserType table
+                                USERS.Username,
+                                literal('Not applicable').label('Password')  # Set Password to "Not Applicable"
+                            )
+                        )
+                        # Collect the query result into a list of dictionaries
+                        users_data = [
+                            {
+                                'id': user.id,
+                                'Name': user.Name,
+                                'UserType': user.UserType,
+                                'Username': decrypt(user.Username),
+                                'CampusName': user.CampusName,
+                                'Status': "Unblocked" if user.Status else "Blocked",
+                                'Password': user.Password,
+                            }
+                            for user in query.all()
+                        ]
+
+                        # Add password visibility flag
+                        return {"data": users_data, "password_hide": True}, 200
+
+                elif User == 2:
+                    if student_id == 0:
+                        # Fetch parent users based on CampusId and other filters when student_id is 0
+                        query = (
+                            USERS.query
+                            .filter(
+                                USERS.Inactive == False,
+                                USERS.Status == True,
+                                USERS.CampusId == campus_id,  # Assuming `CampusId` filter is needed
+                                USERS.IsAEN == 0,
+                                USERS.UserType_Id == 3,  # Assuming 3 is Parent
+                                USERS.Firstname != None,
+                                USERS.User_Id.notin_(userid)  # Exclude specific user_ids
+                            )
+                            .join(Campus, Campus.Id == USERS.CampusId)
+                            .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Assuming there's a Campus table for CampusName
+                            .add_columns(
+                                USERS.User_Id.label('id'),
+                                USERS.Firstname.label('Name'),
+                                UserType.UserTypeName.label('UserType'),
+                                USERS.Username,
+                                USERS.Password,
+                                Campus.Name.label('CampusName'),
+                                USERS.Status.label('Status')  # Status will be used to determine "Unblocked" or "Blocked"
+                            )
+                        )
+
+                        # Collect the query result into a list of dictionaries
+                        users_data = [
+                            {
+                                'id': user.id,
+                                'Name': user.Name,
+                                'UserType': user.UserType,
+                                'Username': decrypt(user.Username),
+                                'Password': decrypt(user.Password),
+                                'CampusName': user.CampusName,
+                                'Status': "Unblocked" if user.Status else "Blocked",  # Map boolean to string
+                            }
+                            for user in query.all()
+                        ]
+
+                        # Return the response
+                        return {"data": users_data, "password_hide": False, "isparentuser": 1}, 200
+
+                    else:
+                        # Fetch the Father's CNIC from StudentsInformations table using the provided StudentId
+                        father_cnic = db.session.query(StudentInfo.Stu_FCNIC).filter(StudentInfo.Student_ID == student_id).scalar()
+
+                        if father_cnic:
+                            # Fetch parent users with the matching GuardianCNIC
+                            query = (
+                                USERS.query
+                                .filter(
+                                    USERS.GuardianCNIC == father_cnic,
+                                    USERS.Inactive == False,
+                                    USERS.IsAEN == 0,
+                                    USERS.UserType_Id == 3,
+                                    USERS.Firstname != None,
+                                    USERS.User_Id.notin_(userid)  # Exclude specific user_ids
+                                )
+                                .join(Campus, Campus.Id == USERS.CampusId)
+                                .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)  # Assuming there's a Campus table for CampusName
+                                .add_columns(
+                                    USERS.User_Id.label('id'),
+                                    USERS.Firstname.label('Name'),
+                                    UserType.UserTypeName.label('UserType'),
+                                    USERS.Username,
+                                    USERS.Password,
+                                    Campus.Name.label('CampusName'),
+                                    USERS.Status.label('Status')
+                                )
+                            )
+
+                            # Collect the query result into a list of dictionaries
+                            users_data = [
+                                {
+                                    'id': user.id,
+                                    'Name': user.Name,
+                                    'UserType': user.UserType,
+                                    'Username': decrypt(user.Username),
+                                    'Password': decrypt(user.Password),
+                                    'CampusName': user.CampusName,
+                                    'Status': "Unblocked" if user.Status else "Blocked",
+                                }
+                                for user in query.all()
+                            ]
+
+                            # Return the response
+                            return {"data": users_data, "password_hide": False, "isparentuser": 1}, 200
+
+                        else:
+                            # Handle error when parent is not found
+                            return {"error": "Parent not found"}, 404
+
+                elif User == 3:
+                    # Get all Student user types (assumed to be UserTypeId = 7)
+                    query = (
+                        USERS.query
+                        .filter(
+                            USERS.Inactive == False, 
+                            USERS.Status == True, 
+                            USERS.IsAEN == 0, 
+                            USERS.UserType_Id == 7,  # Assuming 7 is Student
+                            USERS.Firstname != None,
+                            USERS.User_Id.notin_(userid)  # Exclude specific user_ids
+                        )
+                        .join(Campus, Campus.Id == USERS.CampusId)
+                        .join(UserType, UserType.UserTypeId  == USERS.UserType_Id)
+                        .join(StudentInfo, StudentInfo.UserId == USERS.User_Id)  # Join with StudentsInformations table to get StudentId
+                        .add_columns(
+                            USERS.User_Id.label('id'),
+                            USERS.Firstname.label('Name'),
+                            UserType.UserTypeName.label('UserType'),
+                            USERS.Username,
+                            USERS.Password,
+                            Campus.Name.label('CampusName'),
+                            USERS.Status.label('Status'),
+                            StudentInfo.Student_ID.label('StudentId')  # Add the StudentId from StudentsInformations table
+                        )
+                    )
+
+                    # Collect the query result into a list of dictionaries
+                    users_data = [
+                        {
+                            'id': user.id,
+                            'Name': user.Name,
+                            'UserType': user.UserType,
+                            'Username': decrypt(user.Username),
+                            'Password': decrypt(user.Password),
+                            'CampusName': user.CampusName,
+                            'Status': "Unblocked" if user.Status else "Blocked", 
+                            'StudentId': user.StudentId if hasattr(user, 'StudentId') else None,  # Include StudentId from StudentsInformations table
+                        }
+                        for user in query.all()
+                    ]
+
+                    # Add password visibility flag and student user flag
+                    return {"data": users_data, "password_hide": False, "isstudentuser": 1}, 200
+
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def put(self):
+        try:
+            # Step 1: Determine content type and extract data
+            data = self._extract_data_from_request(request)
+
+            # Step 2: Validate the required fields
+            user_id = self._validate_and_get_user_id(data)
+
+            # Step 3: Fetch the user and ensure the user is active
+            user = self._fetch_user(user_id)
+
+            # Step 4: Dynamically update user fields
+            self._update_user_fields(user, data)
+
+            # Step 5: Handle campus assignments
+            self._handle_campus_assignments(user, data)
+
+            # Step 6: Handle roles assignments
+            self._handle_roles_assignments(user, data)
+
+            # Step 7: Handle class assignments
+            self._handle_class_assignments(user, data)
+
+            # Step 8: Return success response
+            return {"message": "User updated successfully"}, 200
+
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except NotFound as e:
+            return {"error": str(e)}, 404
+        except InternalServerError as e:
+            return {"error": "An internal server error occurred. Please try again later."}, 500
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+    def _extract_data_from_request(self, request):
+        """ Extract data from the request depending on its content type. """
+        if request.content_type == 'application/json':
+            return request.get_json()
+        else:
+            data = request.form
+            print("Received Form Data:", data)  # Log form data for debugging purposes
+            return data
+
+    def _validate_and_get_user_id(self, data):
+        """ Validate the presence of 'User_Id' and return its value. """
+        if 'User_Id' not in data:
+            raise BadRequest("User_Id is required")
+        return data.get('User_Id')
+
+    def _fetch_user(self, user_id):
+        """ Fetch the user from the database and ensure the user is active. """
+        user = db.session.query(USERS).options(joinedload(USERS.USERCAMPUS)).filter_by(User_Id=user_id).one_or_none()
+        if user is None or not user.Status:
+            abort(404)  # User not found or inactive
+        return user
+
+    def _update_user_fields(self, user, data):
+        """ Update user fields dynamically based on the provided data. """
+        user.Firstname = data.get('Firstname', user.Firstname)
+        if data.get('Password'):
+            user.Password = encrypt(data.get('Password'))
+        user.EMail = data.get('EMail', user.EMail)
+        user.MobileNo = data.get('MobileNo', user.MobileNo)
+        user.UserType_Id = data.get('UserType_Id', user.UserType_Id)
+
+        user.LastModified = datetime.utcnow()
+        user.Status = True
+        user.Inactive = False  # Assuming activation of the user
+
+        # Commit changes to the database
+        db.session.commit()
+
+    def _handle_campus_assignments(self, user, data):
+        """ Handle the campus assignments if selected_campus_str is provided. """
+        selected_campus_str = data.get('selectedCampus', '[]')
+        if selected_campus_str != '[]':
+            if data.get('UserType_Id') not in [3, 7]:
+                selected_campus = self._parse_and_validate_campus(selected_campus_str)
+                self._update_user_campuses(user.User_Id, selected_campus)
+
+    def _parse_and_validate_campus(self, selected_campus_str):
+        """ Parse and validate the campus IDs. """
+        try:
+            selected_campus = ast.literal_eval(selected_campus_str)
+        except ValueError:
+            raise BadRequest("Invalid campus data format.")
+        
+        valid_campus_ids = db.session.query(Campus.Id).filter(Campus.Id.in_(selected_campus)).all()
+        valid_campus_ids = [campus.Id for campus in valid_campus_ids]
+        
+        invalid_campuses = [c for c in selected_campus if c not in valid_campus_ids]
+        if invalid_campuses:
+            raise BadRequest(f"Invalid Campus IDs: {invalid_campuses}")
+        
+        return selected_campus
+
+    def _update_user_campuses(self, user_id, selected_campus):
+        """ Update UserCampus assignments based on selected campuses. """
+        user_campuses = db.session.query(UserCampus).filter(UserCampus.UserId == user_id).all()
+        existing_campus_ids = {uc.CampusId for uc in user_campuses}
+
+        # Identify new campuses to be added
+        new_campuses = [campus_id for campus_id in selected_campus if campus_id not in existing_campus_ids]
+        removed_campuses = [uc for uc in user_campuses if uc.CampusId not in selected_campus]
+
+        # Add new UserCampus records
+        staff_id = user_campuses[0].StaffId if user_campuses else None
+        for campus_id in new_campuses:
+            user_campus = UserCampus(
+                UserId=user_id,
+                StaffId=staff_id,
+                CampusId=campus_id,
+                Status=True,
+                CreateDate=datetime.utcnow(),
+                Date=datetime.utcnow()
+            )
+            db.session.add(user_campus)
+
+        db.session.commit()
+
+        # Remove old UserCampus records
+        for user_campus_to_remove in removed_campuses:
+            db.session.delete(user_campus_to_remove)
+
+        db.session.commit()
+
+    def _handle_roles_assignments(self, user, data):
+        """ Handle the role assignments if selected_role_str is provided. """
+        selected_roles_str = data.get('selectedRole', '[]')
+        if selected_roles_str != '[]':
+            selected_roles = self._parse_and_validate_roles(selected_roles_str)
+            self._update_user_roles(user.User_Id, selected_roles)
+
+    def _parse_and_validate_roles(self, selected_roles_str):
+        """ Parse and validate the role IDs. """
+        try:
+            selected_roles = ast.literal_eval(selected_roles_str)
+            if not all(isinstance(role, int) for role in selected_roles):
+                raise ValueError("All role IDs must be integers.")
+        except (ValueError, SyntaxError) as e:
+            raise BadRequest(f"Invalid format for selectedRole: {str(e)}")
+
+        return selected_roles
+
+    def _update_user_roles(self, user_id, selected_roles):
+        """ Update the user roles based on the selected roles. """
+        db.session.query(LNK_USER_ROLE).filter(LNK_USER_ROLE.User_Id == user_id).delete()
+        db.session.commit()
+
+        for role_id in selected_roles:
+            if not db.session.query(LNK_USER_ROLE).filter(LNK_USER_ROLE.User_Id == user_id, LNK_USER_ROLE.Role_Id == role_id).first():
+                new_user_role = LNK_USER_ROLE(User_Id=user_id, Role_Id=role_id)
+                db.session.add(new_user_role)
+
+        db.session.commit()
+
+    def _handle_class_assignments(self, user, data):
+        """ Handle the class assignments if selected_class_str is provided. """
+        selected_class_str = data.get('selectedClass', '[]')
+        if selected_class_str != '[]':
+            selected_class = self._parse_and_validate_class(selected_class_str)
+            self._update_user_classes(user.User_Id, selected_class)
+
+    def _parse_and_validate_class(self, selected_class_str):
+        """ Parse and validate class IDs. """
+        try:
+            selected_class = ast.literal_eval(selected_class_str)
+        except ValueError:
+            raise BadRequest("Invalid class data format.")
+        
+        return selected_class
+
+    def _update_user_classes(self, user_id, selected_class):
+        """ Update the user class assignments based on the selected classes. """
+        db.session.query(UserClassAccess).filter(UserClassAccess.UserId == user_id).delete()
+        db.session.commit()
+
+        for class_id in selected_class:
+            user_class_access = UserClassAccess(UserId=user_id, ClassId=class_id)
+            db.session.add(user_class_access)
+
+        db.session.commit()
+
+
+
+
+
+   #Testing method
+    # def put(self):
+    #     try:
+    #         # Check the content type of the request (either JSON or form data)
+    #         if request.content_type == 'application/json':
+    #             data = request.get_json()
+    #         else:
+    #             data = request.form
+    #             print("Received Form Data:", data)  # Add logging to see the raw data
+
+    #         # Validate the required fields in the incoming data
+    #         if 'user_Id' not in data:
+    #             raise BadRequest("user_Id is required")
+
+    #         # Extract data from the request
+    #         user_id = data.get('user_Id')
+    #         first_name = data.get('Firstname')  
+    #         password = data.get('Password')
+    #         email = data.get('EMail', None)
+    #         mobile_no = data.get('MobileNo', None)
+    #         user_type_id = data.get('UserType_Id', None)
+    #         selected_roles_str = data.get('selectedRole', '[]')
+    #         selected_campus_str = data.get('selectedCampus', '[]')
+    #         selected_class_str = data.get('selectedClass', '[]')
+
+    #         # Fetch the user along with the associated UserCampus
+    #         user = db.session.query(USERS).options(joinedload(USERS.USERCAMPUS)).filter_by(User_Id=user_id).one_or_none()
+    #         if user is None or not user.Status:
+    #             abort(404)  # This raises a 404 error
+
+    #         # Fetch the first associated UserCampus to get the staffId (if available)
+    #         staff_id = None
+    #         if user.USERCAMPUS and len(user.USERCAMPUS) > 0:
+    #             staff_id = user.USERCAMPUS[0].StaffId
+
+    #         # Dynamically update fields only if they are provided in the request
+    #         if first_name is not None:  # Ensure the field isn't None before updating
+    #             user.Firstname = first_name
+    #         if password:
+    #             user.Password = encrypt(password)
+    #         if email is not None:
+    #             user.EMail = email
+    #         if mobile_no is not None:
+    #             user.MobileNo = mobile_no
+    #         if user_type_id is not None:
+    #             user.UserType_Id = user_type_id
+
+    #         user.LastModified = datetime.utcnow()  # Set the last modified date to the current time
+    #         user.Status = True
+    #         user.Inactive = False  # Assuming you want to activate the user
+
+    #         # Commit changes to the database for basic user info
+    #         db.session.commit()
+
+    #         # Handle campus assignments only if selected_campus_str is provided and not empty
+    #         if selected_campus_str and selected_campus_str != '[]':
+    #             if user_type_id not in [3, 7]:  # If the user type is not 3 or 7, proceed with campus updates.
+
+    #                 # Parse the selected_campus string to a list
+    #                 try:
+    #                     selected_campus = ast.literal_eval(selected_campus_str)
+    #                 except ValueError:
+    #                     return {"error": "Invalid campus data format."}, 400
+
+    #                 # Fetch valid campus IDs from the Campus table (ensure they exist)
+    #                 valid_campus_ids = db.session.query(Campus.Id).filter(Campus.Id.in_(selected_campus)).all()
+    #                 valid_campus_ids = [campus.Id for campus in valid_campus_ids]  # List of valid campus IDs
+
+    #                 # Ensure all selected campuses are valid
+    #                 invalid_campuses = [c for c in selected_campus if c not in valid_campus_ids]
+    #                 if invalid_campuses:
+    #                     return {"error": f"Invalid Campus IDs: {invalid_campuses}"}, 400
+
+    #                 # Fetch existing UserCampus records for the user to check which campuses they're currently associated with
+    #                 user_campuses = db.session.query(UserCampus).filter(UserCampus.UserId == user_id).all()
+    #                 existing_campus_ids = {uc.CampusId for uc in user_campuses}  # Set of existing campus IDs for the user
+
+    #                 # Identify new campuses to be added
+    #                 new_campuses = [campus_id for campus_id in valid_campus_ids if campus_id not in existing_campus_ids]
+
+    #                 # Identify campuses to be removed
+    #                 removed_campuses = [uc for uc in user_campuses if uc.CampusId not in selected_campus]
+
+    #                 # Add new UserCampus records for new campuses
+    #                 for campus_id in new_campuses:
+    #                     user_campus = UserCampus(
+    #                         UserId=user_id,
+    #                         StaffId=staff_id,
+    #                         CampusId=campus_id,
+    #                         Status=True,
+    #                         CreateDate=datetime.utcnow(),
+    #                         Date=datetime.utcnow()
+    #                     )
+    #                     db.session.add(user_campus)
+
+    #                 # Commit after adding new campuses
+    #                 db.session.commit()
+
+    #                 # Remove UserCampus records for campuses no longer associated
+    #                 for user_campus_to_remove in removed_campuses:
+    #                     db.session.delete(user_campus_to_remove)
+
+    #                 # Commit after removing old campuses
+    #                 db.session.commit()
+
+    #         # Handle roles only if provided
+    #         if selected_roles_str and selected_roles_str != '[]':
+    #             try:
+    #                 # Parse the string to a list using ast.literal_eval
+    #                 selected_roles = ast.literal_eval(selected_roles_str)
+
+    #                 # Ensure selected_roles is a list of integers
+    #                 if not all(isinstance(role, int) for role in selected_roles):
+    #                     raise ValueError("All role IDs must be integers.")
+
+    #             except (ValueError, SyntaxError) as e:
+    #                 return {"error": f"Invalid format for selectedRole. {str(e)}"}, 400
+
+    #             # First, delete old roles that are no longer selected
+    #             db.session.query(LNK_USER_ROLE).filter(LNK_USER_ROLE.User_Id == user_id).delete()
+
+    #             # Commit changes (roles deletion)
+    #             db.session.commit()
+
+    #             # Add new roles based on selected_roles, but ensure they don't already exist
+    #             for role_id in selected_roles:
+    #                 # Check if the role already exists for the user
+    #                 existing_role = db.session.query(LNK_USER_ROLE).filter(
+    #                     LNK_USER_ROLE.User_Id == user_id,
+    #                     LNK_USER_ROLE.Role_Id == role_id
+    #                 ).first()
+                    
+    #                 if not existing_role:
+    #                     new_user_role = LNK_USER_ROLE(User_Id=user_id, Role_Id=role_id)
+    #                     db.session.add(new_user_role)
+
+    #             # Commit changes to the database (add new roles)
+    #             db.session.commit()
+
+    #         #Handle class assignments
+    #         if selected_class_str and selected_class_str != '[]':
+
+    #             try:
+    #                 selected_class = ast.literal_eval(selected_class_str)
+    #             except ValueError:
+    #                 return {"error": "Invalid campus data format."}, 400
+                
+    #             # Fetch all UserClassAccess records for the specified user
+    #             user_classes = db.session.query(UserClassAccess).filter(UserClassAccess.UserId == user_id).all()
+
+    #             # # Check if there are any records to delete
+    #             if user_classes:  # This checks if the list is not empty
+    #                 for user_class in user_classes:
+    #             #         # Find the UserClassAccess record by its Id
+    #                     userclassaccess = db.session.query(UserClassAccess).get(user_class.Id)  # Find by Id
+    #                     if userclassaccess:  # Ensure the record exists
+    #                         db.session.delete(userclassaccess)  # Mark for deletion
+
+    #             # # Commit changes after deletion
+    #             db.session.commit()
+
+    #             # # Add new UserClassAccess records based on selected_class
+    #             if selected_class:  # If there are selected classes
+    #                 for i in range(len(selected_class)):  # Loop from 0 to len(selected_class) - 1
+    #                     class_id = int(selected_class[i])  # Convert class_id to integer (equivalent to Convert.ToInt32)
+    #                     userclassaccess = UserClassAccess(UserId=int(user_id), ClassId=class_id)  # Create a new record
+    #                     db.session.add(userclassaccess)  # Add the new record to the session
+
+    #                  # Commit changes after adding all new records
+    #                     db.session.commit()      
+        
+                
+                   
+
+
+            
+
+    #         # Return success response
+    #         return {"message": "User updated successfully"}, 200
+
+    #     except BadRequest as e:
+    #         return {"error": str(e)}, 400
+    #     except NotFound as e:
+    #         return {"error": str(e)}, 404
+    #     except InternalServerError as e:
+    #         return {"error": "An internal server error occurred. Please try again later."}, 500
+    #     except Exception as e:
+    #         return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+
+
+
+
+
+
+
 
     
