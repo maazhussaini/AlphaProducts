@@ -86,7 +86,7 @@ class DynamicGetResource(Resource):
 
 
 class CallProcedureResourceLeave(Resource):
-    ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+    ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg','png'}
     UPLOAD_FOLDER = 'uploads/StaffLeaveRequest/'
     logging.basicConfig(level=logging.INFO)     
     logger = logging.getLogger(__name__)
