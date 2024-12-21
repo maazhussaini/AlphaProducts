@@ -1653,6 +1653,29 @@ class StaffDesignation(db.Model):
             'DepartmentId': self.DepartmentId
         }
 
+class StaffProbationHR(db.Model):
+    _tablename_ = 'StaffProbation_HR'
+
+    Id = db.Column(db.Integer, primary_key=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    FromDate = db.Column(db.DateTime, nullable=True)
+    ToDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<StaffProbation_HR Id={self.Id}, StaffId={self.StaffId}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'FromDate': self.FromDate.isoformat() if self.FromDate else None,
+            'ToDate': self.ToDate.isoformat() if self.ToDate else None,
+            'CreatorId': self.CreatorId,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None
+        }
+
 class StaffTransfer(db.Model):
     __tablename__ = 'StaffTransfer'
 
