@@ -5210,14 +5210,14 @@ class UserDetails(Resource):
 
 
             try:
-                user_roles = Role.query.join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                user_roles = Roles.query.join(LNK_USER_ROLE, Roles.Role_id == LNK_USER_ROLE.Role_Id)\
                     .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
 
                 user_rights = db.session.query(FormDetails.Action, Form.Controller)\
                     .join(FormDetailPermissions, FormDetails.Id == FormDetailPermissions.FormDetailId)\
                     .join(Form, FormDetails.FormId == Form.FormId)\
-                    .join(Role, FormDetailPermissions.RoleId == Role.Role_id)\
-                    .join(LNK_USER_ROLE, Role.Role_id == LNK_USER_ROLE.Role_Id)\
+                    .join(Roles, FormDetailPermissions.RoleId == Roles.Role_id)\
+                    .join(LNK_USER_ROLE, Roles.Role_id == LNK_USER_ROLE.Role_Id)\
                     .filter(LNK_USER_ROLE.User_Id == user.User_Id, FormDetailPermissions.Status == True)\
                     .all()
 

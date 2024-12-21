@@ -1653,8 +1653,8 @@ class StaffDesignation(db.Model):
             'DepartmentId': self.DepartmentId
         }
 
-class StaffProbationHR(db.Model):
-    _tablename_ = 'StaffProbation_HR'
+class StaffProbation_HR(db.Model):
+    __tablename__ = 'StaffProbation_HR'
 
     Id = db.Column(db.Integer, primary_key=True)
     StaffId = db.Column(db.Integer, nullable=True)
