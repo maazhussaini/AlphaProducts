@@ -1420,6 +1420,7 @@ class StaffInfo(db.Model):
     S_Union = db.Column(db.String(50), nullable=True)
     S_WardNo = db.Column(db.String(50), nullable=True)
     S_Village = db.Column(db.String(50), nullable=True)
+    SupervisorId = db.Column(db.String(20), nullable=True)
     Designation_ID = db.Column(db.Integer, nullable=False)
     Grade_ID = db.Column(db.Integer, nullable=True)
     IsActive = db.Column(db.Boolean, nullable=False)
@@ -1515,6 +1516,7 @@ class StaffInfo(db.Model):
             'IsActive': self.IsActive,
             'IsNonTeacher': self.IsNonTeacher,
             'S_Salary': self.S_Salary,
+            'SupervisorId':self.SupervisorId,
             'UpdaterId': self.UpdaterId,
             'UpdaterIP': self.UpdaterIP,
             'UpdaterTerminal': self.UpdaterTerminal,
