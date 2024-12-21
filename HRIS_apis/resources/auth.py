@@ -48,7 +48,7 @@ class UserLoginResource(Resource):
             
             # staff_info_alias = db.aliased(StaffInfo)
 
-            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == 10139).first()
+            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
             countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
             cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
             campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
@@ -84,11 +84,14 @@ class UserLoginResource(Resource):
                 'accessToken': access_token,
                 'user': {
                     'id': user.User_Id,
+                    'Staff_ID':staffInfo.Staff_ID,
                     'displayName': firstName + " " + lastName,
                     'email': user.EMail,
                     'campusId': user.CampusId,
                     'Campus': campus.Name if campus else None,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
+                    'IsPermanent': True if staffInfo.IsPermanent == 1 else False,
+                    'S_Gender':staffInfo.S_Gender,
                     'roles': [role.RoleName for role in user_roles],
                     'city': cityName,
                     'country': countryName,
