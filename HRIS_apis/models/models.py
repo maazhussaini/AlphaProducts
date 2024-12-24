@@ -4620,3 +4620,264 @@ class UserClassAccess(db.Model):
             'CampusId': self.CampusId
         }
 
+
+class EmployeeRequisition(db.Model):
+    __tablename__ = 'EmployeeRequisition'
+
+    # Table columns mapped to model fields
+    EmployeeRequisition_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    EmployeeRequisition_ReportTo = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_DepartmentId = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_CampusId = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_LocationOfWork = db.Column(db.String(200), nullable=False)
+    EmployeeRequisition_ExpectedStartDate = db.Column(db.DateTime, nullable=False)
+    EmployeeRequisition_FullTime = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_PartTime = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_Visiting = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_Contract = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_Temporary = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_Project = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_Internship = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_DurationFrom = db.Column(db.DateTime, nullable=True)
+    EmployeeRequisition_DurationTo = db.Column(db.DateTime, nullable=True)
+    EmployeeRequisition_ReqReasonNewPositon = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_ReqReasonReplacement = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonTransfer = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonRetired = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonOnLeave = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonContractEnd = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonTermination = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonPromoted = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonMaternityLeave = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_RepReasonOther = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_HireJustification = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_PurposeOfPosition = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_KeyResponsibilities = db.Column(db.String(1000), nullable=False)
+    EmployeeRequisition_QualificationRequired = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_EducationRequired = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_Experience = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_SkillsRequired = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_SalaryRange = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_BudgetedSalary = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_AddotopnalBudget = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_RequestedBy = db.Column(db.String(200), nullable=False)
+    EmployeeRequisition_DesignationId = db.Column(db.Integer, nullable=False)
+    EmployeeRequisition_DepartmentHeadApproval = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_HRApproval = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_DirectorApproval = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_DepartmentHeadApprovalDate = db.Column(db.DateTime, nullable=False)
+    EmployeeRequisition_HRApprovalDate = db.Column(db.DateTime, nullable=False)
+    EmployeeRequisition_DirectorApprovalDate = db.Column(db.DateTime, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+
+    def __repr__(self):
+        return f"<EmployeeRequisition {self.EmployeeRequisition_Id}>"
+    # Relationships
+    department = db.relationship("StaffDepartment", backref="employee_requisitions")
+    designation = db.relationship("StaffDesignation", backref="employee_requisitions")
+
+    def to_dict(self):
+        return {
+            'EmployeeRequisition_Id': self.EmployeeRequisition_Id,
+            'EmployeeRequisition_ReportTo': self.EmployeeRequisition_ReportTo,
+            'EmployeeRequisition_DepartmentId': self.EmployeeRequisition_DepartmentId,
+            'EmployeeRequisition_CampusId': self.EmployeeRequisition_CampusId,
+            'EmployeeRequisition_LocationOfWork': self.EmployeeRequisition_LocationOfWork,
+            'EmployeeRequisition_ExpectedStartDate': self.EmployeeRequisition_ExpectedStartDate,
+            'EmployeeRequisition_FullTime': self.EmployeeRequisition_FullTime,
+            'EmployeeRequisition_PartTime': self.EmployeeRequisition_PartTime,
+            'EmployeeRequisition_Visiting': self.EmployeeRequisition_Visiting,
+            'EmployeeRequisition_Contract': self.EmployeeRequisition_Contract,
+            'EmployeeRequisition_Temporary': self.EmployeeRequisition_Temporary,
+            'EmployeeRequisition_Project': self.EmployeeRequisition_Project,
+            'EmployeeRequisition_Internship': self.EmployeeRequisition_Internship,
+            'EmployeeRequisition_DurationFrom': self.EmployeeRequisition_DurationFrom,
+            'EmployeeRequisition_DurationTo': self.EmployeeRequisition_DurationTo,
+            'EmployeeRequisition_ReqReasonNewPositon': self.EmployeeRequisition_ReqReasonNewPositon,
+            'EmployeeRequisition_ReqReasonReplacement': self.EmployeeRequisition_ReqReasonReplacement,
+            'EmployeeRequisition_RepReasonTransfer': self.EmployeeRequisition_RepReasonTransfer,
+            'EmployeeRequisition_RepReasonRetired': self.EmployeeRequisition_RepReasonRetired,
+            'EmployeeRequisition_RepReasonOnLeave': self.EmployeeRequisition_RepReasonOnLeave,
+            'EmployeeRequisition_RepReasonContractEnd': self.EmployeeRequisition_RepReasonContractEnd,
+            'EmployeeRequisition_RepReasonTermination': self.EmployeeRequisition_RepReasonTermination,
+            'EmployeeRequisition_RepReasonPromoted': self.EmployeeRequisition_RepReasonPromoted,
+            'EmployeeRequisition_RepReasonMaternityLeave': self.EmployeeRequisition_RepReasonMaternityLeave,
+            'EmployeeRequisition_RepReasonOther': self.EmployeeRequisition_RepReasonOther,
+            'EmployeeRequisition_HireJustification': self.EmployeeRequisition_HireJustification,
+            'EmployeeRequisition_PurposeOfPosition': self.EmployeeRequisition_PurposeOfPosition,
+            'EmployeeRequisition_KeyResponsibilities': self.EmployeeRequisition_KeyResponsibilities,
+            'EmployeeRequisition_QualificationRequired': self.EmployeeRequisition_QualificationRequired,
+            'EmployeeRequisition_EducationRequired': self.EmployeeRequisition_EducationRequired,
+            'EmployeeRequisition_Experience': self.EmployeeRequisition_Experience,
+            'EmployeeRequisition_SkillsRequired': self.EmployeeRequisition_SkillsRequired,
+            'EmployeeRequisition_SalaryRange': self.EmployeeRequisition_SalaryRange,
+            'EmployeeRequisition_BudgetedSalary': self.EmployeeRequisition_BudgetedSalary,
+            'EmployeeRequisition_AddotopnalBudget': self.EmployeeRequisition_AddotopnalBudget,
+            'EmployeeRequisition_RequestedBy': self.EmployeeRequisition_RequestedBy,
+            'EmployeeRequisition_DesignationId': self.EmployeeRequisition_DesignationId,
+            'EmployeeRequisition_DepartmentHeadApproval': self.EmployeeRequisition_DepartmentHeadApproval,
+            'EmployeeRequisition_HRApproval': self.EmployeeRequisition_HRApproval,
+            'EmployeeRequisition_DirectorApproval': self.EmployeeRequisition_DirectorApproval,
+            'EmployeeRequisition_DepartmentHeadApprovalDate': self.EmployeeRequisition_DepartmentHeadApprovalDate,
+            'EmployeeRequisition_HRApprovalDate': self.EmployeeRequisition_HRApprovalDate,
+            'EmployeeRequisition_DirectorApprovalDate': self.EmployeeRequisition_DirectorApprovalDate,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
+
+class EmployeeClearance(db.Model):
+    __tablename__ = 'EmployeeClearance'
+
+    EmployeeClearance_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    EmployeeClearance_StaffId = db.Column(db.Integer, nullable=False)
+    EmployeeClearance_LastWorkingDay = db.Column(db.DateTime, nullable=False)
+    EmployeeClearance_ResignDate = db.Column(db.DateTime, nullable=False)
+    EmployeeClearance_EmpTypeFull = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_EmpTypePart = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_EmpTpyeContract = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_EmpTypeTrainee = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_EmpTypeInternship = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_ResignationAttached = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_NoticePeriodServed = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_Date = db.Column(db.DateTime, nullable=True)
+    EmployeeClearance_LibraryAllBooksReturned = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_LibraryOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_LibraryClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_AdminAllBooksReturned = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminAllKeysReturned = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminChildrenFolders = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminAttendanceRegister = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminNotebooks = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminCurriculumorplanningfiles = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminStudentDetails = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminAnyStudentBelongings = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminClassStationery = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminPTMRecords = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminUniforms = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminFiles = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminRemoveFromGroups = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_AdminOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_AdminClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HeadClearanceOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_HeadClearanceClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_ITClearanceLaptopAndCharger = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceEmailClosed = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceMobilePhone = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceBioMetricRemoved = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceOneDriveAccess = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceUSBorPortableDrive = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceAnyOtherAccess = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceAnyOtherEquipment = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_ITClearanceOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_ITClearanceClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceNatureOfResignationResign = db.Column(db.Boolean, nullable=False, default=False)
+    EmployeeClearance_HRClearanceNatureOfResignationTermination = db.Column(db.Boolean, nullable=False, default=False)
+    EmployeeClearance_HRClearanceNatureOfResignationContractEnd = db.Column(db.Boolean, nullable=False, default=False)
+    EmployeeClearance_HRClearanceResignationReceived = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_HRClearanceNoticePeriodServed = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_HRClearanceDeactivatefromERP = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_HRClearanceCasual = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceSick = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceAnnual = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceLeaveDeductionIfAny = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceAnyOtherDeduction = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_HRClearanceOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_HRClearanceClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_FinanceClearanceAdvance = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_FinanceClearanceLoan = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_FinanceClearanceProvidentFund = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_FinanceClearanceRemovefromSoftware = db.Column(db.Boolean, nullable=True)
+    EmployeeClearance_FinanceClearanceLastSalaryPaid = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_FinanceClearanceOthers = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_FinanceClearanceClearedBy = db.Column(db.Integer, nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<EmployeeClearance {self.EmployeeClearance_Id}>"
+
+    # Foreign key relationships
+    Staff = db.relationship('StaffInfo', backref='employee_clearances', lazy=True)
+
+    def to_dict(self):
+        """Convert the object into a dictionary for easy JSON conversion."""
+        return {
+            'EmployeeClearance_Id': self.EmployeeClearance_Id,
+            'EmployeeClearance_StaffId': self.EmployeeClearance_StaffId,
+            'EmployeeClearance_LastWorkingDay': self.EmployeeClearance_LastWorkingDay,
+            'EmployeeClearance_ResignDate': self.EmployeeClearance_ResignDate,
+            'EmployeeClearance_EmpTypeFull': self.EmployeeClearance_EmpTypeFull,
+            'EmployeeClearance_EmpTypePart': self.EmployeeClearance_EmpTypePart,
+            'EmployeeClearance_EmpTpyeContract': self.EmployeeClearance_EmpTpyeContract,
+            'EmployeeClearance_EmpTypeTrainee': self.EmployeeClearance_EmpTypeTrainee,
+            'EmployeeClearance_EmpTypeInternship': self.EmployeeClearance_EmpTypeInternship,
+            'EmployeeClearance_ResignationAttached': self.EmployeeClearance_ResignationAttached,
+            'EmployeeClearance_NoticePeriodServed': self.EmployeeClearance_NoticePeriodServed,
+            'EmployeeClearance_Date': self.EmployeeClearance_Date,
+            'EmployeeClearance_LibraryAllBooksReturned': self.EmployeeClearance_LibraryAllBooksReturned,
+            'EmployeeClearance_LibraryOthers': self.EmployeeClearance_LibraryOthers,
+            'EmployeeClearance_LibraryClearedBy': self.EmployeeClearance_LibraryClearedBy,
+            'EmployeeClearance_AdminAllBooksReturned': self.EmployeeClearance_AdminAllBooksReturned,
+            'EmployeeClearance_AdminAllKeysReturned': self.EmployeeClearance_AdminAllKeysReturned,
+            'EmployeeClearance_AdminChildrenFolders': self.EmployeeClearance_AdminChildrenFolders,
+            'EmployeeClearance_AdminAttendanceRegister': self.EmployeeClearance_AdminAttendanceRegister,
+            'EmployeeClearance_AdminNotebooks': self.EmployeeClearance_AdminNotebooks,
+            'EmployeeClearance_AdminCurriculumorplanningfiles': self.EmployeeClearance_AdminCurriculumorplanningfiles,
+            'EmployeeClearance_AdminStudentDetails': self.EmployeeClearance_AdminStudentDetails,
+            'EmployeeClearance_AdminAnyStudentBelongings': self.EmployeeClearance_AdminAnyStudentBelongings,
+            'EmployeeClearance_AdminClassStationery': self.EmployeeClearance_AdminClassStationery,
+            'EmployeeClearance_AdminPTMRecords': self.EmployeeClearance_AdminPTMRecords,
+            'EmployeeClearance_AdminUniforms': self.EmployeeClearance_AdminUniforms,
+            'EmployeeClearance_AdminFiles': self.EmployeeClearance_AdminFiles,
+            'EmployeeClearance_AdminRemoveFromGroups': self.EmployeeClearance_AdminRemoveFromGroups,
+            'EmployeeClearance_AdminOthers': self.EmployeeClearance_AdminOthers,
+            'EmployeeClearance_AdminClearedBy': self.EmployeeClearance_AdminClearedBy,
+            'EmployeeClearance_HeadClearanceOthers': self.EmployeeClearance_HeadClearanceOthers,
+            'EmployeeClearance_HeadClearanceClearedBy': self.EmployeeClearance_HeadClearanceClearedBy,
+            'EmployeeClearance_ITClearanceLaptopAndCharger': self.EmployeeClearance_ITClearanceLaptopAndCharger,
+            'EmployeeClearance_ITClearanceEmailClosed': self.EmployeeClearance_ITClearanceEmailClosed,
+            'EmployeeClearance_ITClearanceMobilePhone': self.EmployeeClearance_ITClearanceMobilePhone,
+            'EmployeeClearance_ITClearanceBioMetricRemoved': self.EmployeeClearance_ITClearanceBioMetricRemoved,
+            'EmployeeClearance_ITClearanceOneDriveAccess': self.EmployeeClearance_ITClearanceOneDriveAccess,
+            'EmployeeClearance_ITClearanceUSBorPortableDrive': self.EmployeeClearance_ITClearanceUSBorPortableDrive,
+            'EmployeeClearance_ITClearanceAnyOtherAccess': self.EmployeeClearance_ITClearanceAnyOtherAccess,
+            'EmployeeClearance_ITClearanceAnyOtherEquipment': self.EmployeeClearance_ITClearanceAnyOtherEquipment,
+            'EmployeeClearance_ITClearanceOthers': self.EmployeeClearance_ITClearanceOthers,
+            'EmployeeClearance_ITClearanceClearedBy': self.EmployeeClearance_ITClearanceClearedBy,
+            'EmployeeClearance_HRClearanceNatureOfResignationResign': self.EmployeeClearance_HRClearanceNatureOfResignationResign,
+            'EmployeeClearance_HRClearanceNatureOfResignationTermination': self.EmployeeClearance_HRClearanceNatureOfResignationTermination,
+            'EmployeeClearance_HRClearanceNatureOfResignationContractEnd': self.EmployeeClearance_HRClearanceNatureOfResignationContractEnd,
+            'EmployeeClearance_HRClearanceResignationReceived': self.EmployeeClearance_HRClearanceResignationReceived,
+            'EmployeeClearance_HRClearanceNoticePeriodServed': self.EmployeeClearance_HRClearanceNoticePeriodServed,
+            'EmployeeClearance_HRClearanceDeactivatefromERP': self.EmployeeClearance_HRClearanceDeactivatefromERP,
+            'EmployeeClearance_HRClearanceCasual': self.EmployeeClearance_HRClearanceCasual,
+            'EmployeeClearance_HRClearanceSick': self.EmployeeClearance_HRClearanceSick,
+            'EmployeeClearance_HRClearanceAnnual': self.EmployeeClearance_HRClearanceAnnual,
+            'EmployeeClearance_HRClearanceLeaveDeductionIfAny': self.EmployeeClearance_HRClearanceLeaveDeductionIfAny,
+            'EmployeeClearance_HRClearanceAnyOtherDeduction': self.EmployeeClearance_HRClearanceAnyOtherDeduction,
+            'EmployeeClearance_HRClearanceOthers': self.EmployeeClearance_HRClearanceOthers,
+            'EmployeeClearance_HRClearanceClearedBy': self.EmployeeClearance_HRClearanceClearedBy,
+            'EmployeeClearance_FinanceClearanceAdvance': self.EmployeeClearance_FinanceClearanceAdvance,
+            'EmployeeClearance_FinanceClearanceLoan': self.EmployeeClearance_FinanceClearanceLoan,
+            'EmployeeClearance_FinanceClearanceProvidentFund': self.EmployeeClearance_FinanceClearanceProvidentFund,
+            'EmployeeClearance_FinanceClearanceRemovefromSoftware': self.EmployeeClearance_FinanceClearanceRemovefromSoftware,
+            'EmployeeClearance_FinanceClearanceLastSalaryPaid': self.EmployeeClearance_FinanceClearanceLastSalaryPaid,
+            'EmployeeClearance_FinanceClearanceOthers': self.EmployeeClearance_FinanceClearanceOthers,
+            'EmployeeClearance_FinanceClearanceClearedBy': self.EmployeeClearance_FinanceClearanceClearedBy,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'InActive': self.InActive
+        }
