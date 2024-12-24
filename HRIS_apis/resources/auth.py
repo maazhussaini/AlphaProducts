@@ -50,26 +50,19 @@ class UserLoginResource(Resource):
 
             staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
 
-            # Check if staffInfo is None
-            if staffInfo is None:
-                print(f"No StaffInfo found for User ID {user.User_Id}")
-                # Handle this case, e.g., return an error message or default value
+            if staffInfo:
+                countryName = db.session.query(country).filter_by(country_id=staffInfo.CountryId).first().country
+                cityName = db.session.query(cities).filter_by(cityId=staffInfo.CityId).first().city
             else:
-                # If CountryId is None or 0, assign it 168
-                countryId = staffInfo.CountryId if staffInfo.CountryId not in [None, 0] else 168
-                # Query the country table using the assigned countryId
-                countryName = country.query.filter_by(country_id=countryId).first().country
+                # Replace with dynamic behavior if needed
+                staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == 16787).filter(UserCampus.UserId == user.User_Id).first()
+                countryName = db.session.query(country).filter_by(country_id=staffInfo.CountryId).first().country
+                cityName = db.session.query(cities).filter_by(cityId=staffInfo.CityId).first().city
 
-                # Similarly handle CityId
-                if staffInfo.CityId is None:
-                    print(f"StaffInfo for User ID {user.User_Id} has no CityId")
-                    # Handle this case, e.g., use a default city name or return an error
-                else:
-                    cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
+            # Retrieve campus information for the user
+            campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
 
-                # Continue with campus query
-                campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
-
+                
 
             
             try:
