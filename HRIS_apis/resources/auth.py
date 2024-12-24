@@ -47,33 +47,18 @@ class UserLoginResource(Resource):
                 return {"data": {'status': 400, 'message': 'Account is inactive'}}, 403
             
             # staff_info_alias = db.aliased(StaffInfo)
-
-            # Try to fetch staff information based on the user's ID
-            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
-
-            # If staff information exists
-            if staffInfo:
-                # Fetch country and city name based on the staff's information
-                countryName = db.session.query(country).filter_by(country_id=staffInfo.CountryId).first().country
-                cityName = db.session.query(cities).filter_by(cityId=staffInfo.CityId).first().city
-            else:
-                # If no staff info is found, use a hardcoded StaffId (16787) in the UserCampus table
-                staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == 16787).filter(UserCampus.UserId == user.User_Id).first()
-                
-                # Handle the case where no staff info is found for StaffId 16787
-                if staffInfo is None:
-                    # Optionally, raise an error or set default values for countryName and cityName
-                    countryName = "Default Country"  # Replace with a suitable default
-                    cityName = "Default City"  # Replace with a suitable default
-                else:
-                    # Fetch country and city name for the hardcoded StaffId
-                    countryName = db.session.query(country).filter_by(country_id=staffInfo.CountryId).first().country
-                    cityName = db.session.query(cities).filter_by(cityId=staffInfo.CityId).first().city
-
-            # Retrieve campus information for the user (applies to both cases)
+            staffInfo = db.session.query(StaffInfo) \
+            .join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID) \
+            .filter(UserCampus.UserId == user.User_Id) \
+            .first()
+            # If no match is found, override with hardcoded StaffId
+            if staffInfo is None:
+                staffInfo = db.session.query(StaffInfo) \
+                    .filter(StaffInfo.Staff_ID == 16787) \
+                    .first()
+            countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
+            cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
             campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
-
-                
 
             
             try:
