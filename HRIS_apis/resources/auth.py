@@ -47,15 +47,20 @@ class UserLoginResource(Resource):
                 return {"data": {'status': 400, 'message': 'Account is inactive'}}, 403
             
             # staff_info_alias = db.aliased(StaffInfo)
-            # Check if user.User_Id is None (null), and assign 19991 if it is
-            user_id = user.User_Id if user.User_Id is not None else 19991
+            
 
-            # Now execute the query with the updated user_id
-            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user_id).first()
+            # Fetch the StaffInfo associated with the UserId
+            staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
+
+            # Check if UserCampus.StaffId is null
+            if staffInfo is not None and staffInfo.Staff_ID is None:
+                staffInfo.staff_id = 16787
+
+            # Now staffInfo.staff_id will either be the original value or 16787 if StaffId was null
             countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
             cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
             campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
-
+            
             
             try:
                 user_roles = Roles.query.join(LNK_USER_ROLE, Roles.Role_id == LNK_USER_ROLE.Role_Id)\
