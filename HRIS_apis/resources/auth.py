@@ -47,13 +47,30 @@ class UserLoginResource(Resource):
                 return {"data": {'status': 400, 'message': 'Account is inactive'}}, 403
             
             # staff_info_alias = db.aliased(StaffInfo)
-            
-            
+
             staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
-            countryName = (country.query.filter_by(country_id=staffInfo.CountryId).first() or {}).get('country', 'Unknown')
-            cityName = (cities.query.filter_by(cityId=staffInfo.CityId).first() or {}).get('city', 'Unknown')
-            campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
-            
+
+            # Check if staffInfo is None
+            if staffInfo is None:
+                print(f"No StaffInfo found for User ID {user.User_Id}")
+                # Handle this case, e.g., return an error message or default value
+            else:
+                # If CountryId is None or 0, assign it 168
+                countryId = staffInfo.CountryId if staffInfo.CountryId not in [None, 0] else 168
+                # Query the country table using the assigned countryId
+                countryName = country.query.filter_by(country_id=countryId).first().country
+
+                # Similarly handle CityId
+                if staffInfo.CityId is None:
+                    print(f"StaffInfo for User ID {user.User_Id} has no CityId")
+                    # Handle this case, e.g., use a default city name or return an error
+                else:
+                    cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
+
+                # Continue with campus query
+                campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
+
+
             
             try:
                 user_roles = Roles.query.join(LNK_USER_ROLE, Roles.Role_id == LNK_USER_ROLE.Role_Id)\
