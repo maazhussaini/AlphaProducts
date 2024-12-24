@@ -93,9 +93,11 @@ class UserLoginResource(Resource):
                 'accessToken': access_token,
                 'user': {
                     'id': user.User_Id,
+                    'username':username,
                     'Staff_ID':staffInfo.Staff_ID,
                     'displayName': firstName + " " + lastName,
                     'email': user.EMail,
+                    'PersonalEmail':staffInfo.S_Email,
                     'campusId': user.CampusId,
                     'Campus': campus.Name if campus else None,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
