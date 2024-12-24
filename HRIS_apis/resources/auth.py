@@ -48,17 +48,10 @@ class UserLoginResource(Resource):
             
             # staff_info_alias = db.aliased(StaffInfo)
             
-
-            # Fetch the StaffInfo associated with the UserId
+            
             staffInfo = db.session.query(StaffInfo).join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID).filter(UserCampus.UserId == user.User_Id).first()
-
-            # Check if UserCampus.StaffId is null
-            if staffInfo is not None and staffInfo.Staff_ID is None:
-                staffInfo.staff_id = 16787
-
-            # Now staffInfo.staff_id will either be the original value or 16787 if StaffId was null
-            countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
-            cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
+            countryName = (country.query.filter_by(country_id=staffInfo.CountryId).first() or {}).get('country', 'Unknown')
+            cityName = (cities.query.filter_by(cityId=staffInfo.CityId).first() or {}).get('city', 'Unknown')
             campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
             
             
