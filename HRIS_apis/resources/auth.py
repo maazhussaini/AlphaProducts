@@ -46,21 +46,23 @@ class UserLoginResource(Resource):
                 logger.warning("User account is inactive")
                 return {"data": {'status': 400, 'message': 'Account is inactive'}}, 403
             
-            # staff_info_alias = db.aliased(StaffInfo)
             staffInfo = db.session.query(StaffInfo) \
-            .join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID) \
-            .filter(UserCampus.UserId == user.User_Id) \
-            .first()
-            # If no match is found, override with hardcoded StaffId
-            if staffInfo is None:
-                staffInfo = db.session.query(StaffInfo) \
-                    .filter(StaffInfo.Staff_ID == 16787) \
-                    .first()
-            countryName = country.query.filter_by(country_id=staffInfo.CountryId).first().country
-            cityName = cities.query.filter_by(cityId=staffInfo.CityId).first().city
-            campus = db.session.query(Campus).join(USERS, USERS.CampusId == Campus.Id).filter(USERS.User_Id == user.User_Id).first()
+                .join(UserCampus, UserCampus.StaffId == StaffInfo.Staff_ID) \
+                .filter(UserCampus.UserId == user.User_Id) \
+                .first()
 
-            
+            if staffInfo is None:
+                staffInfo = db.session.query(StaffInfo).filter(StaffInfo.Staff_ID == 16787).first()
+
+            country_info = db.session.query(country).filter_by(country_id=staffInfo.CountryId).first()
+            city_info = db.session.query(cities).filter_by(cityId=staffInfo.CityId).first()
+
+            countryName = country_info.country if country_info else "Unknown"
+            cityName = city_info.city if city_info else "Unknown"
+
+            campus = db.session.query(Campus) \
+                .join(USERS, USERS.CampusId == Campus.Id) \
+                .filter(USERS.User_Id == user.User_Id).first()
             try:
                 user_roles = Roles.query.join(LNK_USER_ROLE, Roles.Role_id == LNK_USER_ROLE.Role_Id)\
                     .filter(LNK_USER_ROLE.User_Id == user.User_Id).all()
