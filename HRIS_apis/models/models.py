@@ -4625,6 +4625,7 @@ class EmployeeRequisition(db.Model):
 
     # Table columns mapped to model fields
     EmployeeRequisition_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    EmployeeRequisition_PositionTitle = db.Column(db.String(100), nullable=True)
     EmployeeRequisition_ReportTo = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_DepartmentId = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_CampusId = db.Column(db.Integer, nullable=False)
@@ -4658,7 +4659,7 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_SkillsRequired = db.Column(db.String(500), nullable=False)
     EmployeeRequisition_SalaryRange = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_BudgetedSalary = db.Column(db.Integer, nullable=False)
-    EmployeeRequisition_AddotopnalBudget = db.Column(db.String(500), nullable=False)
+    EmployeeRequisition_AdditionalBudget = db.Column(db.String(500), nullable=False)
     EmployeeRequisition_RequestedBy = db.Column(db.String(200), nullable=False)
     EmployeeRequisition_DesignationId = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_DepartmentHeadApproval = db.Column(db.Boolean, default=False, nullable=False)
@@ -4680,6 +4681,7 @@ class EmployeeRequisition(db.Model):
     def to_dict(self):
         return {
             'EmployeeRequisition_Id': self.EmployeeRequisition_Id,
+            'EmployeeRequisition_PositionTitle': self.EmployeeRequisition_PositionTitle,
             'EmployeeRequisition_ReportTo': self.EmployeeRequisition_ReportTo,
             'EmployeeRequisition_DepartmentId': self.EmployeeRequisition_DepartmentId,
             'EmployeeRequisition_CampusId': self.EmployeeRequisition_CampusId,
@@ -4713,7 +4715,7 @@ class EmployeeRequisition(db.Model):
             'EmployeeRequisition_SkillsRequired': self.EmployeeRequisition_SkillsRequired,
             'EmployeeRequisition_SalaryRange': self.EmployeeRequisition_SalaryRange,
             'EmployeeRequisition_BudgetedSalary': self.EmployeeRequisition_BudgetedSalary,
-            'EmployeeRequisition_AddotopnalBudget': self.EmployeeRequisition_AddotopnalBudget,
+            'EmployeeRequisition_AdditionalBudget': self.EmployeeRequisition_AdditionalBudget,
             'EmployeeRequisition_RequestedBy': self.EmployeeRequisition_RequestedBy,
             'EmployeeRequisition_DesignationId': self.EmployeeRequisition_DesignationId,
             'EmployeeRequisition_DepartmentHeadApproval': self.EmployeeRequisition_DepartmentHeadApproval,
