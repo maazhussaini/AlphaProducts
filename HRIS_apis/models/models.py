@@ -4740,6 +4740,8 @@ class EmployeeClearance(db.Model):
     EmployeeClearance_StaffId = db.Column(db.Integer, nullable=False)
     EmployeeClearance_LastWorkingDay = db.Column(db.DateTime, nullable=False)
     EmployeeClearance_ResignDate = db.Column(db.DateTime, nullable=False)
+    EmployeeClearance_EmpStatusPermanent = db.Column(db.Boolean, nullable=False)
+    EmployeeClearance_EmpStatusProbation = db.Column(db.Boolean, nullable=False)
     EmployeeClearance_EmpTypeFull = db.Column(db.Boolean, nullable=False)
     EmployeeClearance_EmpTypePart = db.Column(db.Boolean, nullable=False)
     EmployeeClearance_EmpTpyeContract = db.Column(db.Boolean, nullable=False)
@@ -4813,6 +4815,8 @@ class EmployeeClearance(db.Model):
         return {
             'EmployeeClearance_Id': self.EmployeeClearance_Id,
             'EmployeeClearance_StaffId': self.EmployeeClearance_StaffId,
+            'EmployeeClearance_EmpStatusPermanent':self.EmployeeClearance_EmpStatusPermanent,
+            'EmployeeClearance_EmpStatusProbation':self.EmployeeClearance_EmpStatusProbation,
             'EmployeeClearance_LastWorkingDay': self.EmployeeClearance_LastWorkingDay,
             'EmployeeClearance_ResignDate': self.EmployeeClearance_ResignDate,
             'EmployeeClearance_EmpTypeFull': self.EmployeeClearance_EmpTypeFull,
@@ -4885,7 +4889,7 @@ class ProbationAssessmentForm(db.Model):
     __tablename__ = 'ProbationAssessmentForm'
     
     ProbationAssessmentForm_Id = db.Column(db.Integer, primary_key=True)
-    ProbationAssessmentForm_StaffId = db.Column(db.Integer, nullable=True)
+    ProbationAssessmentForm_PendingAssessmentId = db.Column(db.Integer, nullable=True)
     ProbationAssessmentForm_DesignationId = db.Column(db.Integer, nullable=True)
     ProbationAssessmentForm_DepartmentId = db.Column(db.Integer, nullable=True)
     ProbationAssessmentForm_DateofJoining = db.Column(db.DateTime, nullable=True)
@@ -4938,6 +4942,8 @@ class ProbationAssessmentForm(db.Model):
     ProbationAssessmentForm_ProbationExtendDate = db.Column(db.DateTime, nullable=True)
     ProbationAssessmentForm_Employee_Cmnt = db.Column(db.String(500), nullable=True)
     ProbationAssessmentForm_Date = db.Column(db.DateTime, nullable=True)
+    ProbationAssessmentForm_RequestStatus = db.Column(db.Integer, nullable=True)
+    ProbationAssessmentForm_Remarks = db.Column(db.String(500), nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
     CreatorId = db.Column(db.Integer, nullable=True)
     UpdatDate = db.Column(db.DateTime, nullable=True)
@@ -4952,7 +4958,7 @@ class ProbationAssessmentForm(db.Model):
         """Convert the object into a dictionary for easy JSON conversion."""
         return {
             'ProbationAssessmentForm_Id': self.ProbationAssessmentForm_Id,
-            'ProbationAssessmentForm_StaffId': self.ProbationAssessmentForm_StaffId,
+            'ProbationAssessmentForm_PendingAssessmentId': self.ProbationAssessmentForm_PendingAssessmentId,
             'ProbationAssessmentForm_DesignationId': self.ProbationAssessmentForm_DesignationId,
             'ProbationAssessmentForm_DepartmentId': self.ProbationAssessmentForm_DepartmentId,
             'ProbationAssessmentForm_DateofJoining': self.ProbationAssessmentForm_DateofJoining,
@@ -5005,6 +5011,8 @@ class ProbationAssessmentForm(db.Model):
             'ProbationAssessmentForm_ProbationExtendDate': self.ProbationAssessmentForm_ProbationExtendDate,
             'ProbationAssessmentForm_Employee_Cmnt': self.ProbationAssessmentForm_Employee_Cmnt,
             'ProbationAssessmentForm_Date': self.ProbationAssessmentForm_Date,
+            'ProbationAssessmentForm_RequestStatus':self.ProbationAssessmentForm_RequestStatus,
+            'ProbationAssessmentForm_Remarks':self.ProbationAssessmentForm_Remarks,
             'CreateDate': self.CreateDate,
             'CreatorId': self.CreatorId,
             'UpdatDate': self.UpdatDate,
