@@ -4662,12 +4662,13 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_AdditionalBudget = db.Column(db.String(500), nullable=False)
     EmployeeRequisition_RequestedBy = db.Column(db.String(200), nullable=False)
     EmployeeRequisition_DesignationId = db.Column(db.Integer, nullable=False)
-    EmployeeRequisition_DepartmentHeadApproval = db.Column(db.Boolean, default=False, nullable=False)
-    EmployeeRequisition_HRApproval = db.Column(db.Boolean, default=False, nullable=False)
-    EmployeeRequisition_DirectorApproval = db.Column(db.Boolean, default=False, nullable=False)
+    EmployeeRequisition_DepartmentHeadApproval = db.Column(db.Integer, default=False, nullable=False)
+    EmployeeRequisition_HRApproval = db.Column(db.Integer, default=False, nullable=False)
+    EmployeeRequisition_DirectorApproval = db.Column(db.Integer, default=False, nullable=False)
     EmployeeRequisition_DepartmentHeadApprovalDate = db.Column(db.DateTime, nullable=False)
     EmployeeRequisition_HRApprovalDate = db.Column(db.DateTime, nullable=False)
     EmployeeRequisition_DirectorApprovalDate = db.Column(db.DateTime, nullable=False)
+    EmployeeRequisition_DocPath = db.Column(db.String(),nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
@@ -4724,6 +4725,7 @@ class EmployeeRequisition(db.Model):
             'EmployeeRequisition_DepartmentHeadApprovalDate': self.EmployeeRequisition_DepartmentHeadApprovalDate,
             'EmployeeRequisition_HRApprovalDate': self.EmployeeRequisition_HRApprovalDate,
             'EmployeeRequisition_DirectorApprovalDate': self.EmployeeRequisition_DirectorApprovalDate,
+            'EmployeeRequisition_DocPath':self.EmployeeRequisition_DocPath,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
@@ -4876,4 +4878,137 @@ class EmployeeClearance(db.Model):
             'UpdatedBy': self.UpdatedBy,
             'UpdatedDate': self.UpdatedDate,
             'InActive': self.InActive
+        }
+    
+
+class ProbationAssessmentForm(db.Model):
+    __tablename__ = 'ProbationAssessmentForm'
+    
+    ProbationAssessmentForm_Id = db.Column(db.Integer, primary_key=True)
+    ProbationAssessmentForm_StaffId = db.Column(db.Integer, nullable=True)
+    ProbationAssessmentForm_DesignationId = db.Column(db.Integer, nullable=True)
+    ProbationAssessmentForm_DepartmentId = db.Column(db.Integer, nullable=True)
+    ProbationAssessmentForm_DateofJoining = db.Column(db.DateTime, nullable=True)
+    ProbationAssessmentForm_DateofConfirm = db.Column(db.DateTime, nullable=True)
+    ProbationAssessmentForm_ProfComp_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_ProfComp_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_ProfComp_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_ProfComp_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_ProfComp_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_SenseofResp_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_SenseofResp_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_SenseofResp_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_SenseofResp_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_SenseofResp_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Comm_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Comm_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Comm_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Comm_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Comm_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_leadership_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_leadership_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_leadership_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_leadership_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_leadership_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Planning_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Planning_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Planning_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Planning_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Planning_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_TeamWork_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_TeamWork_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_TeamWork_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_TeamWork_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_TeamWork_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Attendance_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Attendance_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Attendance_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Attendance_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Attendance_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Conduct_Outstanding = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Conduct_VeryGood = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Conduct_Good = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Conduct_NeedsImprove = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_Conduct_Inadequate = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_OverallAssess_Cmnt = db.Column(db.String(500), nullable=True)
+    ProbationAssessmentForm_AreasForImprove_Cmnt = db.Column(db.String(500), nullable=True)
+    ProbationAssessmentForm_AnyTrainingReq_Cmnt = db.Column(db.String(500), nullable=True)
+    ProbationAssessmentForm_EmployeeConfirmed = db.Column(db.Boolean, default=False)
+    ProbationAssessmentForm_EmployeeConfirmed_NoCmnt = db.Column(db.String(500), nullable=True)
+    ProbationAssessmentForm_ProbationExtendDate = db.Column(db.DateTime, nullable=True)
+    ProbationAssessmentForm_Employee_Cmnt = db.Column(db.String(500), nullable=True)
+    ProbationAssessmentForm_Date = db.Column(db.DateTime, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdatDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    Inactive = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"<ProbationAssessmentForm {self.ProbationAssessmentForm_Id}>"
+
+    def to_dict(self):
+        """Convert the object into a dictionary for easy JSON conversion."""
+        return {
+            'ProbationAssessmentForm_Id': self.ProbationAssessmentForm_Id,
+            'ProbationAssessmentForm_StaffId': self.ProbationAssessmentForm_StaffId,
+            'ProbationAssessmentForm_DesignationId': self.ProbationAssessmentForm_DesignationId,
+            'ProbationAssessmentForm_DepartmentId': self.ProbationAssessmentForm_DepartmentId,
+            'ProbationAssessmentForm_DateofJoining': self.ProbationAssessmentForm_DateofJoining,
+            'ProbationAssessmentForm_DateofConfirm': self.ProbationAssessmentForm_DateofConfirm,
+            'ProbationAssessmentForm_ProfComp_Outstanding': self.ProbationAssessmentForm_ProfComp_Outstanding,
+            'ProbationAssessmentForm_ProfComp_VeryGood': self.ProbationAssessmentForm_ProfComp_VeryGood,
+            'ProbationAssessmentForm_ProfComp_Good': self.ProbationAssessmentForm_ProfComp_Good,
+            'ProbationAssessmentForm_ProfComp_NeedsImprove': self.ProbationAssessmentForm_ProfComp_NeedsImprove,
+            'ProbationAssessmentForm_ProfComp_Inadequate': self.ProbationAssessmentForm_ProfComp_Inadequate,
+            'ProbationAssessmentForm_SenseofResp_Outstanding': self.ProbationAssessmentForm_SenseofResp_Outstanding,
+            'ProbationAssessmentForm_SenseofResp_VeryGood': self.ProbationAssessmentForm_SenseofResp_VeryGood,
+            'ProbationAssessmentForm_SenseofResp_Good': self.ProbationAssessmentForm_SenseofResp_Good,
+            'ProbationAssessmentForm_SenseofResp_NeedsImprove': self.ProbationAssessmentForm_SenseofResp_NeedsImprove,
+            'ProbationAssessmentForm_SenseofResp_Inadequate': self.ProbationAssessmentForm_SenseofResp_Inadequate,
+            'ProbationAssessmentForm_Comm_Outstanding': self.ProbationAssessmentForm_Comm_Outstanding,
+            'ProbationAssessmentForm_Comm_VeryGood': self.ProbationAssessmentForm_Comm_VeryGood,
+            'ProbationAssessmentForm_Comm_Good': self.ProbationAssessmentForm_Comm_Good,
+            'ProbationAssessmentForm_Comm_NeedsImprove': self.ProbationAssessmentForm_Comm_NeedsImprove,
+            'ProbationAssessmentForm_Comm_Inadequate': self.ProbationAssessmentForm_Comm_Inadequate,
+            'ProbationAssessmentForm_leadership_Outstanding': self.ProbationAssessmentForm_leadership_Outstanding,
+            'ProbationAssessmentForm_leadership_VeryGood': self.ProbationAssessmentForm_leadership_VeryGood,
+            'ProbationAssessmentForm_leadership_Good': self.ProbationAssessmentForm_leadership_Good,
+            'ProbationAssessmentForm_leadership_NeedsImprove': self.ProbationAssessmentForm_leadership_NeedsImprove,
+            'ProbationAssessmentForm_leadership_Inadequate': self.ProbationAssessmentForm_leadership_Inadequate,
+            'ProbationAssessmentForm_Planning_Outstanding': self.ProbationAssessmentForm_Planning_Outstanding,
+            'ProbationAssessmentForm_Planning_VeryGood': self.ProbationAssessmentForm_Planning_VeryGood,
+            'ProbationAssessmentForm_Planning_Good': self.ProbationAssessmentForm_Planning_Good,
+            'ProbationAssessmentForm_Planning_NeedsImprove': self.ProbationAssessmentForm_Planning_NeedsImprove,
+            'ProbationAssessmentForm_Planning_Inadequate': self.ProbationAssessmentForm_Planning_Inadequate,
+            'ProbationAssessmentForm_TeamWork_Outstanding': self.ProbationAssessmentForm_TeamWork_Outstanding,
+            'ProbationAssessmentForm_TeamWork_VeryGood': self.ProbationAssessmentForm_TeamWork_VeryGood,
+            'ProbationAssessmentForm_TeamWork_Good': self.ProbationAssessmentForm_TeamWork_Good,
+            'ProbationAssessmentForm_TeamWork_NeedsImprove': self.ProbationAssessmentForm_TeamWork_NeedsImprove,
+            'ProbationAssessmentForm_TeamWork_Inadequate': self.ProbationAssessmentForm_TeamWork_Inadequate,
+            'ProbationAssessmentForm_Attendance_Outstanding': self.ProbationAssessmentForm_Attendance_Outstanding,
+            'ProbationAssessmentForm_Attendance_VeryGood': self.ProbationAssessmentForm_Attendance_VeryGood,
+            'ProbationAssessmentForm_Attendance_Good': self.ProbationAssessmentForm_Attendance_Good,
+            'ProbationAssessmentForm_Attendance_NeedsImprove': self.ProbationAssessmentForm_Attendance_NeedsImprove,
+            'ProbationAssessmentForm_Attendance_Inadequate': self.ProbationAssessmentForm_Attendance_Inadequate,
+            'ProbationAssessmentForm_Conduct_Outstanding': self.ProbationAssessmentForm_Conduct_Outstanding,
+            'ProbationAssessmentForm_Conduct_VeryGood': self.ProbationAssessmentForm_Conduct_VeryGood,
+            'ProbationAssessmentForm_Conduct_Good': self.ProbationAssessmentForm_Conduct_Good,
+            'ProbationAssessmentForm_Conduct_NeedsImprove': self.ProbationAssessmentForm_Conduct_NeedsImprove,
+            'ProbationAssessmentForm_Conduct_Inadequate': self.ProbationAssessmentForm_Conduct_Inadequate,
+            'ProbationAssessmentForm_OverallAssess_Cmnt': self.ProbationAssessmentForm_OverallAssess_Cmnt,
+            'ProbationAssessmentForm_AreasForImprove_Cmnt': self.ProbationAssessmentForm_AreasForImprove_Cmnt,
+            'ProbationAssessmentForm_AnyTrainingReq_Cmnt': self.ProbationAssessmentForm_AnyTrainingReq_Cmnt,
+            'ProbationAssessmentForm_EmployeeConfirmed': self.ProbationAssessmentForm_EmployeeConfirmed,
+            'ProbationAssessmentForm_EmployeeConfirmed_NoCmnt': self.ProbationAssessmentForm_EmployeeConfirmed_NoCmnt,
+            'ProbationAssessmentForm_ProbationExtendDate': self.ProbationAssessmentForm_ProbationExtendDate,
+            'ProbationAssessmentForm_Employee_Cmnt': self.ProbationAssessmentForm_Employee_Cmnt,
+            'ProbationAssessmentForm_Date': self.ProbationAssessmentForm_Date,
+            'CreateDate': self.CreateDate,
+            'CreatorId': self.CreatorId,
+            'UpdatDate': self.UpdatDate,
+            'UpdatorId': self.UpdatorId,
+            'CampusId': self.CampusId,
+            'Inactive': self.Inactive
         }
