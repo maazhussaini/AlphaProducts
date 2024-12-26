@@ -4620,7 +4620,6 @@ class UserClassAccess(db.Model):
             'CampusId': self.CampusId
         }
 
-
 class EmployeeRequisition(db.Model):
     __tablename__ = 'EmployeeRequisition'
 
@@ -4677,9 +4676,6 @@ class EmployeeRequisition(db.Model):
 
     def __repr__(self):
         return f"<EmployeeRequisition {self.EmployeeRequisition_Id}>"
-    # Relationships
-    department = db.relationship("StaffDepartment", backref="employee_requisitions")
-    designation = db.relationship("StaffDesignation", backref="employee_requisitions")
 
     def to_dict(self):
         return {
@@ -4807,8 +4803,6 @@ class EmployeeClearance(db.Model):
     def __repr__(self):
         return f"<EmployeeClearance {self.EmployeeClearance_Id}>"
 
-    # Foreign key relationships
-    Staff = db.relationship('StaffInfo', backref='employee_clearances', lazy=True)
 
     def to_dict(self):
         """Convert the object into a dictionary for easy JSON conversion."""
