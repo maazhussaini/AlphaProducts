@@ -4669,6 +4669,7 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_HRApprovalDate = db.Column(db.DateTime, nullable=False)
     EmployeeRequisition_DirectorApprovalDate = db.Column(db.DateTime, nullable=False)
     EmployeeRequisition_DocPath = db.Column(db.String(),nullable=True)
+    EmployeeRequisition_Date = db.Column(db.DateTime, nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
@@ -4726,6 +4727,7 @@ class EmployeeRequisition(db.Model):
             'EmployeeRequisition_HRApprovalDate': self.EmployeeRequisition_HRApprovalDate,
             'EmployeeRequisition_DirectorApprovalDate': self.EmployeeRequisition_DirectorApprovalDate,
             'EmployeeRequisition_DocPath':self.EmployeeRequisition_DocPath,
+            'EmployeeRequisition_Date':self.EmployeeRequisition_Date,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
