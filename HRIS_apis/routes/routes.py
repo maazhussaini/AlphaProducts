@@ -70,3 +70,4 @@ def register_routes(app):
     api.add_resource(TrainingPostResource, '/training')  
     api.add_resource(CampusWiseUser, '/getCampuswiseUser')
     
+    api.add_resource(DocumentsUploader, '/upload')
