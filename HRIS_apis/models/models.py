@@ -4800,6 +4800,8 @@ class EmployeeClearance(db.Model):
     EmployeeClearance_FinanceClearanceLastSalaryPaid = db.Column(db.Integer, nullable=True)
     EmployeeClearance_FinanceClearanceOthers = db.Column(db.String(500), nullable=True)
     EmployeeClearance_FinanceClearanceClearedBy = db.Column(db.Integer, nullable=True)
+    EmployeeClearance_LibraryClearance = db.Column(db.String(500), nullable=True)
+    EmployeeClearance_HeadClearance = db.Column(db.String(500), nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=False)
     CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
@@ -4877,6 +4879,8 @@ class EmployeeClearance(db.Model):
             'EmployeeClearance_FinanceClearanceLastSalaryPaid': self.EmployeeClearance_FinanceClearanceLastSalaryPaid,
             'EmployeeClearance_FinanceClearanceOthers': self.EmployeeClearance_FinanceClearanceOthers,
             'EmployeeClearance_FinanceClearanceClearedBy': self.EmployeeClearance_FinanceClearanceClearedBy,
+            'EmployeeClearance_LibraryClearance' : self.EmployeeClearance_LibraryClearance,
+            'EmployeeClearance_HeadClearance' : self.EmployeeClearance_HeadClearance,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
