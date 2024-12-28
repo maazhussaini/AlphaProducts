@@ -3571,6 +3571,8 @@ class StaffCnic(db.Model):
     CampusId = db.Column(db.Integer, nullable=True)
     FrontCNICDocumentPath = db.Column(db.String(255), nullable=True)
     BackCNICDocumentPath = db.Column(db.String(255), nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
@@ -3582,7 +3584,9 @@ class StaffCnic(db.Model):
             'Status': self.Status,
             'CampusId': self.CampusId,
             'FrontCNICDocumentPath': self.FrontCNICDocumentPath,
-            'BackCNICDocumentPath': self.BackCNICDocumentPath
+            'BackCNICDocumentPath': self.BackCNICDocumentPath,
+            'CreatorId' : self.CreatorId,
+            'CreateDate' : self.CreateDate
         }
 
 class StaffChild(db.Model):
@@ -3625,6 +3629,8 @@ class StaffEducation(db.Model):
     Status = db.Column(db.Boolean, nullable=False)
     CampusId = db.Column(db.Integer, nullable=True)
     EducationDocumentPath = db.Column(db.String(255), nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"<StaffEducation Id={self.Id}, StaffId={self.StaffId}, FieldName={self.FieldName}, Institution={self.Institution}>"
@@ -3640,7 +3646,9 @@ class StaffEducation(db.Model):
             'Grade': self.Grade,
             'Status': self.Status,
             'CampusId': self.CampusId,
-            'EducationDocumentPath': self.EducationDocumentPath
+            'EducationDocumentPath': self.EducationDocumentPath,
+            'CreatorId' : self.CreatorId,
+            'CreateDate' : self.CreateDate
         }
 
 class StaffExperience(db.Model):
@@ -3700,6 +3708,8 @@ class StaffOther(db.Model):
     Status = db.Column(db.Boolean, nullable=False)
     CampusId = db.Column(db.Integer, nullable=True)
     OtherDocumentPath = db.Column(db.String(255), nullable=True)
+    CreatorId = db.Column(db.BigInteger, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"<StaffOther Id={self.Id}, Title={self.Title}, Status={self.Status}>"
@@ -3712,7 +3722,9 @@ class StaffOther(db.Model):
             'Description': self.Description,
             'Status': self.Status,
             'CampusId': self.CampusId,
-            'OtherDocumentPath': self.OtherDocumentPath
+            'OtherDocumentPath': self.OtherDocumentPath,
+            'CreatorId' : self.CreatorId,
+            'CreateDate' : self.CreateDate
         }
 
 class AppraisalSecurityForm(db.Model):

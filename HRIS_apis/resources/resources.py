@@ -6612,6 +6612,338 @@ class CampusWiseUser(Resource):
 
 
 
+class DocumentsUploader(Resource):
+
+    def post(self):
+        try:
+            logging.info("Received request to create/update employee record.")
+
+            # Ensure that both form data and files are present in the request
+            if not request.files or not request.form:
+                logging.warning("No file or form data found in the request.")
+                return {'message': 'No file or form data in the request'}, 400
+
+            # Process form data
+            form_data = request.form.to_dict(flat=False)  # Use flat=False for multi-valued keys
+
+            # Handle multiple sections of form data: StaffEducation, StaffExperience, StaffOther, StaffCnic, and StaffInfo
+            staff_education_data = form_data.get('StaffEducation')
+            staff_experience_data = form_data.get('StaffExperience')
+            staff_other_data = form_data.get('StaffOther')
+            staff_cnic_data = form_data.get('StaffCnic')
+            staff_info_data = form_data.get('StaffInfo')  # New StaffInfo data
+
+            # Initialize the record variables to None initially
+            staff_education = None
+            staff_experience = None
+            staff_other = None
+            staff_cnic = None
+            staff_info = None  # New variable for StaffInfo
+
+            # Validate StaffEducation data if present
+            if staff_education_data:
+                logging.info("Processing StaffEducation data.")
+                staff_education = self.process_staff_education(staff_education_data[0])
+
+            # Validate StaffExperience data if present
+            if staff_experience_data:
+                logging.info("Processing StaffExperience data.")
+                staff_experience = self.process_staff_experience(staff_experience_data[0])
+
+            # Validate StaffOther data if present
+            if staff_other_data:
+                logging.info("Processing StaffOther data.")
+                staff_other = self.process_staff_other(staff_other_data[0])
+
+            # Validate StaffCnic data if present
+            if staff_cnic_data:
+                logging.info("Processing StaffCnic data.")
+                staff_cnic = self.process_staff_cnic(staff_cnic_data[0])
+
+            # Validate StaffInfo data if present (new case for StaffInfo)
+            if staff_info_data:
+                logging.info("Processing StaffInfo data.")
+                staff_info = self.process_staff_info(staff_info_data[0])
+
+            # Process files (can be one or more fields)
+            file_keys = {
+                'StaffEducation-EducationDocumentPath': 'StaffEducation',
+                'StaffExperience-ExperienceDocumentPath': 'StaffExperience',
+                'StaffOther-OtherDocumentPath': 'StaffOther',
+                'StaffCnic-FrontCNICDocumentPath': 'StaffCnic',
+                'StaffCnic-BackCNICDocumentPath': 'StaffCnic',
+                'StaffInfo-PhotoPath': 'StaffInfo',  # New field for StaffInfo Photo
+            }
+            file_paths = {}
+            for file_key, table in file_keys.items():
+                file = request.files.get(file_key)
+                if file:
+                    # Log which file and table is being processed
+                    logging.info(f"Processing file for {table}: {file_key}")
+
+                    # Determine staff_id based on which table is being processed
+                    staff_id = None
+                    if table == 'StaffEducation' and staff_education:
+                        staff_id = staff_education.StaffId
+                    elif table == 'StaffExperience' and staff_experience:
+                        staff_id = staff_experience.StaffId
+                    elif table == 'StaffOther' and staff_other:
+                        staff_id = staff_other.StaffId
+                    elif table == 'StaffCnic' and staff_cnic:
+                        staff_id = staff_cnic.StaffId
+                    elif table == 'StaffInfo' and staff_info:  # For StaffInfo
+                        staff_id = staff_info.Staff_ID
+
+                    if staff_id:
+                        file_path = self.process_files({file_key: file}, staff_id, table)
+
+                        # Assign the file path to the corresponding attribute
+                        if table == 'StaffEducation' and staff_education:
+                            staff_education.EducationDocumentPath = file_path
+                        elif table == 'StaffExperience' and staff_experience:
+                            staff_experience.ExperienceDocumentPath = file_path
+                        elif table == 'StaffOther' and staff_other:
+                            staff_other.OtherDocumentPath = file_path
+                        elif table == 'StaffCnic' and staff_cnic:
+                            if file_key == 'StaffCnic-FrontCNICDocumentPath':
+                                staff_cnic.FrontCNICDocumentPath = file_path
+                            elif file_key == 'StaffCnic-BackCNICDocumentPath':
+                                staff_cnic.BackCNICDocumentPath = file_path
+                        elif table == 'StaffInfo' and staff_info:  # For StaffInfo Photo
+                            staff_info.PhotoPath = file_path
+                    else:
+                        logging.warning(f"StaffId not found for {table}.")
+
+            # Handle update logic for StaffInfo PhotoPath
+            if staff_info:
+                logging.info(f"StaffInfo data processed: {staff_info}")
+                if not staff_info.Staff_ID:
+                    logging.error("StaffId is missing in StaffInfo.")
+                    return {'message': 'StaffId is missing in StaffInfo data'}, 400
+                
+                # Try to find the existing StaffInfo record
+                existing_staff_info = StaffInfo.query.filter_by(Staff_ID=staff_info.Staff_ID).first()
+
+                if existing_staff_info:
+                    # If the record exists, update the PhotoPath
+                    existing_staff_info.PhotoPath = staff_info.PhotoPath
+                    existing_staff_info.UpdaterId = staff_info.UpdaterId
+                    existing_staff_info.UpdateDate = staff_info.UpdateDate
+                    db.session.commit()
+                    logging.info(f"Updated PhotoPath for StaffId {staff_info.Staff_ID}")
+                else:
+                    logging.warning(f"No existing StaffInfo record found for StaffId {staff_info.Staff_ID}.")
+
+            # Commit all other data to the database if the record exists
+            if staff_education:
+                db.session.add(staff_education)
+            if staff_experience:
+                db.session.add(staff_experience)
+            if staff_other:
+                db.session.add(staff_other)
+            if staff_cnic:
+                db.session.add(staff_cnic)
+
+            db.session.commit()
+
+            logging.info(f"Files saved successfully: {file_paths}")
+
+            return {'message': 'Employee record created successfully'}, 200
+
+        except Exception as e:
+            logging.error(f"Error occurred while processing the request: {e}")
+            db.session.rollback()  # Rollback any database changes in case of an error
+            return {'message': 'An error occurred while processing the request', 'error': str(e)}, 500
+
+    def process_staff_info(self, data):
+        try:
+            staff_info = json.loads(data)
+            if isinstance(staff_info, list):
+                staff_info = staff_info[0]
+            
+            # Log the data to ensure we are getting it correctly
+            logging.info(f"Processed StaffInfo data: {staff_info}")
+
+            staff_id = staff_info.get("Staff_ID")
+            if not staff_id:
+                logging.warning("Missing required StaffId in StaffInfo data.")
+                return None
+
+            # Create StaffInfo record (do not create a new one here)
+            new_staff_info = StaffInfo(
+                Staff_ID=staff_id,
+                UpdateDate=staff_info.get("UpdateDate"),
+                UpdaterId=staff_info.get("UpdaterId"),
+                PhotoPath=None  # Placeholder, will be updated later
+            )
+            return new_staff_info
+
+        except Exception as e:
+            logging.warning(f"Error parsing StaffInfo data: {e}")
+            return None
+
+    def process_staff_education(self, data):
+        try:
+            staff_education = json.loads(data)
+            if isinstance(staff_education, list):
+                staff_education = staff_education[0]
+            staff_id = staff_education.get("StaffId")
+            if not staff_id:
+                logging.warning("Missing required StaffId in StaffEducation data.")
+                return None
+
+            # Create StaffEducation record
+            new_staff_education = StaffEducation(
+                StaffId=staff_id,
+                Year=staff_education.get("Year"),
+                EducationTypeId=staff_education.get("EducationTypeId"),
+                FieldName=staff_education.get("FieldName"),
+                Institution=staff_education.get("Institution"),
+                Grade=staff_education.get("Grade"),
+                Status=staff_education.get("Status"),
+                CampusId=staff_education.get("CampusId"),
+                CreatorId=staff_education.get("CreatorId"),
+                CreateDate=staff_education.get("CreateDate"),
+                EducationDocumentPath=None  # Placeholder, will be updated later
+            )
+            return new_staff_education
+
+        except Exception as e:
+            logging.warning(f"Error parsing StaffEducation data: {e}")
+            return None
+
+    def process_staff_experience(self, data):
+        try:
+            staff_experience = json.loads(data)
+            if isinstance(staff_experience, list):
+                staff_experience = staff_experience[0]
+            staff_id = staff_experience.get("StaffId")
+            if not staff_id:
+                logging.warning("Missing required StaffId in StaffExperience data.")
+                return None
+
+            # Create StaffExperience record
+            new_staff_experience = StaffExperience(
+                StaffId=staff_id,
+                CompanyName=staff_experience.get("CompanyName"),
+                Position=staff_experience.get("Position"),
+                StartDate=staff_experience.get("StartDate"),
+                EndDate=staff_experience.get("EndDate"),
+                Status=staff_experience.get("Status"),
+                CampusId=staff_experience.get("CampusId"),
+                CreatorId=staff_experience.get("CreatorId"),
+                CreateDate=staff_experience.get("CreateDate"),
+                ExperienceDocumentPath=None  # Placeholder, will be updated later
+            )
+            return new_staff_experience
+
+        except Exception as e:
+            logging.warning(f"Error parsing StaffExperience data: {e}")
+            return None
+
+    def process_staff_other(self, data):
+        try:
+            staff_other = json.loads(data)
+            if isinstance(staff_other, list):
+                staff_other = staff_other[0]
+            staff_id = staff_other.get("StaffId")
+            if not staff_id:
+                logging.warning("Missing required StaffId in StaffOther data.")
+                return None
+
+            # Create StaffOther record
+            new_staff_other = StaffOther(
+                StaffId=staff_id,
+                Title=staff_other.get("Title"),
+                Description=staff_other.get("Description"),
+                Status=staff_other.get("Status"),
+                CampusId=staff_other.get("CampusId"),
+                CreatorId=staff_other.get("CreatorId"),
+                CreateDate=staff_other.get("CreateDate"),
+                OtherDocumentPath=None  # Placeholder, will be updated later
+            )
+            return new_staff_other
+
+        except Exception as e:
+            logging.warning(f"Error parsing StaffOther data: {e}")
+            return None
+
+    def process_staff_cnic(self, data):
+        try:
+            staff_cnic = json.loads(data)
+            if isinstance(staff_cnic, list):
+                staff_cnic = staff_cnic[0]
+            staff_id = staff_cnic.get("StaffId")
+            if not staff_id:
+                logging.warning("Missing required StaffId in StaffCnic data.")
+                return None
+
+            # Create StaffCnic record
+            new_staff_cnic = StaffCnic(
+                StaffId=staff_id,
+                Status=staff_cnic.get("Status"),
+                CampusId=staff_cnic.get("CampusId"),
+                CreatorId=staff_cnic.get("CreatorId"),
+                CreateDate=staff_cnic.get("CreateDate"),
+                FrontCNICDocumentPath=None,  # Placeholder, will be updated later
+                BackCNICDocumentPath=None   # Placeholder, will be updated later
+            )
+            return new_staff_cnic
+
+        except Exception as e:
+            logging.warning(f"Error parsing StaffCnic data: {e}")
+            return None
+
+    def process_files(self, files, staff_id, table_name):
+        """
+        Handles the file uploads and saves them to the appropriate locations.
+        """
+        file_data = {}
+        BASE_UPLOAD_FOLDER = 'temp'  # Base folder is temp
+
+        for key, file in files.items():
+            logging.info(f"Processing file: {key}")
+
+            if file.filename == '':  # If filename is empty, skip the file
+                logging.warning(f"Skipping empty file: {key}")
+                continue
+
+            # Sanitize the filename
+            filename = secure_filename(file.filename)
+
+            # Use dynamic table and field names for folder structure
+            field_name = key.split('-')[-1]  # Extract the document field name
+            table_folder = os.path.join(BASE_UPLOAD_FOLDER, table_name)
+            column_folder = os.path.join(table_folder, field_name)
+
+            # Ensure the folder structure exists
+            if not os.path.exists(column_folder):
+                try:
+                    os.makedirs(column_folder)
+                    logging.info(f"Created directory structure at {column_folder}")
+                except Exception as e:
+                    logging.error(f"Error creating directory structure at {column_folder}: {e}")
+                    raise
+
+            # Construct the file path with the record ID, staff ID, and sanitized filename
+            file_path = os.path.join(column_folder, f"{staff_id}_{filename}")
+
+            # Save the file to the disk
+            try:
+                file.save(file_path)
+                logging.info(f"File saved successfully at {file_path}")
+            except Exception as e:
+                logging.error(f"Error saving file {filename}: {e}")
+                raise
+
+            # Store file path in the dictionary
+            file_data[key] = {'key': key, 'path': file_path}
+
+        # Return the path of the processed file for the given key
+        return file_data[key]['path']
+
+
+
 
 
 
