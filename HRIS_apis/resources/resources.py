@@ -6804,6 +6804,7 @@ class DocumentsUploader(Resource):
                 CampusId=staff_education.get("CampusId"),
                 CreatorId=staff_education.get("CreatorId"),
                 CreateDate=staff_education.get("CreateDate"),
+                IsFromProfile = staff_education.get("IsFromProfile"),
                 EducationDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_education
@@ -6833,6 +6834,7 @@ class DocumentsUploader(Resource):
                 CampusId=staff_experience.get("CampusId"),
                 CreatorId=staff_experience.get("CreatorId"),
                 CreateDate=staff_experience.get("CreateDate"),
+                IsFromProfile=staff_experience.get("IsFromProfile"),
                 ExperienceDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_experience
@@ -6860,6 +6862,7 @@ class DocumentsUploader(Resource):
                 CampusId=staff_other.get("CampusId"),
                 CreatorId=staff_other.get("CreatorId"),
                 CreateDate=staff_other.get("CreateDate"),
+                IsFromProfile = staff_other.get("IsFromProfile"),
                 OtherDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_other
@@ -6885,6 +6888,7 @@ class DocumentsUploader(Resource):
                 CampusId=staff_cnic.get("CampusId"),
                 CreatorId=staff_cnic.get("CreatorId"),
                 CreateDate=staff_cnic.get("CreateDate"),
+                IsFromProfile = staff_cnic.get("IsFromProfile"),
                 FrontCNICDocumentPath=None,  # Placeholder, will be updated later
                 BackCNICDocumentPath=None   # Placeholder, will be updated later
             )

@@ -3573,6 +3573,7 @@ class StaffCnic(db.Model):
     BackCNICDocumentPath = db.Column(db.String(255), nullable=True)
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
+    IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
 
     def __repr__(self):
         return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
@@ -3586,7 +3587,8 @@ class StaffCnic(db.Model):
             'FrontCNICDocumentPath': self.FrontCNICDocumentPath,
             'BackCNICDocumentPath': self.BackCNICDocumentPath,
             'CreatorId' : self.CreatorId,
-            'CreateDate' : self.CreateDate
+            'CreateDate' : self.CreateDate,
+            'IsFromProfile' : self.IsFromProfile
         }
 
 class StaffChild(db.Model):
@@ -3631,6 +3633,8 @@ class StaffEducation(db.Model):
     EducationDocumentPath = db.Column(db.String(255), nullable=True)
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
+    IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+
 
     def __repr__(self):
         return f"<StaffEducation Id={self.Id}, StaffId={self.StaffId}, FieldName={self.FieldName}, Institution={self.Institution}>"
@@ -3648,7 +3652,8 @@ class StaffEducation(db.Model):
             'CampusId': self.CampusId,
             'EducationDocumentPath': self.EducationDocumentPath,
             'CreatorId' : self.CreatorId,
-            'CreateDate' : self.CreateDate
+            'CreateDate' : self.CreateDate,
+            'IsFromProfile' : self.IsFromProfile
         }
 
 class StaffExperience(db.Model):
@@ -3672,6 +3677,8 @@ class StaffExperience(db.Model):
     Salary = db.Column(db.Integer, nullable=True)
     CampusId = db.Column(db.Integer, nullable=True)
     ExperienceDocumentPath = db.Column(db.String(255), nullable=True)
+    IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+
 
     def __repr__(self):
         return f"<StaffExperience Id={self.Id}, CompanyName={self.CompanyName}, Position={self.Position}>"
@@ -3695,7 +3702,8 @@ class StaffExperience(db.Model):
             'Status': self.Status,
             'Salary': self.Salary,
             'CampusId': self.CampusId,
-            'ExperienceDocumentPath': self.ExperienceDocumentPath
+            'ExperienceDocumentPath': self.ExperienceDocumentPath,
+            'IsFromProfile' : self.IsFromProfile
         }
 
 class StaffOther(db.Model):
@@ -3710,6 +3718,8 @@ class StaffOther(db.Model):
     OtherDocumentPath = db.Column(db.String(255), nullable=True)
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
+    IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+
 
     def __repr__(self):
         return f"<StaffOther Id={self.Id}, Title={self.Title}, Status={self.Status}>"
@@ -3724,7 +3734,8 @@ class StaffOther(db.Model):
             'CampusId': self.CampusId,
             'OtherDocumentPath': self.OtherDocumentPath,
             'CreatorId' : self.CreatorId,
-            'CreateDate' : self.CreateDate
+            'CreateDate' : self.CreateDate,
+            'IsFromProfile' : self.IsFromProfile
         }
 
 class AppraisalSecurityForm(db.Model):
