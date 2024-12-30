@@ -6639,6 +6639,7 @@ class DocumentsUploader(Resource):
             staff_other = None
             staff_cnic = None
             staff_info = None  # New variable for StaffInfo
+            request_status = None  # To store the RequestStatus
 
             # Validate StaffEducation data if present
             if staff_education_data:
@@ -6663,7 +6664,10 @@ class DocumentsUploader(Resource):
             # Validate StaffInfo data if present (new case for StaffInfo)
             if staff_info_data:
                 logging.info("Processing StaffInfo data.")
-                staff_info = self.process_staff_info(staff_info_data[0])
+                staff_info, request_status = self.process_staff_info(staff_info_data[0])  # Unpack tuple here
+                if staff_info is None:
+                    logging.error("StaffInfo processing failed. Skipping this part of the request.")
+                    return {'message': 'Invalid StaffInfo data'}, 400
 
             # Process files (can be one or more fields)
             file_keys = {
@@ -6734,6 +6738,16 @@ class DocumentsUploader(Resource):
                 else:
                     logging.warning(f"No existing StaffInfo record found for StaffId {staff_info.Staff_ID}.")
 
+                # Create StaffInfo_File record (including RequestStatus)
+                staff_info_file = StaffInfo_File(
+                    StaffId=staff_info.Staff_ID,
+                    UpdaterId=staff_info.UpdaterId,  
+                    UpdateDate=staff_info.UpdateDate,
+                    RequestStatus=request_status,  # Get RequestStatus from form data
+                    PhotoPath=staff_info.PhotoPath  # Ensure PhotoPath from the staff_info object
+                )
+                db.session.add(staff_info_file)
+
             # Commit all other data to the database if the record exists
             if staff_education:
                 db.session.add(staff_education)
@@ -6757,9 +6771,10 @@ class DocumentsUploader(Resource):
 
     def process_staff_info(self, data):
         try:
-            staff_info = json.loads(data)
-            if isinstance(staff_info, list):
-                staff_info = staff_info[0]
+            staff_info_list = json.loads(data)
+            
+            if isinstance(staff_info_list, list):
+                staff_info = staff_info_list[0]  # Get the first item if it's a list
             
             # Log the data to ensure we are getting it correctly
             logging.info(f"Processed StaffInfo data: {staff_info}")
@@ -6767,8 +6782,11 @@ class DocumentsUploader(Resource):
             staff_id = staff_info.get("Staff_ID")
             if not staff_id:
                 logging.warning("Missing required StaffId in StaffInfo data.")
-                return None
+                return None, None  # Return None for StaffInfo and RequestStatus
 
+            # Extract RequestStatus from the StaffInfo data
+            request_status = staff_info.get("RequestStatus")
+            
             # Create StaffInfo record (do not create a new one here)
             new_staff_info = StaffInfo(
                 Staff_ID=staff_id,
@@ -6776,11 +6794,16 @@ class DocumentsUploader(Resource):
                 UpdaterId=staff_info.get("UpdaterId"),
                 PhotoPath=None  # Placeholder, will be updated later
             )
-            return new_staff_info
+            
+            # Return the StaffInfo object along with RequestStatus
+            return new_staff_info, request_status
 
         except Exception as e:
             logging.warning(f"Error parsing StaffInfo data: {e}")
-            return None
+            return None, None
+
+
+
 
     def process_staff_education(self, data):
         try:
@@ -6805,6 +6828,7 @@ class DocumentsUploader(Resource):
                 CreatorId=staff_education.get("CreatorId"),
                 CreateDate=staff_education.get("CreateDate"),
                 IsFromProfile = staff_education.get("IsFromProfile"),
+                RequestStatus = staff_education.get("RequestStatus"),
                 EducationDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_education
@@ -6835,6 +6859,7 @@ class DocumentsUploader(Resource):
                 CreatorId=staff_experience.get("CreatorId"),
                 CreateDate=staff_experience.get("CreateDate"),
                 IsFromProfile=staff_experience.get("IsFromProfile"),
+                RequestStatus = staff_experience.get("RequestStatus"),
                 ExperienceDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_experience
@@ -6863,6 +6888,7 @@ class DocumentsUploader(Resource):
                 CreatorId=staff_other.get("CreatorId"),
                 CreateDate=staff_other.get("CreateDate"),
                 IsFromProfile = staff_other.get("IsFromProfile"),
+                RequestStatus = staff_other.get("RequestStatus"),
                 OtherDocumentPath=None  # Placeholder, will be updated later
             )
             return new_staff_other
@@ -6889,6 +6915,7 @@ class DocumentsUploader(Resource):
                 CreatorId=staff_cnic.get("CreatorId"),
                 CreateDate=staff_cnic.get("CreateDate"),
                 IsFromProfile = staff_cnic.get("IsFromProfile"),
+                RequestStatus = staff_cnic.get("RequestStatus"),
                 FrontCNICDocumentPath=None,  # Placeholder, will be updated later
                 BackCNICDocumentPath=None   # Placeholder, will be updated later
             )

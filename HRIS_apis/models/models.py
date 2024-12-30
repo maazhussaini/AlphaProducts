@@ -3576,6 +3576,7 @@ class StaffCnic(db.Model):
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+    RequestStatus = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
@@ -3590,7 +3591,8 @@ class StaffCnic(db.Model):
             'BackCNICDocumentPath': self.BackCNICDocumentPath,
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
-            'IsFromProfile' : self.IsFromProfile
+            'IsFromProfile' : self.IsFromProfile,
+            'RequestStatus' : self.RequestStatus
         }
 
 class StaffChild(db.Model):
@@ -3636,6 +3638,7 @@ class StaffEducation(db.Model):
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+    RequestStatus = db.Column(db.Integer, nullable=True)
 
 
     def __repr__(self):
@@ -3655,7 +3658,9 @@ class StaffEducation(db.Model):
             'EducationDocumentPath': self.EducationDocumentPath,
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
-            'IsFromProfile' : self.IsFromProfile
+            'IsFromProfile' : self.IsFromProfile,
+            'RequestStatus' : self.RequestStatus
+            
         }
 
 class StaffExperience(db.Model):
@@ -3680,6 +3685,8 @@ class StaffExperience(db.Model):
     CampusId = db.Column(db.Integer, nullable=True)
     ExperienceDocumentPath = db.Column(db.String(255), nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+    RequestStatus = db.Column(db.Integer, nullable=True)
+
 
 
     def __repr__(self):
@@ -3705,7 +3712,8 @@ class StaffExperience(db.Model):
             'Salary': self.Salary,
             'CampusId': self.CampusId,
             'ExperienceDocumentPath': self.ExperienceDocumentPath,
-            'IsFromProfile' : self.IsFromProfile
+            'IsFromProfile' : self.IsFromProfile,
+            'RequestStatus' : self.RequestStatus
         }
 
 class StaffOther(db.Model):
@@ -3721,6 +3729,7 @@ class StaffOther(db.Model):
     CreatorId = db.Column(db.BigInteger, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
+    RequestStatus = db.Column(db.Integer, nullable=True)
 
 
     def __repr__(self):
@@ -3737,7 +3746,8 @@ class StaffOther(db.Model):
             'OtherDocumentPath': self.OtherDocumentPath,
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
-            'IsFromProfile' : self.IsFromProfile
+            'IsFromProfile' : self.IsFromProfile,
+            'RequestStatus' : self.RequestStatus
         }
 
 class AppraisalSecurityForm(db.Model):
@@ -5050,4 +5060,25 @@ class ProbationAssessmentForm(db.Model):
             'UpdatorId': self.UpdatorId,
             'CampusId': self.CampusId,
             'Inactive': self.Inactive
+        }
+
+class StaffInfo_File(db.Model):
+    __tablename__ = 'StaffInfo_File'
+    
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffId = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    RequestStatus = db.Column(db.Integer, nullable=True)
+    PhotoPath = db.Column(db.String(500))
+
+    # Method to return the object data as a dictionary
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'StaffId': self.StaffId,
+            'UpdaterId': self.UpdaterId,
+            'UpdateDate': self.UpdateDate.isoformat()if self.UpdateDate else None,
+            'RequestStatus': self.RequestStatus,
+            'PhotoPath' : self.PhotoPath
         }
