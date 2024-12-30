@@ -6903,7 +6903,7 @@ class DocumentsUploader(Resource):
         Handles the file uploads and saves them to the appropriate locations.
         """
         file_data = {}
-        BASE_UPLOAD_FOLDER = 'temp'  # Base folder is temp
+        BASE_UPLOAD_FOLDER = 'uploads'  # Base folder is temp
 
         for key, file in files.items():
             logging.info(f"Processing file: {key}")
