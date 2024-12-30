@@ -3577,6 +3577,7 @@ class StaffCnic(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
+    RequestStatusBack = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
@@ -3592,7 +3593,8 @@ class StaffCnic(db.Model):
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
             'IsFromProfile' : self.IsFromProfile,
-            'RequestStatus' : self.RequestStatus
+            'RequestStatus' : self.RequestStatus,
+            'RequestStatusBack' : self.RequestStatusBack
         }
 
 class StaffChild(db.Model):

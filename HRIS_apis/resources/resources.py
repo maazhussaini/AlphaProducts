@@ -6664,10 +6664,11 @@ class DocumentsUploader(Resource):
             # Validate StaffInfo data if present (new case for StaffInfo)
             if staff_info_data:
                 logging.info("Processing StaffInfo data.")
-                staff_info, request_status = self.process_staff_info(staff_info_data[0])  # Unpack tuple here
+                staff_info, request_status = self.process_staff_info(staff_info_data[0])
                 if staff_info is None:
                     logging.error("StaffInfo processing failed. Skipping this part of the request.")
                     return {'message': 'Invalid StaffInfo data'}, 400
+
 
             # Process files (can be one or more fields)
             file_keys = {
@@ -6771,12 +6772,12 @@ class DocumentsUploader(Resource):
 
     def process_staff_info(self, data):
         try:
-            staff_info_list = json.loads(data)
-            
-            if isinstance(staff_info_list, list):
-                staff_info = staff_info_list[0]  # Get the first item if it's a list
-            
-            # Log the data to ensure we are getting it correctly
+            staff_info = json.loads(data)  # Parse the data as a dictionary
+
+            if not isinstance(staff_info, dict):
+                logging.error("StaffInfo data is not a valid dictionary.")
+                return None, None  # Return None for StaffInfo and RequestStatus
+
             logging.info(f"Processed StaffInfo data: {staff_info}")
 
             staff_id = staff_info.get("Staff_ID")
@@ -6784,23 +6785,28 @@ class DocumentsUploader(Resource):
                 logging.warning("Missing required StaffId in StaffInfo data.")
                 return None, None  # Return None for StaffInfo and RequestStatus
 
-            # Extract RequestStatus from the StaffInfo data
             request_status = staff_info.get("RequestStatus")
-            
-            # Create StaffInfo record (do not create a new one here)
+
+            # Creating a new StaffInfo object
             new_staff_info = StaffInfo(
                 Staff_ID=staff_id,
                 UpdateDate=staff_info.get("UpdateDate"),
                 UpdaterId=staff_info.get("UpdaterId"),
                 PhotoPath=None  # Placeholder, will be updated later
             )
-            
-            # Return the StaffInfo object along with RequestStatus
+
             return new_staff_info, request_status
 
-        except Exception as e:
-            logging.warning(f"Error parsing StaffInfo data: {e}")
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decoding error: {e} while parsing StaffInfo data: {data}")
             return None, None
+        except Exception as e:
+            logging.error(f"Unexpected error while processing StaffInfo: {e}")
+            return None, None
+
+
+
+
 
 
 
@@ -6916,6 +6922,7 @@ class DocumentsUploader(Resource):
                 CreateDate=staff_cnic.get("CreateDate"),
                 IsFromProfile = staff_cnic.get("IsFromProfile"),
                 RequestStatus = staff_cnic.get("RequestStatus"),
+                RequestStatusBack = staff_cnic.get("RequestStatusBack"),
                 FrontCNICDocumentPath=None,  # Placeholder, will be updated later
                 BackCNICDocumentPath=None   # Placeholder, will be updated later
             )
