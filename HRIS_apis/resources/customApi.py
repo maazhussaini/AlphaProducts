@@ -254,18 +254,21 @@ class CallProcedureResourceLeave(Resource):
             existing_file_row = cursor.fetchone()
             existing_file_path = existing_file_row[0] if existing_file_row else None
 
-            # If no attachments are provided, delete existing file and set path to NULL
-            if not attachments:
-                if existing_file_path:
-                    try:
-                        if os.path.exists(existing_file_path):
-                            os.remove(existing_file_path)
-                            logging.info(f"Deleted existing file at: {existing_file_path}")
-                    except Exception as delete_error:
-                        logging.error(f"Error deleting file at {existing_file_path}: {delete_error}")
-                cursor.execute("UPDATE StaffLeaveRequest SET LeaveApplicationPath = NULL WHERE Id = ?", (leave_id,))
-                logging.info(f"Updated LeaveApplicationPath to NULL for leave ID: {leave_id}")
+            # # If no attachments are provided, delete existing file and set path to NULL
+            # if not attachments:
+            #     if existing_file_path:
+            #         try:
+            #             if os.path.exists(existing_file_path):
+            #                 os.remove(existing_file_path)
+            #                 logging.info(f"Deleted existing file at: {existing_file_path}")
+            #         except Exception as delete_error:
+            #             logging.error(f"Error deleting file at {existing_file_path}: {delete_error}")
+            #     cursor.execute("UPDATE StaffLeaveRequest SET LeaveApplicationPath = NULL WHERE Id = ?", (leave_id,))
+            #     logging.info(f"Updated LeaveApplicationPath to NULL for leave ID: {leave_id}")
             
+            # If no attachments are provided, avoid nullifying the existing path
+            if not attachments:
+                logging.info(f"No new attachments provided. Retaining existing file path: {existing_file_path}")
             # If attachments are provided, update the file path in the database
             else:
                 # If there's an existing file, delete it before saving the new one
