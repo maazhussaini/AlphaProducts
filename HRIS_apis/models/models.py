@@ -3578,6 +3578,8 @@ class StaffCnic(db.Model):
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
     RequestStatusBack = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"<StaffCnic Id={self.Id}, StaffId={self.StaffId}, Status={self.Status}>"
@@ -3594,7 +3596,9 @@ class StaffCnic(db.Model):
             'CreateDate' : self.CreateDate,
             'IsFromProfile' : self.IsFromProfile,
             'RequestStatus' : self.RequestStatus,
-            'RequestStatusBack' : self.RequestStatusBack
+            'RequestStatusBack' : self.RequestStatusBack,
+            'UpdaterId' : self.UpdaterId,
+            'UpdateDate' : self.UpdateDate
         }
 
 class StaffChild(db.Model):
@@ -3641,6 +3645,8 @@ class StaffEducation(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
 
 
     def __repr__(self):
@@ -3661,7 +3667,9 @@ class StaffEducation(db.Model):
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
             'IsFromProfile' : self.IsFromProfile,
-            'RequestStatus' : self.RequestStatus
+            'RequestStatus' : self.RequestStatus,
+            'UpdaterId' : self.UpdaterId,
+            'UpdateDate' : self.UpdateDate
             
         }
 
@@ -3732,6 +3740,8 @@ class StaffOther(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
 
 
     def __repr__(self):
@@ -3749,7 +3759,9 @@ class StaffOther(db.Model):
             'CreatorId' : self.CreatorId,
             'CreateDate' : self.CreateDate,
             'IsFromProfile' : self.IsFromProfile,
-            'RequestStatus' : self.RequestStatus
+            'RequestStatus' : self.RequestStatus,
+            'UpdaterId' : self.UpdaterId,
+            'UpdateDate' : self.UpdateDate
         }
 
 class AppraisalSecurityForm(db.Model):
