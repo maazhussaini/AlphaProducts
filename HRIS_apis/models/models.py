@@ -3578,7 +3578,7 @@ class StaffCnic(db.Model):
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
     RequestStatusBack = db.Column(db.Integer, nullable=True)
-    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
     UpdateDate = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
@@ -3645,7 +3645,7 @@ class StaffEducation(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
-    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
     UpdateDate = db.Column(db.DateTime, nullable=True)
 
 
@@ -3740,7 +3740,7 @@ class StaffOther(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True)
     IsFromProfile = db.Column(db.Boolean, nullable=True, default=False)
     RequestStatus = db.Column(db.Integer, nullable=True)
-    UpdaterId = db.Column(db.DateTime, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
     UpdateDate = db.Column(db.DateTime, nullable=True)
 
 

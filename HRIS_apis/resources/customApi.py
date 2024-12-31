@@ -771,6 +771,7 @@ class UploadFileResource(Resource):
 
                 # Process other form data
                 form_data = request.form.to_dict()
+                print("form_data",form_data)
                 
                 if not form_data.get('Table_Name'):
                     return {'status': 'error',
@@ -785,6 +786,7 @@ class UploadFileResource(Resource):
                 MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
                 
                 if request.files:
+                    print("Request files",request.files)
                     for key in request.files:
                         
                         file = request.files[key]
@@ -863,8 +865,9 @@ class UploadFileResource(Resource):
                     
                     for key, value in form_data.items():
                         if hasattr(record, key):
+                            print(f"Updating field {key} with value {value}")
                             setattr(record, key, value)
-
+                    
                     db.session.commit()
                     
                     if history_table:
