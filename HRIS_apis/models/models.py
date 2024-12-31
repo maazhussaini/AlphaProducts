@@ -5086,7 +5086,9 @@ class StaffInfo_File(db.Model):
     RequestStatus = db.Column(db.Integer, nullable=True)
     PhotoPath = db.Column(db.String(500))
 
-    # Method to return the object data as a dictionary
+    def __repr__(self):
+        return f"<StaffInfo_File {self.Id}>"
+
     def to_dict(self):
         return {
             'Id': self.Id,
@@ -5095,4 +5097,33 @@ class StaffInfo_File(db.Model):
             'UpdateDate': self.UpdateDate.isoformat()if self.UpdateDate else None,
             'RequestStatus': self.RequestStatus,
             'PhotoPath' : self.PhotoPath
+        }
+
+class LetterTempletes(db.Model):
+    __tablename__ = 'LetterTempletes'
+
+    LetterTempletes_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LetterTempletes_Title = db.Column(db.String(200), nullable=False)
+    LetterTempletes_LetterTypesId = db.Column(db.Integer, nullable=False)
+    LetterTempletes_FormattedHTML = db.Column(db.String(max), nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<LetterTempletes {self.LetterTempletes_Id}>"
+
+    def to_dict(self):
+        return {
+            "LetterTempletes_Id": self.LetterTempletes_Id,
+            "LetterTempletes_Title": self.LetterTempletes_Title,
+            "LetterTempletes_LetterTypesId": self.LetterTempletes_LetterTypesId,
+            "LetterTempletes_FormattedHTML": self.LetterTempletes_FormattedHTML,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate,
+            "InActive": self.InActive,
         }
