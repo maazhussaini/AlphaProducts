@@ -5127,3 +5127,32 @@ class LetterTempletes(db.Model):
             "UpdatedDate": self.UpdatedDate,
             "InActive": self.InActive,
         }
+
+class StaffLetters(db.Model):
+    __tablename__ = 'StaffLetters'
+
+    StaffLetters_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    StaffLetters_LetterTemplateId = db.Column(db.Integer, nullable=False)
+    StaffLetters_LetterHTML = db.Column(db.String, nullable=False)
+    StaffLetters_StaffId = db.Column(db.Integer, nullable=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<StaffLetters {self.StaffLetters_Id}>"
+
+    def to_dict(self):
+        return {
+            'StaffLetters_Id': self.StaffLetters_Id,
+            'StaffLetters_LetterTemplateId': self.StaffLetters_LetterTemplateId,
+            'StaffLetters_LetterHTML': self.StaffLetters_LetterHTML,
+            'StaffLetters_StaffId': self.StaffLetters_StaffId,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdateDate': self.UpdateDate,
+            'InActive': self.InActive
+        }
