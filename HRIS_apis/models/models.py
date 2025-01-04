@@ -5105,7 +5105,7 @@ class LetterTempletes(db.Model):
     LetterTempletes_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     LetterTempletes_Title = db.Column(db.String(200), nullable=False)
     LetterTempletes_LetterTypesId = db.Column(db.Integer, nullable=False)
-    LetterTempletes_FormattedHTML = db.Column(db.String(max), nullable=False)
+    LetterTempletes_FormattedHTML = db.Column(db.Text, nullable=False)
     CreatedBy = db.Column(db.Integer, nullable=False)
     CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
