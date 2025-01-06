@@ -5159,3 +5159,21 @@ class StaffLetters(db.Model):
             'UpdateDate': self.UpdateDate,
             'InActive': self.InActive
         }
+
+
+class LetterTypes(db.Model):
+    __tablename__ = 'LetterTypes'
+
+    LetterTypes_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LetterTypes_Name = db.Column(db.String(), nullable=False)
+    LetterTypes_Parameters = db.Column(db.String(), nullable=False)
+
+    def __repr__(self):
+        return f"<LetterTypes {self.LetterTypes_Id}>"
+
+    def to_dict(self):
+        return {
+            'LetterTypes_Id': self.LetterTypes_Id,
+            'LetterTypes_Name': self.LetterTypes_Name,
+            'LetterTypes_Parameters': self.LetterTypes_Parameters
+        }
