@@ -4722,7 +4722,7 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_DocPath = db.Column(db.String(),nullable=True)
     EmployeeRequisition_Date = db.Column(db.DateTime, nullable=True)
     EmployeeRequisition_HRApprovalRemarks = db.Column(db.String(500),nullable=True)
-    EmployeeRequisition_DepartmentHeadApprovalRemark = db.Column(db.String(500),nullable=True)
+    EmployeeRequisition_DepartmentHeadApprovalRemarks = db.Column(db.String(500),nullable=True)
     EmployeeRequisition_DirectorApprovalRemarks = db.Column(db.String(500),nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
@@ -4783,7 +4783,7 @@ class EmployeeRequisition(db.Model):
             'EmployeeRequisition_DocPath':self.EmployeeRequisition_DocPath,
             'EmployeeRequisition_Date':self.EmployeeRequisition_Date,
             'EmployeeRequisition_HRApprovalRemarks': self.EmployeeRequisition_HRApprovalRemarks,
-            'EmployeeRequisition_DepartmentHeadApprovalRemark': self.EmployeeRequisition_DepartmentHeadApprovalRemark,
+            'EmployeeRequisition_DepartmentHeadApprovalRemarks': self.EmployeeRequisition_DepartmentHeadApprovalRemarks,
             'EmployeeRequisition_DirectorApprovalRemarks': self.EmployeeRequisition_DirectorApprovalRemarks,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
