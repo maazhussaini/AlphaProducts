@@ -827,6 +827,7 @@ class JobApplicationForms(db.Model):
     Father_Name = db.Column(db.String(250), nullable=False)
     CNIC = db.Column(db.String(250), nullable=True)
     Passport_Number = db.Column(db.String(250), nullable=True)
+    currently_employed_here = db.Column(db.String(500), nullable=True)
     DOB = db.Column(db.DateTime, nullable=True)
     Age = db.Column(db.String(100), nullable=True)
     Gender = db.Column(db.String(250), nullable=True)
@@ -875,6 +876,7 @@ class JobApplicationForms(db.Model):
             'Father_Name': self.Father_Name,
             'CNIC': self.CNIC,
             'Passport_Number': self.Passport_Number,
+            'currently_employed_here': self.currently_employed_here,
             'DOB': self.DOB,
             'Age': self.Age,
             'Gender': self.Gender,
