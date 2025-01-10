@@ -4724,6 +4724,8 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_HRApprovalRemarks = db.Column(db.String(500),nullable=True)
     EmployeeRequisition_DepartmentHeadApprovalRemarks = db.Column(db.String(500),nullable=True)
     EmployeeRequisition_DirectorApprovalRemarks = db.Column(db.String(500),nullable=True)
+    EmployeeRequisition_HRApprovalStatus = db.Column(db.Integer, nullable=True)
+    EmployeeRequisition_DirectorApprovalStatus = db.Column(db.Integer, nullable=True)
     CreatedBy = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
@@ -4785,6 +4787,8 @@ class EmployeeRequisition(db.Model):
             'EmployeeRequisition_HRApprovalRemarks': self.EmployeeRequisition_HRApprovalRemarks,
             'EmployeeRequisition_DepartmentHeadApprovalRemarks': self.EmployeeRequisition_DepartmentHeadApprovalRemarks,
             'EmployeeRequisition_DirectorApprovalRemarks': self.EmployeeRequisition_DirectorApprovalRemarks,
+            'EmployeeRequisition_HRApprovalStatus' : self.EmployeeRequisition_HRApprovalStatus,
+            'EmployeeRequisition_DirectorApprovalStatus' : self.EmployeeRequisition_DirectorApprovalStatus,
             'CreatedBy': self.CreatedBy,
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
