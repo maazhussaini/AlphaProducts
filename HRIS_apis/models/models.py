@@ -4711,7 +4711,7 @@ class EmployeeRequisition(db.Model):
     EmployeeRequisition_SalaryRange = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_BudgetedSalary = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_AdditionalBudget = db.Column(db.String(500), nullable=False)
-    EmployeeRequisition_RequestedBy = db.Column(db.String(200), nullable=False)
+    EmployeeRequisition_RequestedBy = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_DesignationId = db.Column(db.Integer, nullable=False)
     EmployeeRequisition_DepartmentHeadApproval = db.Column(db.Integer, default=False, nullable=False)
     EmployeeRequisition_HRApproval = db.Column(db.Integer, default=False, nullable=False)
