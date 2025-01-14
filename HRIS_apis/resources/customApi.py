@@ -694,45 +694,44 @@ class UploadFileResource(Resource):
             ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
             MAIN_UPLOAD_FOLDER = 'uploads\\'
             
-            if not request.files:
-                return {'message': 'No file part in the request'}, 400
-
-            # Process other form data
+            # First, initialize form_data from request.form to avoid referencing an uninitialized variable
             form_data = request.form.to_dict()
-            
+
+            # Check if a table name is provided
             if not form_data.get('Table_Name'):
-                return {'status': 'error',
-                        'message': "table name required"}, 400
-            
+                return {'status': 'error', 'message': "Table name required"}, 400
+
+            # Get the model class based on the table name
             model_class = get_model_by_tablename(form_data.get('Table_Name'))
             if not model_class:
-                return {'status': 'error',
-                    'message': f'Table {form_data.get('Table_Name')} does not exist'}, 400
-            
+                return {'status': 'error', 'message': f'Table {form_data.get("Table_Name")} does not exist'}, 400
+
             MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
             
-            uploaded_files = []
-            for key in request.files:
-                
-                file = request.files[key]
-                if file.filename == '':
-                    continue
+            # Process files if provided
+            if request.files:
+                uploaded_files = []
+                for key in request.files:
+                    file = request.files[key]
+                    
+                    if file.filename == '':
+                        continue  # Skip empty files
 
-                # Secure the filename and save the file
-                filename = secure_filename(file.filename)
-                
-                UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
-                
-                if not os.path.exists(UPLOAD_FOLDER):
-                    os.makedirs(UPLOAD_FOLDER)
-                
-                file_path = os.path.join(UPLOAD_FOLDER, filename)
-                file.save(file_path)
-                uploaded_files.append((filename, file_path, key))
-                form_data[key] = file_path
-            
-            if not uploaded_files:
-                return {'message': 'No selected files'}, 400
+                    # Secure the filename and save the file
+                    filename = secure_filename(file.filename)
+                    UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
+                    
+                    # Ensure the directory exists
+                    if not os.path.exists(UPLOAD_FOLDER):
+                        os.makedirs(UPLOAD_FOLDER)
+                    
+                    file_path = os.path.join(UPLOAD_FOLDER, filename)
+                    file.save(file_path)
+                    uploaded_files.append((filename, file_path, key))
+                    # Add the file path to form data
+                    form_data[key] = file_path
+            else:
+                uploaded_files = []
 
             # Convert boolean fields from 'true'/'false' to True/False
             for key, value in form_data.items():
@@ -743,27 +742,106 @@ class UploadFileResource(Resource):
                         form_data[key] = False
                 except:
                     pass
-            
-            # form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
-            # Insert records
+
+            # Insert record into the database after processing files and form data
             try:
                 Table_Name = form_data['Table_Name']
-                form_data.pop("Table_Name")
+                form_data.pop("Table_Name")  # Remove Table_Name from form data for DB model
+                
+                # Create and insert the record into the database
                 record = model_class(**form_data)
                 db.session.add(record)
                 db.session.commit()
-                return {'status': 'success',
-                    'message': f'Records inserted into {Table_Name} successfully'}, 201
+                
+                return {'status': 'success', 'message': f'Records inserted into {Table_Name} successfully'}, 201
             except SQLAlchemyError as e:
                 db.session.rollback()
-                return {'status': 'error',
-                    'message': str(e)}, 500
+                return {'status': 'error', 'message': str(e)}, 500
             except Exception as e:
                 db.session.rollback()
-                return {'status': 'error',
-                    'message': str(e)}, 500
+                return {'status': 'error', 'message': str(e)}, 500
+                
         except Exception as e:
             return {'status': 'error', 'message': str(e)}, 500
+
+
+
+
+    # def post(self):
+    #     try:
+    #         ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
+    #         MAIN_UPLOAD_FOLDER = 'uploads\\'
+            
+    #         if not request.files:
+    #             return {'message': 'No file part in the request'}, 400
+
+    #         # Process other form data
+    #         form_data = request.form.to_dict()
+            
+    #         if not form_data.get('Table_Name'):
+    #             return {'status': 'error',
+    #                     'message': "table name required"}, 400
+            
+    #         model_class = get_model_by_tablename(form_data.get('Table_Name'))
+    #         if not model_class:
+    #             return {'status': 'error',
+    #                 'message': f'Table {form_data.get('Table_Name')} does not exist'}, 400
+            
+    #         MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + form_data['Table_Name']
+            
+    #         uploaded_files = []
+    #         for key in request.files:
+                
+    #             file = request.files[key]
+    #             if file.filename == '':
+    #                 continue
+
+    #             # Secure the filename and save the file
+    #             filename = secure_filename(file.filename)
+                
+    #             UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + '\\' + key
+                
+    #             if not os.path.exists(UPLOAD_FOLDER):
+    #                 os.makedirs(UPLOAD_FOLDER)
+                
+    #             file_path = os.path.join(UPLOAD_FOLDER, filename)
+    #             file.save(file_path)
+    #             uploaded_files.append((filename, file_path, key))
+    #             form_data[key] = file_path
+            
+    #         if not uploaded_files:
+    #             return {'message': 'No selected files'}, 400
+
+    #         # Convert boolean fields from 'true'/'false' to True/False
+    #         for key, value in form_data.items():
+    #             try:
+    #                 if value.lower() == 'true':
+    #                     form_data[key] = True
+    #                 elif value.lower() == 'false':
+    #                     form_data[key] = False
+    #             except:
+    #                 pass
+            
+    #         # form_data['CreatedDate'] = datetime.utcnow()  # Add CreatedDate column
+    #         # Insert records
+    #         try:
+    #             Table_Name = form_data['Table_Name']
+    #             form_data.pop("Table_Name")
+    #             record = model_class(**form_data)
+    #             db.session.add(record)
+    #             db.session.commit()
+    #             return {'status': 'success',
+    #                 'message': f'Records inserted into {Table_Name} successfully'}, 201
+    #         except SQLAlchemyError as e:
+    #             db.session.rollback()
+    #             return {'status': 'error',
+    #                 'message': str(e)}, 500
+    #         except Exception as e:
+    #             db.session.rollback()
+    #             return {'status': 'error',
+    #                 'message': str(e)}, 500
+    #     except Exception as e:
+    #         return {'status': 'error', 'message': str(e)}, 500
 
     def put(self, id):
         

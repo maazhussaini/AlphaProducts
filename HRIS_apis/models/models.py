@@ -4729,7 +4729,7 @@ class EmployeeRequisition(db.Model):
     CreatedBy = db.Column(db.Integer, nullable=True)
     CreatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     UpdatedBy = db.Column(db.Integer, nullable=True)
-    UpdatedDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
     InActive = db.Column(db.Boolean, default=False, nullable=False)
 
 
