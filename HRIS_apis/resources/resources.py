@@ -5352,6 +5352,19 @@ class EmployeeCreationResource(Resource):
                     # Step 5: Handle foreign key relationships based on previously inserted IDs
                     self.apply_foreign_keys(table_name, record_fields, inserted_ids)
 
+                    if table_name == "StaffInfo":
+                        max_barcode_id = db.session.query(db.func.max(model_class.BarcodeId)).scalar()
+                        logging.info(f"max_barcode_id: {max_barcode_id} for new StaffInfo record")
+                        if max_barcode_id is None:
+                            new_barcode_id = 1  # If the table is empty, start from 1
+                        else:
+                            new_barcode_id = int(max_barcode_id) + 1  # Otherwise, increment by 1
+
+                        # Add BarcodeId to the record_fields before inserting
+                        record_fields['BarcodeId'] = str(new_barcode_id)  # Ensure BarcodeId is a string
+                        logging.info(f"Assigned BarcodeId: {record_fields['BarcodeId']} for new StaffInfo record")
+
+
                     # Step 6: Try inserting the record into the table
                     try:
                         record = model_class(**record_fields)
@@ -5359,9 +5372,9 @@ class EmployeeCreationResource(Resource):
                         db.session.commit()
 
                         # Step 7: Capture the inserted record's ID for future foreign key relationships
-                        if table_name == "StaffInfo":
-                            inserted_ids[table_name] = record.Staff_ID
-                            
+                        if table_name == "StaffInfo":                            
+                            inserted_ids[table_name] = record.Staff_ID   
+
                             # Updating EmpId in StaffInfo
                             record = db.session.query(model_class).filter_by(Staff_ID=record.Staff_ID).first()
                             setattr(record, "EmpId", record.Staff_ID)
