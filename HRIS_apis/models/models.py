@@ -1665,7 +1665,9 @@ class StaffProbation_HR(db.Model):
     FromDate = db.Column(db.DateTime, nullable=True)
     ToDate = db.Column(db.DateTime, nullable=True)
     CreatorId = db.Column(db.Integer, nullable=True)
+    UpdaterId = db.Column(db.Integer, nullable=True)
     CreateDate = db.Column(db.DateTime, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
     Type = db.Column(db.String(), nullable = True)
 
     def __repr__(self):
@@ -1679,7 +1681,9 @@ class StaffProbation_HR(db.Model):
             'ToDate': self.ToDate.isoformat() if self.ToDate else None,
             'CreatorId': self.CreatorId,
             'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
-            'Type' :  self.Type
+            'Type' :  self.Type,
+            'UpdaterId' : self.UpdaterId,
+            'UpdateDate' : self.UpdateDate
         }
 
 class StaffTransfer(db.Model):
