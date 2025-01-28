@@ -5505,6 +5505,7 @@ class EmployeeCreationResource(Resource):
         if model_class:
             record_field = 'Staff_ID' if table_name == 'StaffInfo' else 'Id'
             record = db.session.query(model_class).filter_by(**{record_field: record_id}).first()
+            print ("Record",record)
             if record:
                 setattr(record, field_name, file_path)
                 db.session.commit()
@@ -5577,7 +5578,7 @@ class EmployeeCreationResource(Resource):
                                 # Remove the key directly after updating if it's not 'StaffCnic'
                                 if table_name != 'StaffCnic':
                                     del updated_ids[key]
-                                # break  # Exit after finding the first match for efficiency
+                                #break  # Exit after finding the first match for efficiency
                             except Exception as e:
                                 db.session.rollback()
                                 logging.error(f"File association error for {table_name}: {str(e)}")
@@ -6992,6 +6993,76 @@ class DocumentsUploader(Resource):
 
         # Return the path of the processed file for the given key
         return file_data[key]['path']
+
+class ChangePasswordPostResource(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Ensure that the 'data' key exists
+        change_password_data = data.get('data')
+        if not change_password_data:
+            return {'status': 'error', 'message': 'Data is required'}, 400
+
+        # Validate that the data is a list with exactly one dictionary
+        if not isinstance(change_password_data, list) or len(change_password_data) != 1 or not isinstance(change_password_data[0], dict):
+            return {'status': 'error', 'message': 'Data should be a list with exactly one dictionary'}, 400
+
+        # Extract the data for the user to update
+        item = change_password_data[0]
+        userid = item.get('userid')
+        old_password = item.get('oldPassword')
+        new_password = item.get('newPassword')
+
+        # Validate presence of necessary fields
+        if not userid or not old_password or not new_password:
+            return {'status': 'error', 'message': 'userid, oldPassword, and newPassword are required'}, 400
+
+        try:
+            # Retrieve the user from the database
+            user = USERS.query.filter_by(User_Id=userid).first()
+
+            # Check if user exists
+            if not user:
+                return {'status': 'error', 'message': 'User not found'}, 404
+
+            # Encrypt the incoming old password for comparison
+            encrypted_old_password = encrypt(old_password)
+
+            # Check if the encrypted old password matches the stored password
+            if encrypted_old_password != user.Password:
+                # Log failed password change attempt
+                logging.warning(f"Failed password change attempt for user {userid} at {datetime.utcnow()}")
+                return {'status': 'failed', 'message': 'Old password is incorrect'}, 200
+
+            # Encrypt the new password
+            encrypted_new_password = encrypt(new_password)
+
+            # Update the user's password
+            user.Password = encrypted_new_password
+
+            # Commit the transaction to save the updated password
+            db.session.commit()
+
+            # Now insert the change into the ChangePassword_History table
+            # Create a new record for ChangePassword_History
+            history_entry = ChangePassword_History(
+                UserId=userid,
+                OldPassword=encrypted_old_password,  # Encrypt old password before saving
+                NewPassword=encrypted_new_password,  # Encrypt new password before saving
+                Date = datetime.utcnow() + timedelta(hours=5)  # Current time
+            )
+
+            # Add the history entry to the session and commit
+            db.session.add(history_entry)
+            db.session.commit()
+            logging.info(f"Password changed successfully for user {userid} at {datetime.utcnow()}. History updated.")
+
+            return {'status': 'success', 'message': 'Password changed successfully'}, 200
+
+        except Exception as ex:
+            db.session.rollback()
+            logging.error(f"Error: {str(ex)}")
+            return {'status': 'error', 'message': f'Error: {str(ex)}'}, 500
 
 
 
