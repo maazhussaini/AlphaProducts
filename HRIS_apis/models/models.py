@@ -5197,3 +5197,24 @@ class LetterTypes(db.Model):
             'LetterTypes_Name': self.LetterTypes_Name,
             'LetterTypes_Parameters': self.LetterTypes_Parameters
         }
+
+class ChangePassword_History(db.Model):
+    __tablename__ = 'ChangePassword_History'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    UserId = db.Column(db.Integer(), nullable=False)
+    OldPassword = db.Column(db.Text, nullable=False)  
+    NewPassword = db.Column(db.Text, nullable=False)  
+    Date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ChangePassword_History {self.Id}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'UserId': self.UserId,
+            'OldPassword': self.OldPassword,
+            'NewPassword': self.NewPassword,
+            'Date': self.Date
+        }
