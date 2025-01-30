@@ -6702,18 +6702,41 @@ class DocumentsUploader(Resource):
 
                     # Determine staff_id based on which table is being processed
                     staff_id = None
+                    staff_record = None  # This will hold the actual inserted record
+
                     if table == 'StaffEducation' and staff_education:
                         staff_id = staff_education.StaffId
+                        db.session.add(staff_education)
+                        db.session.commit()  # Commit to generate the primary key (Id)
+                        staff_record = staff_education
                     elif table == 'StaffExperience' and staff_experience:
                         staff_id = staff_experience.StaffId
+                        db.session.add(staff_experience)
+                        db.session.commit()  # Commit to generate the primary key (Id)
+                        staff_record = staff_experience
                     elif table == 'StaffOther' and staff_other:
                         staff_id = staff_other.StaffId
+                        db.session.add(staff_other)
+                        db.session.commit()  # Commit to generate the primary key (Id)
+                        staff_record = staff_other
                     elif table == 'StaffCnic' and staff_cnic:
                         staff_id = staff_cnic.StaffId
-                    elif table == 'StaffInfo' and staff_info:  # For StaffInfo
+                        db.session.add(staff_cnic)
+                        db.session.commit()  # Commit to generate the primary key (Id)
+                        staff_record = staff_cnic
+                    elif table == 'StaffInfo' and staff_info:
                         staff_id = staff_info.Staff_ID
+                        staff_record = staff_info
+                        # Skip history tracking for StaffInfo, as per requirement
 
-                    if staff_id:
+                    if staff_record:
+                        # Now get the actual record's primary key (Id) for all other tables except StaffInfo
+                        if table != 'StaffInfo':
+                            record_id = staff_record.Id  # This is the primary key of the inserted record
+                        else:
+                            record_id = staff_record.Staff_ID  # Use Staff_ID for StaffInfo
+
+                        # Process the file and save the file path to the record
                         file_path = self.process_files({file_key: file}, staff_id, table)
 
                         # Assign the file path to the corresponding attribute
@@ -6728,10 +6751,23 @@ class DocumentsUploader(Resource):
                                 staff_cnic.FrontCNICDocumentPath = file_path
                             elif file_key == 'StaffCnic-BackCNICDocumentPath':
                                 staff_cnic.BackCNICDocumentPath = file_path
-                        elif table == 'StaffInfo' and staff_info:  # For StaffInfo Photo
+                        elif table == 'StaffInfo' and staff_info:
                             staff_info.PhotoPath = file_path
+                            # Do not insert history for StaffInfo here, as it's excluded
+
+                        # Insert history record after file is processed (skip for StaffInfo)
+                        if table != 'StaffInfo':
+                            history_record = Employee_Doc_History(
+                                RecordId=record_id,  # Use the actual Id of the inserted record
+                                FilePath=file_path,  # The path to the uploaded file
+                                Type=file_key.split('-')[1],  # The document type (e.g., 'FrontCNIC', 'EducationDocument')
+                                TableName=table,  # The table name (e.g., 'StaffEducation', 'StaffCnic')
+                                CreatedAt=datetime.utcnow() + timedelta(hours=5)  # The timestamp of when the record is created
+                            )
+                            db.session.add(history_record)
                     else:
                         logging.warning(f"StaffId not found for {table}.")
+
 
             # Handle update logic for StaffInfo PhotoPath
             if staff_info:
@@ -6741,17 +6777,17 @@ class DocumentsUploader(Resource):
                     return {'message': 'StaffId is missing in StaffInfo data'}, 400
                 
                 # Try to find the existing StaffInfo record
-                existing_staff_info = StaffInfo.query.filter_by(Staff_ID=staff_info.Staff_ID).first()
+                # existing_staff_info = StaffInfo.query.filter_by(Staff_ID=staff_info.Staff_ID).first()
 
-                if existing_staff_info:
-                    # If the record exists, update the PhotoPath
-                    existing_staff_info.PhotoPath = staff_info.PhotoPath
-                    existing_staff_info.UpdaterId = staff_info.UpdaterId
-                    existing_staff_info.UpdateDate = staff_info.UpdateDate
-                    db.session.commit()
-                    logging.info(f"Updated PhotoPath for StaffId {staff_info.Staff_ID}")
-                else:
-                    logging.warning(f"No existing StaffInfo record found for StaffId {staff_info.Staff_ID}.")
+                # if existing_staff_info:
+                #     # If the record exists, update the PhotoPath
+                #     existing_staff_info.PhotoPath = staff_info.PhotoPath
+                #     existing_staff_info.UpdaterId = staff_info.UpdaterId
+                #     existing_staff_info.UpdateDate = staff_info.UpdateDate
+                #     db.session.commit()
+                #     logging.info(f"Updated PhotoPath for StaffId {staff_info.Staff_ID}")
+                # else:
+                #     logging.warning(f"No existing StaffInfo record found for StaffId {staff_info.Staff_ID}.")
 
                 # Create StaffInfo_File record (including RequestStatus)
                 staff_info_file = StaffInfo_File(
@@ -6762,6 +6798,16 @@ class DocumentsUploader(Resource):
                     PhotoPath=staff_info.PhotoPath  # Ensure PhotoPath from the staff_info object
                 )
                 db.session.add(staff_info_file)
+
+                # # Insert history record for StaffInfo PhotoPath
+                # history_record = Employee_Doc_History(
+                #     RecordId=staff_info.Staff_ID,
+                #     FilePath=staff_info.PhotoPath,
+                #     Type='PhotoPath',  # This is the type of the document
+                #     TableName='StaffInfo',  # The table name
+                #     CreatedAt=datetime.utcnow()
+                # )
+                # db.session.add(history_record)
 
             # Commit all other data to the database if the record exists
             if staff_education:
