@@ -5218,3 +5218,15 @@ class ChangePassword_History(db.Model):
             'NewPassword': self.NewPassword,
             'Date': self.Date
         }
+
+class Employee_Doc_History(db.Model):
+    __tablename__ = 'Employee_Doc_History'
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    RecordId = db.Column(db.Integer, nullable=False)  # Primary key of the inserted record
+    FilePath = db.Column(db.String(255), nullable=True)  # Path to the file
+    Type = db.Column(db.String(100), nullable=False)  # Table name or document type (e.g., front CNIC, back CNIC)
+    TableName = db.Column(db.String(100), nullable=False)  # Name of the table where the record was inserted
+    CreatedAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Timestamp of when the record was logged
+
+    def __repr__(self):
+        return f"<History {self.TableName} {self.RecordId}>"
