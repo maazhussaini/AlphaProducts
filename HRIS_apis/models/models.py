@@ -49,8 +49,8 @@ class USERS(db.Model):
     EMail = db.Column(db.String(250), nullable=True)
     Password = db.Column(db.String(50), nullable=True)
     Status = db.Column(db.Boolean, nullable=False)
-    UserType_Id = db.Column(db.Integer, nullable=True)
-    MobileNo = db.Column(db.String(15), nullable=True)
+    # Add ForeignKey constraint
+    UserType_Id = db.Column(db.Integer, db.ForeignKey('UserType.UserTypeId'), nullable=True)  # This defines the relationship    MobileNo = db.Column(db.String(15), nullable=True)
     Teacher_Id = db.Column(db.Integer, nullable=True)
     UpdaterId = db.Column(db.BigInteger, nullable=True)
     UpdaterIP = db.Column(db.String(20), nullable=True)
@@ -71,6 +71,9 @@ class USERS(db.Model):
 
     # Define the reverse relationship for UserCampus
     USERCAMPUS = db.relationship('UserCampus', back_populates='Users')
+
+        # Define the relationship to UserType
+    user_type = db.relationship('UserType', backref='users', lazy=True)
 
     
     def __repr__(self):
@@ -5230,3 +5233,56 @@ class Employee_Doc_History(db.Model):
 
     def __repr__(self):
         return f"<History {self.TableName} {self.RecordId}>"
+    
+class ForgettPasswordLogs(db.Model):
+    __tablename__ = 'ForgettPasswordLogs'
+
+    LogId = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    UserId = db.Column(db.Integer, nullable=True)
+    UserName = db.Column(db.String(255), nullable=True)
+    RequestDate = db.Column(db.DateTime, nullable=True)
+    RequestType = db.Column(db.String(255), nullable=True)
+    IpAddress = db.Column(db.String(50), nullable=True)
+    CreatorTerminal = db.Column(db.String(255), nullable=True)
+    Status = db.Column(db.String(50), nullable=True)
+    Message = db.Column(db.String(255), nullable=True)
+    Usertype = db.Column(db.String(255), nullable=True)
+
+
+    def __repr__(self):
+        return f"<ForgettPasswordLogs {self.LogId}>"
+
+    def to_dict(self):
+        return {
+            'LogId': self.LogId,
+            'UserId': self.UserId,
+            'UserName': self.UserName,
+            'RequestDate': self.RequestDate.isoformat() if self.RequestDate else None,
+            'RequestType': self.RequestType,
+            'IpAddress': self.IpAddress,
+            'CreatorTerminal': self.CreatorTerminal,
+            'Status': self.Status,
+            'Message': self.Message,
+            'Usertype': self.Usertype
+        }
+
+class ForgotPasswordUsedToken(db.Model):
+    __tablename__ = 'ForgotPasswordUsedToken'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    UserId = db.Column(db.Integer, nullable=True)
+    Token = db.Column(db.Text, nullable=True)
+    Type = db.Column(db.String(255), nullable=True)
+    Date = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<ForgotPasswordUsedToken {self.Id}>"
+
+    def to_dict(self):
+        return {
+            'Id': self.Id,
+            'UserId': self.UserId,
+            'Token': self.Token,
+            'Type': self.Type,
+            'Date': self.Date.isoformat() if self.Date else None
+        }

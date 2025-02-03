@@ -72,3 +72,8 @@ def register_routes(app):
     
     api.add_resource(DocumentsUploader, '/upload')
     api.add_resource(ChangePasswordPostResource, '/ChangePassword')
+    api.add_resource(ForgotPasswordResource, '/ForgotPassword')
+    api.add_resource(ResetPasswordPostResource, '/ResetPassword')
+
+
+    

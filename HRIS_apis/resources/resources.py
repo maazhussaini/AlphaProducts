@@ -25,6 +25,10 @@ from sqlalchemy.sql import text
 from resources.crypto_utils import encrypt, decrypt
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 import ast
+import uuid
+import smtplib
+import random
+from email.mime.text import MIMEText
 
 
 load_dotenv()
@@ -7108,6 +7112,210 @@ class ChangePasswordPostResource(Resource):
         except Exception as ex:
             db.session.rollback()
             logging.error(f"Error: {str(ex)}")
+            return {'status': 'error', 'message': f'Error: {str(ex)}'}, 500
+
+
+class ForgotPasswordResource(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Ensure that the 'data' key exists
+        forgot_password_data = data.get('data')
+        if not forgot_password_data:
+            return {'status': 'failed', 'message': 'Data is required'}, 400
+
+        # Validate that the data is a list with exactly one dictionary
+        if not isinstance(forgot_password_data, list) or len(forgot_password_data) != 1 or not isinstance(forgot_password_data[0], dict):
+            return {'status': 'failed', 'message': 'Data should be a list with exactly one dictionary'}, 400
+
+        # Extract the data for the user
+        item = forgot_password_data[0]
+        email = item.get('username')
+
+        # Validate presence of the email field
+        if not email:
+            return {'status': 'error', 'message': 'Email is required'}, 400
+
+        try:
+            # Encrypt the email to handle potential stored encryption
+            encrypted_email = encrypt(email)
+
+            # Find the user by encrypted email
+            user = db.session.query(USERS).filter_by(Username=encrypted_email).first()
+
+            # Check if user exists
+            if not user:
+                return {'status': 'failed', 'message': 'User not found'}, 404
+
+            email_sent = False
+            user_email = None
+
+            # Handle user types
+            if user.UserType_Id == 7:  # Student ID
+                student_info = db.session.query(StudentInfo).filter_by(UserId=user.User_Id).first()
+                user_email = student_info.EduEmail if student_info else None
+
+            elif user.UserType_Id == 3:  # Parent ID
+                parent_info = db.session.query(StudentInfo).filter_by(ParentUserId=user.User_Id).first()
+                user_email = parent_info.Stu_FatherEmail if parent_info else None
+
+            else:  # Staff or other types
+                staff_info = db.session.query(UserCampus).filter_by(UserId=user.User_Id).first()
+                if staff_info:
+                    staff_email = db.session.query(StaffInfo).filter_by(Staff_ID=staff_info.StaffId).first().S_Email
+                    user_email = staff_email if staff_email else None
+
+            if user_email:
+                email_sent = self.send_password_email(user_email, user.User_Id)
+
+                if email_sent:
+                    self.log_forgot_password_attempt(user.User_Id, "Success", "Email sent successfully")
+                    return {'status': 'success', 'message': 'Email sent successfully', 'email': user_email}, 200
+                else:
+                    self.log_forgot_password_attempt(user.User_Id, "Failed", "Failed to send email")
+                    return {'status': 'error', 'failed': 'Failed to send email'}, 500
+            else:
+                self.log_forgot_password_attempt(user.User_Id, "Failed", "User email not found")
+                return {'status': 'error', 'failed': 'Email not found'}, 404
+
+        except Exception as ex:
+            db.session.rollback()
+            logging.error(f"Error: {str(ex)}")
+            return {'status': 'error', 'failed': f'Error: {str(ex)}'}, 500
+
+    def send_password_email(self, email, user_id):
+        subject = "ALPHA ERP PASSWORD RESET"
+        reset_token = str(uuid.uuid4())  # Generate a unique token
+        current_time = datetime.utcnow() + timedelta(hours=5)  # Adjusting for timezone (UTC +5)
+        expiration_time = current_time + timedelta(minutes=15)  # Adding 15 minutes to the current time
+
+        # Generate 3 random digits before and after the user_id
+        random_prefix = str(random.randint(100, 999))  # 3 random digits before user_id
+        random_suffix = str(random.randint(100, 999))  # 3 random digits after user_id
+        
+        # Combine random numbers with the user_id
+        modified_user_id = f"{random_prefix}{user_id}{random_suffix}"
+
+        #Live URL
+        reset_url = f"http://erp.alpha.edu.pk:86/ForgotPassword/{modified_user_id}?T={reset_token}&E={expiration_time.isoformat()}"
+        # reset_url = f"http://localhost:3033/ForgotPassword/{modified_user_id}?T={reset_token}&E={expiration_time.isoformat()}"
+
+        body = f"Hello,\n\nWe received a request to reset your password. Please click the link below to reset your password:\n\n{reset_url}\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe ALPHA ERP Team"
+
+        try:
+            # Create the MIMEText email message
+            msg = MIMEText(body)
+            msg['Subject'] = subject
+            msg['From'] = "noreply@alpha.edu.pk"
+            msg['To'] = email
+
+            # Sending the email using smtplib
+            with smtplib.SMTP('smtp.office365.com', 587) as smtp:
+                smtp.starttls()  # Secure the connection
+                smtp.login("noreply@alpha.edu.pk", "Alpha123")  # Use correct credentials
+                smtp.send_message(msg)  # Send the email
+
+            return True
+        except Exception as e:
+            logging.error(f"Error sending email: {str(e)}")
+            return False
+
+    def log_forgot_password_attempt(self, user_id, status, message):
+        try:
+            # Fetch the user from the database
+            user = db.session.query(USERS).filter_by(User_Id=user_id).first()
+            name = user.Firstname if user else "Unknown"
+
+            # Log entry including UserTypeName from the relationship
+            log_entry = ForgettPasswordLogs(
+                UserId=user_id,
+                UserName=name,
+                Usertype=user.user_type.UserTypeName if user and user.user_type else "Unknown",  # Access UserTypeName through the relationship
+                RequestDate=datetime.utcnow() + timedelta(hours=5),
+                RequestType="ForgotPasswordHRIS",
+                Status=status,
+                Message=message,
+                IpAddress=request.remote_addr,  # Get the user's IP address
+                CreatorTerminal=request.user_agent.string if request.user_agent else "Unknown"  # Capture the User-Agent string
+            )
+
+            # Optionally, you can log specific parts of the user agent for more detail
+            user_agent = request.user_agent.string if request.user_agent else "Unknown"
+            browser_info = request.user_agent.browser if request.user_agent else "Unknown"
+            platform_info = request.user_agent.platform if request.user_agent else "Unknown"
+
+            # Detailed logging for CreatorTerminal (including browser and platform info)
+            log_entry.CreatorTerminal = f"Browser: {browser_info}, Platform: {platform_info}, Full User-Agent: {user_agent}"
+
+            # Add log entry to the session and commit
+            db.session.add(log_entry)
+            db.session.commit()
+            
+            logging.info(f"Successfully logged forgot password attempt for UserId: {user_id} at {datetime.utcnow()}")
+
+        except Exception as ex:
+            logging.error(f"Error in logging forgot password attempt: {str(ex)}")
+
+
+class ResetPasswordPostResource(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Ensure that the 'data' key exists
+        change_password_data = data.get('data')
+        if not change_password_data:
+            return {'status': 'error', 'message': 'Data is required'}, 400
+
+        # Validate that the data is a list with exactly one dictionary
+        if not isinstance(change_password_data, list) or len(change_password_data) != 1 or not isinstance(change_password_data[0], dict):
+            return {'status': 'error', 'message': 'Data should be a list with exactly one dictionary'}, 400
+
+        # Extract the data for the user to update
+        item = change_password_data[0]
+        userid = item.get('userid')
+        Token = item.get('token')
+        new_password = item.get('Password')
+
+        # Validate presence of necessary fields
+        if not userid or not new_password:
+            return {'status': 'error', 'message': 'userid and newPassword are required'}, 400
+
+        # Remove the 3 random digits before and after the user_id (assuming the length of the random digits is always 3)
+        original_userid = userid[3:-3]  # Remove the first 3 digits and last 3 digits
+
+        try:
+            user = USERS.query.filter_by(User_Id=original_userid).first()
+
+            # Check if user exists
+            if not user:
+                return {'status': 'error', 'message': 'User not found'}, 404
+
+            # Encrypt the new password
+            encrypted_new_password = encrypt(new_password)
+
+            # Update the user's password
+            user.Password = encrypted_new_password
+            logging.info(f"Received UserId: {original_userid}, Token: {Token} at {datetime.utcnow()}")
+
+            Token_entry = ForgotPasswordUsedToken(
+                UserId=original_userid,
+                Token=Token,
+                Type="HRIS",
+                Date=datetime.utcnow() + timedelta(hours=5)  # Current time
+            )
+            logging.info(f"Token_entry created: {Token_entry} at {datetime.utcnow()}")  # Add the history entry to the session and commit
+            db.session.add(Token_entry)
+
+            # Commit the transaction to save the updated password
+            db.session.commit()
+
+            logging.info(f"Password changed successfully for user {original_userid} at {datetime.utcnow()}")
+
+            return {'status': 'success', 'message': 'Password changed successfully'}, 200
+
+        except Exception as ex:
+            db.session.rollback()
+            logging.error(f"ErrorReset: {str(ex)}")
             return {'status': 'error', 'message': f'Error: {str(ex)}'}, 500
 
 
