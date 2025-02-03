@@ -5357,16 +5357,42 @@ class EmployeeCreationResource(Resource):
                     self.apply_foreign_keys(table_name, record_fields, inserted_ids)
 
                     if table_name == "StaffInfo":
-                        max_barcode_id = db.session.query(db.func.max(model_class.BarcodeId)).scalar()
-                        logging.info(f"max_barcode_id: {max_barcode_id} for new StaffInfo record")
-                        if max_barcode_id is None:
-                            new_barcode_id = 1  # If the table is empty, start from 1
-                        else:
-                            new_barcode_id = int(max_barcode_id) + 1  # Otherwise, increment by 1
+                        # Check if the S_CNIC exists in the StaffInfo table
+                        existing_record = db.session.query(model_class).filter_by(S_CNIC=record_fields.get('S_CNIC')).first()
 
-                        # Add BarcodeId to the record_fields before inserting
-                        record_fields['BarcodeId'] = str(new_barcode_id)  # Ensure BarcodeId is a string
-                        logging.info(f"Assigned BarcodeId: {record_fields['BarcodeId']} for new StaffInfo record")
+                        if existing_record:
+                            # Determine active or inactive status based on the 'inactive' property
+                            status = "Active" if existing_record.IsActive == 1 else "Inactive"
+                            campus = existing_record.CampusId
+                            campus_record = db.session.query(Campus).filter_by(Id=campus).first()  # Assuming 'id' is the column name in Campus table
+                            if campus_record:
+                                campus_name = campus_record.Name  # Assuming 'name' is the column storing the campus name
+                            else:
+                                campus_name = "Unknown"
+
+                            EmployeeCode = existing_record.Staff_ID
+
+                            # Construct the professional message
+                            message = (f"A record with CNIC {record_fields.get('S_CNIC')} already exists at the {campus_name} campus with the EmployeeCode {EmployeeCode}. The record is currently {status}.")
+                            
+                            # Log the message
+                            logging.info(message)
+                            
+                            # Return a structured response
+                            return {'status': 'failed', 'message': message}, 200
+                        else:
+                            # Proceed with barcode generation and insertion if the record doesn't exist
+                            max_barcode_id = db.session.query(db.func.max(model_class.BarcodeId)).scalar()
+                            logging.info(f"max_barcode_id: {max_barcode_id} for new StaffInfo record")
+                            
+                            if max_barcode_id is None:
+                                new_barcode_id = 1  # If the table is empty, start from 1
+                            else:
+                                new_barcode_id = int(max_barcode_id) + 1  # Otherwise, increment by 1
+
+                            # Add BarcodeId to the record_fields before inserting
+                            record_fields['BarcodeId'] = str(new_barcode_id)  # Ensure BarcodeId is a string
+                            logging.info(f"Assigned BarcodeId: {record_fields['BarcodeId']} for new StaffInfo record")
 
 
                     # Step 6: Try inserting the record into the table

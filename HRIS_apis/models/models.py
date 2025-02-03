@@ -51,6 +51,7 @@ class USERS(db.Model):
     Status = db.Column(db.Boolean, nullable=False)
     # Add ForeignKey constraint
     UserType_Id = db.Column(db.Integer, db.ForeignKey('UserType.UserTypeId'), nullable=True)  # This defines the relationship    MobileNo = db.Column(db.String(15), nullable=True)
+    MobileNo = db.Column(db.String, nullable=True)
     Teacher_Id = db.Column(db.Integer, nullable=True)
     UpdaterId = db.Column(db.BigInteger, nullable=True)
     UpdaterIP = db.Column(db.String(20), nullable=True)
