@@ -7202,7 +7202,7 @@ class ForgotPasswordResource(Resource):
                     return {'status': 'error', 'failed': 'Failed to send email'}, 500
             else:
                 self.log_forgot_password_attempt(user.User_Id, "Failed", "User email not found")
-                return {'status': 'error', 'failed': 'Email not found'}, 404
+                return {'status': 'failed', 'message': 'Email not found'}, 200
 
         except Exception as ex:
             db.session.rollback()
