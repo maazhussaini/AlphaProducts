@@ -5568,31 +5568,49 @@ class EmployeeCreationResource(Resource):
                         if record_id:
                             existing_record = self._fetch_existing_record(model_class, table_name, record_id)
                             if existing_record:
+                                # Handle EducationDocumentPath
+                                if 'EducationDocumentPath' in record_fields:
+                                    setattr(existing_record, 'EducationDocumentPath', record_fields['EducationDocumentPath'])
+                                
+                                # Handle ExperienceDocumentPath
+                                if 'ExperienceDocumentPath' in record_fields:
+                                    setattr(existing_record, 'ExperienceDocumentPath', record_fields['ExperienceDocumentPath'])
+                                
+                                # Handle OtherDocumentPath
+                                if 'OtherDocumentPath' in record_fields:
+                                    setattr(existing_record, 'OtherDocumentPath', record_fields['OtherDocumentPath'])
+                                    
                                 self._update_record(existing_record, record_fields)
-                                updated_ids[f"{table_name}_{record_id}"] = record_id  # Store with composite key
+                                updated_ids[f"{table_name}_{record_id}"] = record_id
                             else:
-                                return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
+                                # If no record is found, create a new record
+                                logging.warning(f"No existing record found with ID {record_id}. Creating a new record.")
+                                new_record = model_class(**record_fields)
+                                db.session.add(new_record)
+                                db.session.commit()  # Commit here to get the ID for the new record
+                                new_record_id = getattr(new_record, 'Id', None)
+                                updated_ids[f"{table_name}_{new_record_id}"] = new_record_id
+
                         else:
                             new_record = model_class(**record_fields)
                             db.session.add(new_record)
                             db.session.commit()  # Commit here to get the ID for the new record
                             new_record_id = getattr(new_record, 'Id', None)
-                            updated_ids[f"{table_name}_{new_record_id}"] = new_record_id  # Store with composite key
+                            updated_ids[f"{table_name}_{new_record_id}"] = new_record_id
+
                 else:
                     record_id = fields[0].get('User_Id')
-                    logging.info(f"Table: {table_name}, record_id: {record_id}")
                     existing_record = db.session.query(model_class).filter_by(User_Id=record_id).first()
                     if existing_record:
                         for key, value in record_fields.items():
                             setattr(existing_record, key, value)
                         logging.info(f"Updated {table_name} record with ID {existing_record.User_Id}")
                     else:
-                        logging.warning(f"Record with ID {record_id} not found in {table_name} for update.")
                         return {'status': 'error', 'message': f'Record with ID {record_id} not found in {table_name}'}, 404
 
-            db.session.commit()  # Final commit after all updates for this table
+                db.session.commit()  # Final commit after all updates for this table
 
-           # Step 5: Process file uploads if available
+            # Step 5: Process file uploads if available
             if request.files:
                 file_data = self.process_files(request.files)
 
@@ -5604,11 +5622,13 @@ class EmployeeCreationResource(Resource):
                     for key, record_id in list(updated_ids.items()):  # Use list() to iterate safely while removing items
                         if table_name in key:
                             try:
-                                self.update_file_path(table_name, record_id, field_name, file_path)
-                                # Remove the key directly after updating if it's not 'StaffCnic'
+                                # Update file path for 'StaffInfo' or 'StaffCnic'
+                                if table_name == 'StaffInfo' or table_name == 'StaffCnic':
+                                    self.update_file_path(table_name, record_id, field_name, file_path)
+
+                                # If it's not 'StaffCnic', remove the key directly after updating
                                 if table_name != 'StaffCnic':
                                     del updated_ids[key]
-                                #break  # Exit after finding the first match for efficiency
                             except Exception as e:
                                 db.session.rollback()
                                 logging.error(f"File association error for {table_name}: {str(e)}")
@@ -5621,6 +5641,11 @@ class EmployeeCreationResource(Resource):
             db.session.rollback()
             logging.error(f"Unexpected error in processing request: {str(e)}")
             return {'status': 'error', 'message': str(e)}, 500
+
+
+
+
+
 
     def _parse_fields(self, fields):
         """Helper to parse and clean JSON fields, removing 'Filename' key if present."""
