@@ -1491,6 +1491,7 @@ class StaffInfo(db.Model):
     IsMonthlyScheduleUpdate = db.Column(db.Boolean, nullable=True)
     IsLateExempted = db.Column(db.Boolean, nullable=False)
     IsNoDeduction = db.Column(db.Boolean, nullable=True)
+    IsQueryDelegated = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
         return f"<StaffInfo Id={self.Staff_ID}, Name={self.S_Name}>"
@@ -1582,7 +1583,8 @@ class StaffInfo(db.Model):
             'ShiftType': self.ShiftType,
             'IsMonthlyScheduleUpdate': self.IsMonthlyScheduleUpdate,
             'IsLateExempted': self.IsLateExempted,
-            'IsNoDeduction' : self.IsNoDeduction
+            'IsNoDeduction' : self.IsNoDeduction,
+            'IsQueryDelegated' : self.IsQueryDelegated
         }
 
 class StaffDepartments(db.Model):
