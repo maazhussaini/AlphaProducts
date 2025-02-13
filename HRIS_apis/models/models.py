@@ -2623,44 +2623,7 @@ class ShiftSchedules(db.Model):
             'UpdatedByUserId': self.UpdatedByUserId
         }
 
-class ShiftMonthlySchedules(db.Model):
-    __tablename__ = 'ShiftMonthlySchedules'
 
-    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ShiftId = db.Column(db.Integer, nullable=False)
-    ScheduleDate = db.Column(db.DateTime, nullable=False)
-    TimeIn = db.Column(db.Time, nullable=False)
-    TimeOut = db.Column(db.Time, nullable=False)
-    ScheduleStatus = db.Column(db.Integer, nullable=False)
-    CampusId = db.Column(db.Integer, nullable=True)
-    CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
-    CreatorId = db.Column(db.Integer, nullable=True)
-    UpdateDate = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow)
-    UpdatorId = db.Column(db.Integer, nullable=True)
-    MonthId = db.Column(db.Integer, nullable=True)
-    CopiedDate = db.Column(db.DateTime, nullable=True)
-    CopiedId = db.Column(db.Integer, nullable=True)
-
-    def __repr__(self):
-        return f"<ShiftMonthlySchedule Id={self.Id}, ShiftId={self.ShiftId}, ScheduleDate={self.ScheduleDate}>"
-
-    def to_dict(self):
-        return {
-            'Id': self.Id,
-            'ShiftId': self.ShiftId,
-            'ScheduleDate': self.ScheduleDate,
-            'TimeIn': self.TimeIn,
-            'TimeOut': self.TimeOut,
-            'ScheduleStatus': self.ScheduleStatus,
-            'CampusId': self.CampusId,
-            'CreateDate': self.CreateDate,
-            'CreatorId': self.CreatorId,
-            'UpdateDate': self.UpdateDate,
-            'UpdatorId': self.UpdatorId,
-            'MonthId': self.MonthId,
-            'CopiedDate': self.CopiedDate,
-            'CopiedId': self.CopiedId
-        }
 
 
 # ------- LEAVE -------
@@ -2739,6 +2702,7 @@ class StaffLeaveRequest(db.Model):
     CreateDate = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     CampusId = db.Column(db.Integer, nullable=True)
     LeaveTypeId = db.Column(db.Integer, nullable=True)
+    Holiday_Date = db.Column(db.DateTime, nullable=True)
     # BirthDate = db.Column (db.Date,nullable=True)
     # ExpectedDelievery_Date = db.Column(db.Date, nullable=True)
 
@@ -2768,6 +2732,7 @@ class StaffLeaveRequest(db.Model):
             'CreateDate': self.CreateDate,
             'CampusId': self.CampusId,
             'LeaveTypeId': self.LeaveTypeId,
+            'Holiday_Date': self.Holiday_Date
             # 'BirthDate': self.BirthDate,
             # 'ExpectedDelievery_Date': self.ExpectedDelievery_Date
         }
