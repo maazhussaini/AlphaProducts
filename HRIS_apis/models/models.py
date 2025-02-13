@@ -5289,3 +5289,42 @@ class ForgotPasswordUsedToken(db.Model):
             'Type': self.Type,
             'Date': self.Date.isoformat() if self.Date else None
         }
+        
+class ShiftMonthlySchedule(db.Model):
+    __tablename__ = 'ShiftMonthlySchedules'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ShiftId = db.Column(db.Integer, nullable=False)
+    ScheduleDate = db.Column(db.DateTime, nullable=False)
+    TimeIn = db.Column(db.Time, nullable=False)
+    TimeOut = db.Column(db.Time, nullable=False)
+    ScheduleStatus = db.Column(db.Integer, nullable=False)
+    CampusId = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatorId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdatorId = db.Column(db.Integer, nullable=True)
+    MonthId = db.Column(db.Integer, nullable=True)
+    CopiedDate = db.Column(db.DateTime, nullable=True)
+    CopiedId = db.Column(db.Integer, nullable=True)
+    
+    def __repr__(self):
+        return f"<ShiftMonthlySchedules {self.Id}>"
+
+    def to_dict(self):
+        return {
+            "Id": self.Id,
+            "ShiftId": self.ShiftId,
+            "ScheduleDate": self.ScheduleDate.strftime('%Y-%m-%d %H:%M:%S') if self.ScheduleDate else None,
+            "TimeIn": self.TimeIn.strftime('%H:%M:%S') if self.TimeIn else None,
+            "TimeOut": self.TimeOut.strftime('%H:%M:%S') if self.TimeOut else None,
+            "ScheduleStatus": self.ScheduleStatus,
+            "CampusId": self.CampusId,
+            "CreateDate": self.CreateDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreateDate else None,
+            "CreatorId": self.CreatorId,
+            "UpdateDate": self.UpdateDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdateDate else None,
+            "UpdatorId": self.UpdatorId,
+            "MonthId": self.MonthId,
+            "CopiedDate": self.CopiedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CopiedDate else None,
+            "CopiedId": self.CopiedId
+        }
