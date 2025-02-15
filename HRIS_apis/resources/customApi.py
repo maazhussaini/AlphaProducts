@@ -108,7 +108,8 @@ class CallProcedureResourceLeave(Resource):
             'FromDate': request.form.get('parameters[FromDate]'),
             'ToDate': request.form.get('parameters[ToDate]'),
             'Reason': request.form.get('parameters[Reason]'),
-            'CampusId': request.form.get('parameters[CampusId]')
+            'CampusId': request.form.get('parameters[CampusId]'),
+            'Holiday_Date': request.form.get('parameters[Holiday_Date]')
         }
 
         logging.info(f"Parameters: {parameters}")
@@ -212,6 +213,7 @@ class CallProcedureResourceLeave(Resource):
             'FromDate': request.form.get('parameters[FromDate]'),
             'ToDate': request.form.get('parameters[ToDate]'),
             'Reason': request.form.get('parameters[Reason]'),
+            'Holiday_Date': request.form.get('parameters[Holiday_Date]'),
             'Id': leave_id
         }
 
