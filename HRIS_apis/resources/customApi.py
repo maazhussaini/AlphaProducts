@@ -111,11 +111,15 @@ class CallProcedureResourceLeave(Resource):
             'CampusId': request.form.get('parameters[CampusId]'),
             'Holiday_Date': request.form.get('parameters[Holiday_Date]')
         }
-
-        logging.info(f"Parameters: {parameters}")
+        
+        # Convert 'null' string to None (NULL in SQL)
+        if parameters['Holiday_Date'] == 'null':
+            parameters['Holiday_Date'] = None
 
         if not procedure_name:
             return {'error': 'Procedure name is required'}, 400
+        
+        logging.info(f"Parameters: {parameters}")
 
         param_values = tuple(parameters.values())
         call_procedure_query = f"EXEC {procedure_name} {', '.join(['?'] * len(parameters))};"
@@ -216,9 +220,12 @@ class CallProcedureResourceLeave(Resource):
             'Holiday_Date': request.form.get('parameters[Holiday_Date]'),
             'Id': leave_id
         }
-
+        # Convert 'null' string to None (NULL in SQL)
+        if parameters['Holiday_Date'] == 'null':
+            parameters['Holiday_Date'] = None
+            
         logging.info(f"Parameters: {parameters}")
-
+        
         if not procedure_name or not leave_id:
             return {'error': 'Procedure name and leave ID are required'}, 400
 
