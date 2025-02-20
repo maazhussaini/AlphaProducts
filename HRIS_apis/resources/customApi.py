@@ -578,6 +578,43 @@ class DynamicUpdateResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'status': 'error', 'message': str(e)}, 500
+        
+class DynamicDeleteResource(Resource):
+    def delete(self):
+        print(request.headers)  # Log the request headers
+        print(request.data)  # Log the raw data from the request
+
+        data = request.get_json()
+        if data is None:
+            return {'status': 'error', 'message': 'Invalid JSON format'}, 400
+        
+        table_name = data.get('Table_Name')
+        primary_key_value = data.get('Primary_Key_Value')
+
+        if not table_name or not primary_key_value:
+            return {'status': 'error', 'message': 'Table_Name and Primary_Key_Value are required'}, 400
+
+        # Get the model class based on the table name
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+        # Try to find the record by primary key
+        try:
+            record_to_delete = model_class.query.get(primary_key_value)
+            if not record_to_delete:
+                return {'status': 'error', 'message': f'Record with primary key {primary_key_value} not found in {table_name}'}, 404
+
+            db.session.delete(record_to_delete)
+            db.session.commit()
+            return {'status': 'success', 'message': f'Record with primary key {primary_key_value} deleted from {table_name} successfully'}, 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+
 
 class DynamicInsertOrUpdateResource(Resource):
     def post(self):
@@ -656,38 +693,6 @@ class DynamicInsertOrUpdateResource(Resource):
                 'status': 'success',
                 'message': f'{len(inserted_records)} records inserted, {len(updated_records)} records updated in {table_name} successfully'
             }, 201
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
-        except Exception as e:
-            db.session.rollback()
-            return {'status': 'error',
-                'message': str(e)}, 500
-
-class DynamicDeleteResource(Resource):
-    def delete(self, id):
-        data = request.get_json()
-        table_name = data.get('Table_Name')
-        
-        if not table_name:
-            return {'status': 'error',
-                'message': 'Table Name are required'}, 400
-
-        # Get the model class based on the table name
-        model_class = get_model_by_tablename(table_name)
-        if not model_class:
-            return {'status': 'error',
-                'message': f'Table {table_name} does not exist'}, 400
-        
-        try:
-            record = db.session.query(model_class).get(id)
-            record.InActive = 1
-            
-            db.session.commit()
-            return {'status': 'error',
-                'message': 'StaffPromotions deleted successfully'}, 200
-    
         except SQLAlchemyError as e:
             db.session.rollback()
             return {'status': 'error',

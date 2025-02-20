@@ -3,6 +3,7 @@ from flask_restful import Resource
 from flask_jwt_extended import create_access_token
 from flask import request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 from app import db
 from resources.crypto_utils import encrypt
 from datetime import timedelta  # Import timedelta
@@ -88,7 +89,16 @@ class UserLoginResource(Resource):
 
             firstName = user.Firstname if user.Firstname else ''
             lastName = user.Lastname if user.Lastname else ''
-            
+            dob = staffInfo.S_DoB
+            if dob:
+                today = datetime.today()
+
+                # Check if the birth year is in the future, and handle accordingly
+                if dob > today:
+                    age = 0  # If the birthday is in the future, the person has not been born yet
+                else:
+                    # Calculate the age normally
+                    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
             user_details = {
                 'accessToken': access_token,
                 'user': {
@@ -96,6 +106,7 @@ class UserLoginResource(Resource):
                     'username':username,
                     'Staff_ID':staffInfo.Staff_ID,
                     'displayName': firstName + " " + lastName,
+                    'CNIC':staffInfo.S_CNIC,
                     'email': user.EMail,
                     'PersonalEmail':staffInfo.S_Email,
                     'campusId': user.CampusId,
@@ -108,6 +119,7 @@ class UserLoginResource(Resource):
                     'country': countryName,
                     'isPublic': True,
                     'address': staffInfo.PresentAddress if staffInfo else None,
+                    'Age': age,
                     'phoneNumber': staffInfo.S_ContactNo,
                     "photoURL": staffInfo.PhotoPath if staffInfo else None,
                     'rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
