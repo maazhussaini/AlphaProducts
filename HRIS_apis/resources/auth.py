@@ -9,7 +9,7 @@ from resources.crypto_utils import encrypt
 from datetime import timedelta  # Import timedelta
 from models.models import (Campus,USERS, UserCampus, StaffInfo, Roles, LNK_USER_ROLE, FormDetails, 
                            FormDetailPermissions, Form, SchoolDetails, AcademicYear, UserType, 
-                           StudentInfo, country, cities)
+                           StudentInfo, country, cities,StaffDesignation,StaffEducation,StaffExperience,StaffOther,StaffCnic)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -89,6 +89,34 @@ class UserLoginResource(Resource):
 
             firstName = user.Firstname if user.Firstname else ''
             lastName = user.Lastname if user.Lastname else ''
+            
+            # Fetch StaffEducation data
+            education_info = db.session.query(StaffEducation) \
+                .filter(StaffEducation.StaffId == staffInfo.Staff_ID) \
+                .order_by(StaffEducation.Year.desc())
+                
+            # Fetch the record with the maximum year
+            max_year_record = education_info.first()  
+
+            # If the maximum year is NULL, handle it and set the result as "Unknown"
+            if max_year_record and max_year_record.Year is not None:
+                # If the year is available, fetch the FieldName
+                field_name = max_year_record.FieldName if max_year_record.FieldName not in (None, 0) else None
+            else:
+                field_name = "Unknown"
+
+            # If the field name is None (0 or null), select the first available record with valid FieldName
+            if field_name is None:
+                # If no valid field name exists, find the first valid field name with a non-zero, non-null value
+                valid_education_record = education_info.filter(StaffEducation.FieldName.notin_([None, 0])).first()
+                field_name = valid_education_record.FieldName if valid_education_record else "Unknown"
+                
+            designation_info = db.session.query(StaffDesignation) \
+                .filter(StaffDesignation.Designation_ID == staffInfo.Designation_ID) \
+                .first()
+
+            # Fetch the Designation_Name from the result
+            designation_name = designation_info.Designation_Name if designation_info else "Unknown"
             dob = staffInfo.S_DoB
             if dob:
                 today = datetime.today()
@@ -99,6 +127,57 @@ class UserLoginResource(Resource):
                 else:
                     # Calculate the age normally
                     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+            
+            staff_experience = db.session.query(StaffExperience) \
+                .filter(StaffExperience.StaffId == staffInfo.Staff_ID,StaffExperience.RequestStatus.in_([1, 0])).all()
+            
+                        # Fetch StaffEducation data
+            staff_education = db.session.query(StaffEducation) \
+                .filter(StaffEducation.StaffId == staffInfo.Staff_ID, StaffEducation.RequestStatus.in_([1, 0])).all()
+            # Fetch StaffOther data
+            staff_other = db.session.query(StaffOther) \
+                .filter(StaffOther.StaffId == staffInfo.Staff_ID,StaffOther.RequestStatus.in_([1, 0])).all()
+
+            # Fetch StaffCnic data
+            staff_cnic = db.session.query(StaffCnic) \
+                .filter(StaffCnic.StaffId == staffInfo.Staff_ID,StaffCnic.RequestStatusBack.in_([1, 0]),StaffCnic.RequestStatus.in_([1, 0])).first()
+
+                        # Format the results
+            staff_cnic_data = {
+                'FrontCNICDocumentPath': staff_cnic.FrontCNICDocumentPath if staff_cnic else None,
+                'BackCNICDocumentPath': staff_cnic.BackCNICDocumentPath if staff_cnic else None,
+            }
+
+            education_data = [
+                {
+                    'FieldName': edu.FieldName,
+                    'Institution': edu.Institution,
+                    'Year': edu.Year,
+                    'Grade': edu.Grade,
+                    'EducationDocumentPath': edu.EducationDocumentPath
+                } for edu in staff_education
+            ]
+
+            experience_data = [
+                {
+                    'CompanyName': exp.CompanyName,
+                    'Position': exp.Position,
+                    'StartDate': exp.StartDate.strftime('%Y-%m-%d %H:%M:%S') if exp.StartDate else None,
+                    'EndDate': exp.EndDate.strftime('%Y-%m-%d %H:%M:%S') if exp.EndDate else None,
+                    'Salary': exp.Salary,
+                    'ExperienceDocumentPath':exp.ExperienceDocumentPath
+                } for exp in staff_experience
+            ]
+
+            other_data = [
+                {
+                    'Title': other.Title,
+                    'Description': other.Description,
+                    'OtherDocumentPath': other.OtherDocumentPath
+                } for other in staff_other
+            ]
+            
+            
             user_details = {
                 'accessToken': access_token,
                 'user': {
@@ -108,6 +187,8 @@ class UserLoginResource(Resource):
                     'displayName': firstName + " " + lastName,
                     'CNIC':staffInfo.S_CNIC,
                     'email': user.EMail,
+                    'Designation': designation_name,
+                    'Qualification': field_name,
                     'PersonalEmail':staffInfo.S_Email,
                     'campusId': user.CampusId,
                     'Campus': campus.Name if campus else None,
@@ -125,7 +206,11 @@ class UserLoginResource(Resource):
                     'rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
                     "schoolDetails": [],
                     "currentAcademicYear": [],
-                    "studentCount": 0
+                    "studentCount": 0,
+                    'cnicInfo': staff_cnic_data,
+                    'educationInfo': education_data,
+                    'experienceInfo': experience_data,
+                    'otherInfo': other_data
                 }
             }
 
