@@ -5293,3 +5293,24 @@ class ShiftMonthlySchedule(db.Model):
             "CopiedDate": self.CopiedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CopiedDate else None,
             "CopiedId": self.CopiedId
         }
+        
+class StaffInfo_Visiting(db.Model):
+    __tablename__ = 'StaffInfo_Visiting'
+
+    Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    VisitingStaffId = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=True)
+    CreatedDate = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<StaffInfo_Visiting {self.Id}>"
+    
+    def to_dict(self):
+        return {
+            "Id": self.Id,
+            "VisitingStaffId": self.VisitingStaffId,
+            "CampusId": self.CampusId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CopiedDate else None,
+        }
