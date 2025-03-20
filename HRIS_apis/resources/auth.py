@@ -193,6 +193,7 @@ class UserLoginResource(Resource):
                     'campusId': user.CampusId,
                     'Campus': campus.Name if campus else None,
                     'userType': user_type.UserTypeName if user_type else 'Unknown',
+                    'UserType_Id': user.UserType_Id,
                     'IsPermanent': True if staffInfo.IsPermanent == 1 else False,
                     'S_Gender':staffInfo.S_Gender,
                     'roles': [role.RoleName for role in user_roles],

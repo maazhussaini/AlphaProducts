@@ -4,6 +4,7 @@ import re
 from exceptions import ValidationError
 import json
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import BigInteger
 
 Base = declarative_base()
 
@@ -5313,4 +5314,214 @@ class StaffInfo_Visiting(db.Model):
             "CampusId": self.CampusId,
             "CreatedBy": self.CreatedBy,
             "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CopiedDate else None,
+        }
+        
+class StudentSubmissions_JotForm(db.Model):
+    __tablename__ = 'StudentSubmissions_JotForm'
+
+    SubmissionID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SubmissionDate = db.Column(db.DateTime, nullable=True)
+    FullName = db.Column(db.String(255), nullable=True)
+    Gender = db.Column(db.String(10), nullable=True)
+    Private = db.Column(db.Boolean, nullable=True)
+    IfPrivate = db.Column(db.String(500), nullable=True)
+    LevelStudied = db.Column(db.String(100), nullable=True)
+    NameOfCurrentSchool = db.Column(db.String(255), nullable=True)
+    NameOfCurrentSchoolOther = db.Column(db.String(255), nullable=True)
+    BirthDate = db.Column(db.Date, nullable=True)
+    Religion = db.Column(db.String(100), nullable=True)
+    Nationality = db.Column(db.String(100), nullable=True)
+    CNIC_BFormNumber = db.Column(db.String(50), nullable=True)
+    Country = db.Column(db.String(100), nullable=True)
+    PassportNumber = db.Column(db.String(50), nullable=True)
+    Address = db.Column(db.String(255), nullable=True)
+    Region = db.Column(db.String(100), nullable=True)
+    Other = db.Column(db.String(255), nullable=True)
+    Email = db.Column(db.String(255), nullable=True)
+    PhoneNumber = db.Column(db.String(50), nullable=True)
+    PassportSizePhotograph = db.Column(db.String(200), nullable=True)
+    FathersGuardianFullName = db.Column(db.String(255), nullable=True)
+    SameAsMineFather = db.Column(db.Boolean, nullable=True)
+    FathersAddress = db.Column(db.String(255), nullable=True)
+    FatherCNICNumber = db.Column(db.String(50), nullable=True)
+    FatherEmail = db.Column(db.String(255), nullable=True)
+    FatherPhoneNumber = db.Column(db.String(50), nullable=True)
+    FatherOccupation = db.Column(db.String(100), nullable=True)
+    FatherCompanyName = db.Column(db.String(100), nullable=True)
+    MothersFullName = db.Column(db.String(255), nullable=True)
+    SameAsMineMother = db.Column(db.Boolean, nullable=True)
+    MothersAddress = db.Column(db.String(255), nullable=True)
+    MotherCNICNumber = db.Column(db.String(50), nullable=True)
+    MotherEmail = db.Column(db.String(255), nullable=True)
+    MotherPhoneNumber = db.Column(db.String(50), nullable=True)
+    MotherOccupation = db.Column(db.String(100), nullable=True)
+    MotherCompanyName = db.Column(db.String(100), nullable=True)
+    PakStudies = db.Column(db.String(50), nullable=True)
+    Islamiat = db.Column(db.String(50), nullable=True)
+    UrduSyllabusB = db.Column(db.String(50), nullable=True)
+    Other1 = db.Column(db.String(50), nullable=True)
+    Other1Grade = db.Column(db.String(50), nullable=True)
+    Other2 = db.Column(db.String(50), nullable=True)
+    Other2Grade = db.Column(db.String(50), nullable=True)
+    Other3 = db.Column(db.String(50), nullable=True)
+    Other3Grade = db.Column(db.String(50), nullable=True)
+    OLevelSubjects = db.Column(db.Text, nullable=True)
+    OLevelGroup = db.Column(db.String(100), nullable=True)
+    ALevelGroup = db.Column(db.String(100), nullable=True)
+    ASSubject1 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference1 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference2 = db.Column(db.String(100), nullable=True)
+    ASSubject2 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference1_2 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference2_2 = db.Column(db.String(100))
+    ASSubject3 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference1_3 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference2_3 = db.Column(db.String(100), nullable=True)
+    ASSubject4 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference1_4 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference2_4 = db.Column(db.String(100), nullable=True)
+    ASSubject5 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference1_5 = db.Column(db.String(100), nullable=True)
+    SubjectTeacherPreference2_5 = db.Column(db.String(100), nullable=True)
+    AboutYourself = db.Column(db.Text, nullable=True)
+    WhyStudyAtAlpha = db.Column(db.Text, nullable=True)
+    AimInLife = db.Column(db.Text, nullable=True)
+    Sports1 = db.Column(db.String(100), nullable=True)
+    OtherSport1 = db.Column(db.String(100), nullable=True)
+    Sports1Level = db.Column(db.String(50), nullable=True)
+    Sports1Description = db.Column(db.Text, nullable=True)
+    Sports2 = db.Column(db.String(100), nullable=True)
+    OtherSport2 = db.Column(db.String(100), nullable=True)
+    Sports2Level = db.Column(db.String(50), nullable=True)
+    Sports2Description = db.Column(db.Text, nullable=True)
+    Sports3 = db.Column(db.String(100), nullable=True)
+    OtherSport3 = db.Column(db.String(100), nullable=True)
+    Sports3Level = db.Column(db.String(50), nullable=True)
+    Sports3Description = db.Column(db.Text, nullable=True)
+    Debates = db.Column(db.Text, nullable=True)
+    DebatesLevel = db.Column(db.String(50), nullable=True)
+    DebatesDescription = db.Column(db.Text, nullable=True)
+    OtherDebates = db.Column(db.String(100), nullable=True)
+    OtherDescription = db.Column(db.Text, nullable=True)
+    ReferenceName1 = db.Column(db.String(255), nullable=True)
+    ReferenceContactNumber1 = db.Column(db.String(50), nullable=True)
+    ReferenceName2 = db.Column(db.String(255), nullable=True)
+    ReferenceContactNumber2 = db.Column(db.String(50), nullable=True)
+    ReferenceName3 = db.Column(db.String(255), nullable=True)
+    ReferenceContactNumber3 = db.Column(db.String(50), nullable=True)
+    AlphaID = db.Column(db.String(50), nullable=True)
+    ReferenceContactNumber4 = db.Column(db.String(50), nullable=True)
+    Question = db.Column(db.Text, nullable=True)
+    JotFromId = db.Column(BigInteger)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    Inactive = db.Column(db.Boolean, nullable=True)
+    
+    def __repr__(self):
+        return f'<StudentSubmissions_JotForm {self.SubmissionID}>'
+
+    def to_dict(self):
+        # Convert model instance to dictionary
+        return {
+            'SubmissionID': self.SubmissionID,
+            'SubmissionDate': self.SubmissionDate,
+            'FullName': self.FullName,
+            'Gender': self.Gender,
+            'Private': self.Private,
+            'IfPrivate': self.IfPrivate,
+            'LevelStudied': self.LevelStudied,
+            'NameOfCurrentSchool': self.NameOfCurrentSchool,
+            'NameOfCurrentSchoolOther': self.NameOfCurrentSchoolOther,
+            'BirthDate': self.BirthDate,
+            'Religion': self.Religion,
+            'Nationality': self.Nationality,
+            'CNIC_BFormNumber': self.CNIC_BFormNumber,
+            'Country': self.Country,
+            'PassportNumber': self.PassportNumber,
+            'Address': self.Address,
+            'Region': self.Region,
+            'Other': self.Other,
+            'Email': self.Email,
+            'PhoneNumber': self.PhoneNumber,
+            'PassportSizePhotograph': self.PassportSizePhotograph,
+            'FathersGuardianFullName': self.FathersGuardianFullName,
+            'SameAsMineFather': self.SameAsMineFather,
+            'FathersAddress': self.FathersAddress,
+            'FatherCNICNumber': self.FatherCNICNumber,
+            'FatherEmail': self.FatherEmail,
+            'FatherPhoneNumber': self.FatherPhoneNumber,
+            'FatherOccupation': self.FatherOccupation,
+            'FatherCompanyName': self.FatherCompanyName,
+            'MothersFullName': self.MothersFullName,
+            'SameAsMineMother': self.SameAsMineMother,
+            'MothersAddress': self.MothersAddress,
+            'MotherCNICNumber': self.MotherCNICNumber,
+            'MotherEmail': self.MotherEmail,
+            'MotherPhoneNumber': self.MotherPhoneNumber,
+            'MotherOccupation': self.MotherOccupation,
+            'MotherCompanyName': self.MotherCompanyName,
+            'PakStudies': self.PakStudies,
+            'Islamiat': self.Islamiat,
+            'UrduSyllabusB': self.UrduSyllabusB,
+            'Other1': self.Other1,
+            'Other1Grade': self.Other1Grade,
+            'Other2': self.Other2,
+            'Other2Grade': self.Other2Grade,
+            'Other3': self.Other3,
+            'Other3Grade': self.Other3Grade,
+            'OLevelSubjects': self.OLevelSubjects,
+            'OLevelGroup': self.OLevelGroup,
+            'ALevelGroup': self.ALevelGroup,
+            'ASSubject1': self.ASSubject1,
+            'SubjectTeacherPreference1': self.SubjectTeacherPreference1,
+            'SubjectTeacherPreference2': self.SubjectTeacherPreference2,
+            'ASSubject2': self.ASSubject2,
+            'SubjectTeacherPreference1_2': self.SubjectTeacherPreference1_2,
+            'SubjectTeacherPreference2_2': self.SubjectTeacherPreference2_2,
+            'ASSubject3': self.ASSubject3,
+            'SubjectTeacherPreference1_3': self.SubjectTeacherPreference1_3,
+            'SubjectTeacherPreference2_3': self.SubjectTeacherPreference2_3,
+            'ASSubject4': self.ASSubject4,
+            'SubjectTeacherPreference1_4': self.SubjectTeacherPreference1_4,
+            'SubjectTeacherPreference2_4': self.SubjectTeacherPreference2_4,
+            'ASSubject5': self.ASSubject5,
+            'SubjectTeacherPreference1_5': self.SubjectTeacherPreference1_5,
+            'SubjectTeacherPreference2_5': self.SubjectTeacherPreference2_5,
+            'AboutYourself': self.AboutYourself,
+            'WhyStudyAtAlpha': self.WhyStudyAtAlpha,
+            'AimInLife': self.AimInLife,
+            'Sports1': self.Sports1,
+            'OtherSport1': self.OtherSport1,
+            'Sports1Level': self.Sports1Level,
+            'Sports1Description': self.Sports1Description,
+            'Sports2': self.Sports2,
+            'OtherSport2': self.OtherSport2,
+            'Sports2Level': self.Sports2Level,
+            'Sports2Description': self.Sports2Description,
+            'Sports3': self.Sports3,
+            'OtherSport3': self.OtherSport3,
+            'Sports3Level': self.Sports3Level,
+            'Sports3Description': self.Sports3Description,
+            'Debates': self.Debates,
+            'DebatesLevel': self.DebatesLevel,
+            'DebatesDescription': self.DebatesDescription,
+            'OtherDebates': self.OtherDebates,
+            'OtherDescription': self.OtherDescription,
+            'ReferenceName1': self.ReferenceName1,
+            'ReferenceContactNumber1': self.ReferenceContactNumber1,
+            'ReferenceName2': self.ReferenceName2,
+            'ReferenceContactNumber2': self.ReferenceContactNumber2,
+            'ReferenceName3': self.ReferenceName3,
+            'ReferenceContactNumber3': self.ReferenceContactNumber3,
+            'AlphaID': self.AlphaID,
+            'ReferenceContactNumber4': self.ReferenceContactNumber4,
+            'Question': self.Question,
+            'JotFromId': self.JotFromId,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate,
+            'Inactive': self.Inactive
         }

@@ -5,6 +5,7 @@ from resources.resources import *
 from resources.customApi import (
     DynamicGetResource, CallProcedureResource, DynamicPostResource,
     DynamicUpdateResource, DynamicDeleteResource, DynamicInsertOrUpdateResource, UploadFileResource,CallProcedureResourceLeave,DynamicPostResource_With_PKReturn
+    ,Get_JotForms
 )
 from resources.auth import UserLoginResource
 
@@ -32,6 +33,7 @@ def register_routes(app):
     api.add_resource(DynamicDeleteResource, '/dynamicDelete')
     api.add_resource(DynamicInsertOrUpdateResource, '/dynamicInsertOrUpdate')
     api.add_resource(UploadFileResource, '/uploadFile', '/uploadFile/<int:id>')
+    api.add_resource(Get_JotForms, '/get_jotform_submissions')
     
     api.add_resource(JobApplicationFormResource, '/jobApplicationForm', '/jobApplicationForm/<int:id>')
     api.add_resource(NewJoinerApprovalResource, '/newJoinerApproval', '/newJoinerApproval/<int:id>')
@@ -76,5 +78,8 @@ def register_routes(app):
     api.add_resource(ForgotPasswordResource, '/ForgotPassword')
     api.add_resource(ResetPasswordPostResource, '/ResetPassword')
 
+    api.add_resource(StudentSubmissions_JotForms, '/submit_student_data')
+    
+    api.add_resource(User_Signup, '/signup')
 
     

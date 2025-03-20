@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse, abort
 from app import db
-from flask import jsonify, request
+from flask import jsonify, request,Response
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
@@ -12,6 +12,7 @@ import os
 import logging
 from decimal import Decimal
 import pandas as pd
+import requests
 from datetime import datetime
 from werkzeug.datastructures import FileStorage
 
@@ -985,6 +986,35 @@ class UploadFileResource(Resource):
                 "status": "error",
                 "message": "id not found at the endpoint"
             }, 400
+#NOT IN USE     
+class Get_JotForms(Resource):
+    def post(self):
+        try:
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form
+
+            # Ensure form_id and API_KEY are provided
+            if 'form_id' not in data or 'api_key' not in data:
+                return Response('{"error": "form_id and api_key are required"}', status=400, content_type='application/json')
+
+            form_id = data['form_id']
+            API_KEY = data['api_key']
+
+            # Make request to the JotForm API
+            url = f"https://api.jotform.com/form/{form_id}/submissions?apiKey={API_KEY}"
+            response = requests.get(url)
+
+            # Log the response for debugging
+            logging.info(f"Response from JotForm API: {response.text}")
+            data = json.loads(response.text)
+            # Return JotForm API response exactly as it is
+            return Response(data, content_type='application/json')
+
+        except requests.exceptions.RequestException as e:
+            return Response(f'{{"error": "{str(e)}"}}', status=500, content_type='application/json')
+
 
 
 

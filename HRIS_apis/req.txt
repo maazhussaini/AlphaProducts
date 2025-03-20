@@ -11,3 +11,4 @@ python-dotenv
 flask-jwt-extended
 pycryptodome
 Flask-Mail
+requests

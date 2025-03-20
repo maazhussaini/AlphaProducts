@@ -3,17 +3,18 @@ from flask_restful import Resource, reqparse, abort
 from models.models import *
 from datetime import datetime, date, timedelta
 from app import db, mail
-from flask import jsonify, request
+from flask import jsonify, request, Response
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import and_
 from sqlalchemy import extract
 from sqlalchemy.orm import joinedload
 import json
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError ,IntegrityError
 from flask_mail import Message
 from werkzeug.utils import secure_filename
 import os
+import requests
 from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
@@ -7370,9 +7371,239 @@ class ResetPasswordPostResource(Resource):
             return {'status': 'error', 'message': f'Error: {str(ex)}'}, 500
 
 
+class StudentSubmissions_JotForms(Resource):
+    def post(self):
+        if request.is_json:
+            data = request.get_json()
+            logging.info (f"Parameters: {data}")
+        else:
+            data = request.form
+
+            # Ensure form_id and API_KEY are provided
+            if 'form_id' not in data or 'api_key' not in data or 'userid' not in data:
+                return Response('{"error": "form_id, api_key and userid are required"}', status=400, content_type='application/json')
+
+            form_id = data['form_id']
+            API_KEY = data['api_key']
+            user_id = data['userid']
+
+            # Make request to the JotForm API
+            url = f"https://api.jotform.com/form/{form_id}/submissions?apiKey={API_KEY}"
+            response = requests.get(url)
+            data = json.loads(response.text)
+            logging.info(f"Data Received:{data}")
+
+            if not data or "content" not in data:
+                logging.info("Invalid request data: Missing 'content' key")
+                return {"message": "Invalid request data"}, 400
+
+            # Extract the content array from the JSON
+            content = data.get('content', [])
+            records_added = 0
+            records_skipped = 0
+
+            try:
+                for submission in content:
+                    jotform_id = submission.get('id')
+                    logging.info(f"JotFormId: {jotform_id}")
+                    # Skip processing if JotFormId already exists
+                    existing_record = db.session.query(StudentSubmissions_JotForm).filter_by(JotFromId=jotform_id).first()
+                    if existing_record:
+                        logging.info(f"Skipping duplicate record for JotFormId: {jotform_id}")
+                        records_skipped += 1
+                        continue
+                    
+                    # Safe extraction of 'answers' dictionary
+                    answers = submission.get('answers', {})
+                    
+                    #logging.info(f"answers: {answers}")
+                    
+                    private_value = answers.get('52', {}).get('answer', None)
+                    Private = True if private_value == "Yes" else False if private_value == "No" else None
+                    
+                    birthdate_str = answers.get('6', {}).get('answer', {}).get('datetime', None)
+                    BirthDate = datetime.strptime(birthdate_str, '%Y-%m-%d %H:%M:%S').date() if birthdate_str else None
+
+                    same_as_mineFather = answers.get('81', {}).get('answer', None)
+                    SameAsMineFather = True if same_as_mineFather == "Yes" else False if same_as_mineFather == "No" else None
+
+                    same_as_mineMother = answers.get('82', {}).get('answer', None)
+                    SameAsMineMother = True if same_as_mineMother == "Yes" else False if same_as_mineMother == "No" else None
+
+                    sports1_desc = answers.get('71', {}).get('answer', None)
+                    Sports1Description = sports1_desc.strip().replace("\n", " ") if sports1_desc else None
+
+                    sports2_desc=answers.get('72', {}).get('answer', None)
+                    Sports2Description = sports2_desc.strip().replace("\n", " ") if sports2_desc else None
+
+                    sports3_desc=answers.get('73', {}).get('answer', None)
+                    Sports3Description = sports3_desc.strip().replace("\n", " ") if sports3_desc else None
+                    
+                    student_submission = StudentSubmissions_JotForm(
+                        FullName=answers.get('85', {}).get('answer', None),
+                        SubmissionDate = submission.get('created_at'),
+                        Gender=answers.get('86', {}).get('answer', None),
+                        Private=Private,
+                        IfPrivate=answers.get('56', {}).get('answer', {}).get('first', None),
+                        Email=answers.get('8', {}).get('answer', None),
+                        PhoneNumber=answers.get('9', {}).get('prettyFormat', None),
+                        BirthDate=BirthDate, 
+                        Religion=answers.get('87', {}).get('answer', None),
+                        PassportSizePhotograph=answers.get('12', {}).get('answer', [None])[0],
+                        NameOfCurrentSchool=answers.get('170', {}).get('answer', None),
+                        FathersGuardianFullName=answers.get('88', {}).get('answer', None),
+                        FathersAddress = answers.get('83', {}).get('answer', None),
+                        SameAsMineFather = SameAsMineFather,
+                        FatherEmail = answers.get('17', {}).get('answer', None),
+                        FatherOccupation = answers.get('149', {}).get('answer', None),
+                        FatherCompanyName = answers.get('150', {}).get('answer', None),
+                        FatherPhoneNumber=answers.get('18', {}).get('prettyFormat', None),
+                        MothersFullName=answers.get('89', {}).get('answer', None),    
+                        MothersAddress = answers.get('84', {}).get('answer', None),       
+                        SameAsMineMother = SameAsMineMother,
+                        MotherEmail=answers.get('21', {}).get('answer', None),
+                        MotherPhoneNumber=answers.get('22', {}).get('prettyFormat', None),
+                        MotherOccupation = answers.get('151', {}).get('answer', None),
+                        MotherCompanyName = answers.get('152', {}).get('answer', None),
+                        ASSubject1=answers.get('26', {}).get('answer', None),
+                        ASSubject2=answers.get('28', {}).get('answer', None),
+                        ASSubject3=answers.get('30', {}).get('answer', None),
+                        ASSubject4=answers.get('32', {}).get('answer', None),
+                        ASSubject5=answers.get('34', {}).get('answer', None),
+                        SubjectTeacherPreference1=answers.get('27', {}).get('answer', None),
+                        SubjectTeacherPreference1_2=answers.get('29', {}).get('answer', None),
+                        SubjectTeacherPreference1_3=answers.get('31', {}).get('answer', None),
+                        SubjectTeacherPreference1_4=answers.get('33', {}).get('answer', None),
+                        SubjectTeacherPreference1_5=answers.get('35', {}).get('answer', None),
+                        AboutYourself=answers.get('37', {}).get('answer', None),
+                        WhyStudyAtAlpha=answers.get('38', {}).get('answer', None),
+                        AimInLife=answers.get('39', {}).get('answer', None),
+                        CreatedBy=user_id,  
+                        CreatedDate=datetime.utcnow() + timedelta(hours=5),
+                        JotFromId=submission.get('id'),
+                        Address=answers.get('124', {}).get('answer', None),
+                        Nationality=answers.get('137', {}).get('answer', None),
+                        CNIC_BFormNumber=answers.get('138', {}).get('answer', None),
+                        Country=answers.get('139', {}).get('answer', None),
+                        PassportNumber=answers.get('140', {}).get('answer', None),
+                        FatherCNICNumber=answers.get('141', {}).get('answer', None),
+                        MotherCNICNumber=answers.get('142', {}).get('answer', None),
+                        Region=answers.get('116', {}).get('answer', None),
+                        Other=answers.get('117', {}).get('answer', None),
+                        PakStudies=answers.get('90', {}).get('answer', None),
+                        Islamiat=answers.get('91', {}).get('answer', None),
+                        UrduSyllabusB=answers.get('93', {}).get('answer', None),
+                        Other1=answers.get('94', {}).get('answer', None),
+                        Other2=answers.get('95', {}).get('answer', None),
+                        Other3=answers.get('97', {}).get('answer', None),
+                        OLevelGroup=answers.get('122', {}).get('answer', None),
+                        ALevelGroup=answers.get('123', {}).get('answer', None),
+                        OLevelSubjects=answers.get('169', {}).get('prettyFormat', None),
+                        SubjectTeacherPreference2=answers.get('132', {}).get('answer', None),
+                        SubjectTeacherPreference2_2=answers.get('133', {}).get('answer', None),
+                        SubjectTeacherPreference2_3=answers.get('134', {}).get('answer', None),
+                        SubjectTeacherPreference2_4=answers.get('135', {}).get('answer', None),
+                        SubjectTeacherPreference2_5=answers.get('136', {}).get('answer', None),
+                        Sports1=answers.get('65', {}).get('answer', None),
+                        OtherSport1=answers.get('127', {}).get('answer', None),
+                        Sports1Level=answers.get('66', {}).get('answer', None),
+                        Sports1Description = Sports1Description,
+                        Sports2=answers.get('67', {}).get('answer', None),
+                        OtherSport2=answers.get('128', {}).get('answer', None),
+                        Sports2Level=answers.get('68', {}).get('answer', None),
+                        Sports2Description = Sports2Description,
+                        Sports3=answers.get('69', {}).get('answer', None),
+                        OtherSport3=answers.get('129', {}).get('answer', None),
+                        Sports3Level=answers.get('70', {}).get('answer', None),
+                        Sports3Description = Sports3Description,
+                        Debates=answers.get('74', {}).get('answer', None),
+                        DebatesLevel=answers.get('75', {}).get('answer', None),
+                        DebatesDescription=answers.get('76', {}).get('answer', None),
+                        OtherDebates = answers.get('77', {}).get('answer', None),
+                        OtherDescription = answers.get('78', {}).get('answer', None),
+                        ReferenceName1 = answers.get('41', {}).get('answer', {}).get('first', None),
+                        ReferenceContactNumber1=answers.get('41', {}).get('answer', {}).get('last', None),
+                        ReferenceName2=answers.get('42', {}).get('answer', {}).get('first', None),
+                        ReferenceContactNumber2=answers.get('42', {}).get('answer', {}).get('last', None),
+                        AlphaID=answers.get('49', {}).get('answer', {}).get('middle', None),
+                        Question=answers.get('46', {}).get('answer', None),
+                        Inactive=0  # Assuming default inactive status
+                    )
+                    
+                    # Save the student submission to the database
+                    db.session.add(student_submission)
+                    records_added += 1
+
+                # Commit all valid records at once
+                db.session.commit()
+                logging.info(f"Submission completed: {records_added} records added, {records_skipped} records skipped.")
+
+                return {"message": "Records Inserted Successfully", "records_added": records_added, "records_skipped(duplicate)":records_skipped}, 200
+
+            except SQLAlchemyError as e:
+                db.session.rollback()  # Rollback in case of DB error
+                logging.info(f"Database error: {str(e)}")
+                return {"message": "Database error occurred", "error": str(e)}, 500
+
+            except Exception as e:
+                logging.info(f"Unexpected error: {str(e)}")
+                return {"message": "An unexpected error occurred", "error": str(e)}, 500
+
+class User_Signup(Resource):
+    def post(self):
+        
+        try:
+        # Get data from the request body
+            data = request.get_json()
+
+            firstname = data.get('firstname')
+            lastname = data.get('lastname')
+            Username = data.get('email')
+            password = data.get('password')
+            mobile_no = data.get('mobile_no')
+            cnic = data.get('cnic')
+
+            # Validate the input fields
+            if not firstname or not lastname or not Username or not password or not mobile_no or not cnic:
+                return {"error": "All fields are required"}, 400
+
+            # Hash the email and password before storing
+            hashed_email = encrypt(Username)
+            hashed_password = encrypt(password)
+            
+            # Check if the user already exists by email or CNIC
+            existing_user = USERS.query.filter((USERS.Username == hashed_email) | (USERS.GuardianCNIC == cnic)).first()
+            if existing_user:
+                return {"error": "Email or CNIC already exists"}, 400
+
+            # Create a new user instance
+            new_user = USERS(
+                Firstname=firstname,
+                Lastname=lastname,
+                Username=hashed_email,
+                Password=hashed_password,
+                EMail = Username,
+                UserType_Id = 14,
+                MobileNo=mobile_no,
+                GuardianCNIC=cnic,
+                Status = 1,
+                ispasswordchanged = 0,
+                CreateDate = datetime.utcnow() + timedelta(hours=5),
+                Inactive = 0
+            )
+
+            # Add the new user to the session and commit to the database
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Return a success message
+            return {"message": "User signed up successfully!"}, 200
 
 
-
-
-
-    
+        except IntegrityError as e:
+            # Catch SQLAlchemy IntegrityError (for example, a duplicate entry)
+            db.session.rollback()  
+            return {"error": "Database integrity error: " + str(e)}, 500
+        except Exception as e:
+            # Catch other unexpected errors
+            return {"error": f"An unexpected error occurred: {str(e)}"}, 500
