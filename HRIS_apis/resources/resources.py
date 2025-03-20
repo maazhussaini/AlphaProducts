@@ -2996,8 +2996,11 @@ class StaffTransferResource(Resource):
         parser.add_argument('ReportingOfficerId', type=int, required=True, help='ReportingOfficerId is required')
         parser.add_argument('Transfer_initiated_by', type=int, required=True, help='Transfer_initiated_by is required')
         parser.add_argument('Transfer_approval', type=int, required=True, help='Transfer_approval is required')
+        parser.add_argument('CampusId', type=int),
+        parser.add_argument('CreatorId', type=int),
         parser.add_argument('Remarks', type=str, required=True, help='Remarks is required')
         args = parser.parse_args()
+        logging.info(f"Args {args}")
 
         try:
             # Retrieve the staff record
@@ -3028,7 +3031,8 @@ class StaffTransferResource(Resource):
                 Transfer_approval=args['Transfer_approval'],
                 Remarks=args['Remarks'],
                 Status=True,
-                CampusId=from_campus_id,
+                CampusId=args['CampusId'],
+                CreatorId=args['CreatorId'],
                 # CreatorId=get_jwt_identity(),
                 CreateDate=datetime.utcnow() + timedelta(hours=5)
             )
@@ -3041,7 +3045,7 @@ class StaffTransferResource(Resource):
                 # Update related tables
                 self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'],args['OldDepartmentId'], args['DesignationId'], args['OldDesignationId'])
                 self.update_staff_shift(args['StaffId'], to_campus_id)
-                self.update_user_campus(args['StaffId'], to_campus_id, from_campus_id)
+                self.update_user_campus(args['StaffId'], to_campus_id, current_campus_id)
                 self.update_user(args['StaffId'], to_campus_id)
 
             # Commit the transaction
@@ -3071,11 +3075,11 @@ class StaffTransferResource(Resource):
             
             staff.CampusId = to_campus_id
             staff.DepartmentId = department_id
-            staff.OldDepartmentId = Olddepartment_id
+            # staff.OldDepartmentId = Olddepartment_id
             staff.Designation_ID = designation_id
-            staff.OldDesignation_ID = Olddesignation_id
+            # staff.OldDesignation_ID = Olddesignation_id
             staff.ReportingOfficerId = reporting_officer_id
-            staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
+            # staff.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(staff)
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
@@ -3117,26 +3121,27 @@ class StaffTransferResource(Resource):
         Inserts a new record if necessary.
         """
         try:
-            if to_campus_id == 11:
-                user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=to_campus_id).first()
+            print(f"to_campus_id: {to_campus_id}, staff_id: {staff_id}, current_campus_id: {current_campus_id}")
+            user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
+            user_campus.CampusId = to_campus_id
+            user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
+            db.session.add(user_campus)
+            # if to_campus_id == 11:
+            #     user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=to_campus_id).first()
                 
-                if not user_campus:
-                    user_campus = UserCampus.query.filter_by(StaffId=staff_id).first()
-                    new_user_campus = UserCampus(
-                        UserId=user_campus.UserId,
-                        CampusId=to_campus_id,
-                        StaffId=staff_id,
-                        Date=datetime.utcnow() + timedelta(hours=5),
-                        Status=True
-                    )
-                    db.session.add(new_user_campus)
+            #     if not user_campus:
+            #         user_campus = UserCampus.query.filter_by(StaffId=staff_id).first()
+            #         new_user_campus = UserCampus(
+            #             UserId=user_campus.UserId,
+            #             CampusId=to_campus_id,
+            #             StaffId=staff_id,
+            #             Date=datetime.utcnow() + timedelta(hours=5),
+            #             Status=True
+            #         )
+            #         db.session.add(new_user_campus)
                 
-            else:
-                print(f"to_campus_id: {to_campus_id}, staff_id: {staff_id}, current_campus_id: {current_campus_id}")
-                user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
-                user_campus.CampusId = to_campus_id
-                user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
-                db.session.add(user_campus)
+            # else:
+
         except SQLAlchemyError as e:
             # Rollback transaction in case of database error
             db.session.rollback()
@@ -3163,7 +3168,7 @@ class StaffTransferResource(Resource):
                 user.IsAEN = 0  # Unset IsAEN flag for other campuses
             
             user.CampusId = to_campus_id
-            user.updateDate = datetime.utcnow() + timedelta(hours=5)
+            #user.updateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(user)
         
         except SQLAlchemyError as e:
