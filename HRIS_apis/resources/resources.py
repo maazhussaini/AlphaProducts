@@ -7450,12 +7450,14 @@ class StudentSubmissions_JotForms(Resource):
                         Gender=answers.get('86', {}).get('answer', None),
                         Private=Private,
                         IfPrivate=answers.get('56', {}).get('answer', {}).get('first', None),
+                        LevelStudied=answers.get('56', {}).get('answer', {}).get('last', None),
                         Email=answers.get('8', {}).get('answer', None),
                         PhoneNumber=answers.get('9', {}).get('prettyFormat', None),
                         BirthDate=BirthDate, 
                         Religion=answers.get('87', {}).get('answer', None),
                         PassportSizePhotograph=answers.get('12', {}).get('answer', [None])[0],
                         NameOfCurrentSchool=answers.get('170', {}).get('answer', None),
+                        NameOfCurrentSchoolOther=answers.get('13', {}).get('answer', None),
                         FathersGuardianFullName=answers.get('88', {}).get('answer', None),
                         FathersAddress = answers.get('83', {}).get('answer', None),
                         SameAsMineFather = SameAsMineFather,
@@ -7499,8 +7501,11 @@ class StudentSubmissions_JotForms(Resource):
                         Islamiat=answers.get('91', {}).get('answer', None),
                         UrduSyllabusB=answers.get('93', {}).get('answer', None),
                         Other1=answers.get('94', {}).get('answer', None),
+                        Other1Grade=answers.get('63', {}).get('answer', None),
                         Other2=answers.get('95', {}).get('answer', None),
+                        Other2Grade=answers.get('118', {}).get('answer', None),
                         Other3=answers.get('97', {}).get('answer', None),
+                        Other3Grade=answers.get('98', {}).get('answer', None),
                         OLevelGroup=answers.get('122', {}).get('answer', None),
                         ALevelGroup=answers.get('123', {}).get('answer', None),
                         OLevelSubjects=answers.get('169', {}).get('prettyFormat', None),
@@ -7515,11 +7520,11 @@ class StudentSubmissions_JotForms(Resource):
                         Sports1Description = Sports1Description,
                         Sports2=answers.get('67', {}).get('answer', None),
                         OtherSport2=answers.get('128', {}).get('answer', None),
-                        Sports2Level=answers.get('68', {}).get('answer', None),
+                        Sports2Level=answers.get('70', {}).get('answer', None),
                         Sports2Description = Sports2Description,
-                        Sports3=answers.get('69', {}).get('answer', None),
+                        Sports3=answers.get('68', {}).get('answer', None),
                         OtherSport3=answers.get('129', {}).get('answer', None),
-                        Sports3Level=answers.get('70', {}).get('answer', None),
+                        Sports3Level=answers.get('69', {}).get('answer', None),
                         Sports3Description = Sports3Description,
                         Debates=answers.get('74', {}).get('answer', None),
                         DebatesLevel=answers.get('75', {}).get('answer', None),
@@ -7530,7 +7535,9 @@ class StudentSubmissions_JotForms(Resource):
                         ReferenceContactNumber1=answers.get('41', {}).get('answer', {}).get('last', None),
                         ReferenceName2=answers.get('42', {}).get('answer', {}).get('first', None),
                         ReferenceContactNumber2=answers.get('42', {}).get('answer', {}).get('last', None),
+                        ReferenceName3=answers.get('49', {}).get('answer', {}).get('first', None),
                         AlphaID=answers.get('49', {}).get('answer', {}).get('middle', None),
+                        ReferenceContactNumber3=answers.get('49', {}).get('answer', {}).get('last', None),
                         Question=answers.get('46', {}).get('answer', None),
                         Inactive=0  # Assuming default inactive status
                     )
@@ -7588,7 +7595,7 @@ class User_Signup(Resource):
                 Username=hashed_email,
                 Password=hashed_password,
                 EMail = Username,
-                UserType_Id = 14,
+                UserType_Id = 14,                   
                 MobileNo=mobile_no,
                 GuardianCNIC=cnic,
                 Status = 1,
@@ -7612,3 +7619,235 @@ class User_Signup(Resource):
         except Exception as e:
             # Catch other unexpected errors
             return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+        
+class Jot_FormUpdate(Resource):
+    def put(self):
+        try:
+            logging.info("Received request to update JotForm record.")
+
+            # Validate form data or files
+            if not request.files and not request.form:
+                return {'message': 'No file or form data in the request'}, 400
+            
+            # Process form data
+            form_data = request.form.to_dict(flat=False)
+            updated_ids = {}
+            allowed_tables = ['StudentSubmissions_JotForm', 'CIEResults', 'SchoolResultsGrade8', 'SchoolResultsGrade9', 'SchoolResultsGrade10', 'SchoolResultsGrade11', 'ECACertificates']
+
+            # Process form data for each table
+            for table_name, fields in form_data.items():
+                model_class = self.get_model_by_tablename(table_name)
+                if not model_class:
+                    logging.error(f"Table {table_name} does not exist.")
+                    return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+                fields = self._parse_fields(fields)
+
+                if table_name in allowed_tables:
+                    for record_fields in fields:
+                        # Initialize record_id variable
+                        if table_name == 'StudentSubmissions_JotForm':
+                            record_id = record_fields.get('SubmissionID')
+                        elif table_name == 'CIEResults':
+                            record_id = record_fields.get('CIEResults_Id')
+                        elif table_name == 'SchoolResultsGrade8':
+                            record_id = record_fields.get('SchoolResultsGrade8_Id')
+                        elif table_name == 'SchoolResultsGrade9':
+                            record_id = record_fields.get('SchoolResultsGrade9_Id')
+                        elif table_name == 'SchoolResultsGrade10':
+                            record_id = record_fields.get('SchoolResultsGrade10_Id')
+                        elif table_name == 'SchoolResultsGrade11':
+                            record_id = record_fields.get('SchoolResultsGrade11_Id')
+                        elif table_name == 'ECACertificates':
+                            record_id = record_fields.get('ECACertificates_Id')
+                        else:
+                            record_id = None  # Default if no conditions are met
+                        if record_id:
+                            existing_record = self._fetch_existing_record(model_class, table_name, record_id)
+                            if existing_record:
+                                
+                                if 'CIEResultsPath' in record_fields:
+                                    setattr(existing_record, 'CIEResultsPath', record_fields['CIEResultsPath'])
+                                
+                                if 'SchoolResultsGrade8Path' in record_fields:
+                                    setattr(existing_record, 'SchoolResultsGrade8Path', record_fields['SchoolResultsGrade8Path'])
+                                
+                                if 'SchoolResultsGrade9Path' in record_fields:
+                                    setattr(existing_record, 'SchoolResultsGrade9Path', record_fields['SchoolResultsGrade9Path'])
+                                
+                                if 'SchoolResultsGrade10Path' in record_fields:
+                                    setattr(existing_record, 'SchoolResultsGrade10Path', record_fields['SchoolResultsGrade10Path'])
+                                
+                                if 'SchoolResultsGrade11Path' in record_fields:
+                                    setattr(existing_record, 'SchoolResultsGrade11Path', record_fields['SchoolResultsGrade11Path'])
+                                
+                                if 'ECACertificatesPath' in record_fields:
+                                    setattr(existing_record, 'ECACertificatesPath', record_fields['ECACertificatesPath'])
+                                                                    
+                                if 'StudentPhotoPath' in record_fields:
+                                    setattr(existing_record, 'StudentPhotoPath', record_fields['StudentPhotoPath'])
+                                    
+                                self._update_record(existing_record, record_fields)
+                                updated_ids[f"{table_name}_{record_id}"] = record_id
+                            else:
+                                # If no record is found, create a new record
+                                logging.warning(f"No existing record found with ID {record_id}. Creating a new record.")
+                                new_record = model_class(**record_fields)
+                                db.session.add(new_record)
+                                db.session.commit()  # Commit here to get the ID for the new record
+                                new_record_id = getattr(new_record, 'Id', None)
+                                updated_ids[f"{table_name}_{new_record_id}"] = new_record_id
+
+                        else:
+                            new_record = model_class(**record_fields)
+                            db.session.add(new_record)
+                            db.session.commit()  # Commit here to get the ID for the new record
+                            new_record_id = getattr(new_record, 'Id', None)
+                            updated_ids[f"{table_name}_{new_record_id}"] = new_record_id
+                db.session.commit()  # Final commit after all updates for this table
+
+            # Step 5: Process file uploads if available
+            if request.files:
+                logging.info(f"Processing files")
+                file_data = self.process_files(request.files)
+
+                for file_key, file_info in file_data.items():
+                    _, table_name, field_name, _ = file_info['key'].split('_')
+                    file_path = file_info['path']
+
+                    # Find a matching record in updated_ids for the current table
+                    for key, record_id in list(updated_ids.items()):  # Use list() to iterate safely while removing items
+                        if table_name in key:
+                            try:                              
+                                # Update file path for the current table
+                                self.update_file_path(table_name, record_id, field_name, file_path)
+
+                                # Remove the key directly after updating
+                                del updated_ids[key]
+                            except Exception as e:
+                                db.session.rollback()
+                                logging.error(f"File association error for {table_name}: {str(e)}")
+                                return {'status': 'error', 'message': f'File association error: {str(e)}'}, 500
+
+            logging.info("Form record updated successfully.")
+            return {'status': 'success', 'message': 'Records updated successfully', 'updated_ids': updated_ids}, 200
+
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Unexpected error in processing request: {str(e)}")
+            return {'status': 'error', 'message': str(e)}, 500
+        
+    def get_model_by_tablename(self, table_name):
+        """
+        Dynamically fetches the SQLAlchemy model class based on the table name.
+        """
+        return globals().get(table_name)
+     
+    def process_files(self, files):
+        # Handles the file uploads and saves them to the appropriate locations.
+        
+        file_data = {}
+        BASE_UPLOAD_FOLDER = 'uploads\\'
+        
+        for key, file in files.items():
+            
+            logging.info(f"fileName: {key}")
+            
+            if file.filename == '':
+                continue
+
+            filename = secure_filename(file.filename)
+            key_parts = key.split('_')
+
+            table_name = key_parts[1]
+            field_name = key_parts[2]
+            filename = key_parts[3]
+            
+            # MAIN_UPLOAD_FOLDER = MAIN_UPLOAD_FOLDER + table_name
+            MAIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, table_name)
+            UPLOAD_FOLDER = os.path.join(MAIN_UPLOAD_FOLDER, field_name)
+
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            file_data[key] = {'key': key, 'path': file_path}
+
+        return file_data
+    
+    def update_file_path(self, table_name, record_id, field_name, file_path):
+        """
+        Updates the record in the database with the file path.
+        """
+        model_class = self.get_model_by_tablename(table_name)
+        if model_class:
+            if table_name == 'StudentSubmissions_JotForm':
+                record_field = 'SubmissionID'
+            elif table_name == 'CIEResults':
+                record_field ='CIEResults_Id'
+            elif table_name == 'SchoolResultsGrade8':
+                record_field = 'SchoolResultsGrade8_Id'
+            elif table_name == 'SchoolResultsGrade9':
+                record_field = 'SchoolResultsGrade9_Id'
+            elif table_name == 'SchoolResultsGrade10':
+                record_field = 'SchoolResultsGrade10_Id'
+            elif table_name == 'SchoolResultsGrade11':
+                record_field = 'SchoolResultsGrade11_Id'
+            elif table_name == 'ECACertificates':
+                record_field = 'ECACertificates_Id'
+            record = db.session.query(model_class).filter_by(**{record_field: record_id}).first()
+            print ("Record",record)
+            if record:
+                setattr(record, field_name, file_path)
+                db.session.commit()
+                
+    def _parse_fields(self, fields):
+        """Helper to parse and clean JSON fields, removing 'Filename' key if present."""
+        # Check if fields is a list containing a single JSON string
+        if isinstance(fields, list) and len(fields) == 1 and isinstance(fields[0], str):
+            try:
+                # Parse JSON string into a list of dictionaries
+                fields = json.loads(fields[0])
+
+                # Ensure fields is a list of dictionaries
+                if isinstance(fields, dict):
+                    fields = [fields]
+                
+                # Remove 'Filename' from each item if it exists
+                for item in fields:
+                    if isinstance(item, dict):
+                        item.pop("Filename", None)
+            except json.JSONDecodeError as e:
+                logging.error(f"JSON decoding error: {str(e)}")
+                raise ValueError("Invalid JSON data format")
+        
+        # Handle case where fields is a single dictionary, not a list
+        elif isinstance(fields, dict):
+            fields = [fields]
+        
+        return fields
+
+    def _fetch_existing_record(self, model_class, table_name, record_id):
+        """Helper to fetch an existing record by ID."""
+        if table_name == 'StudentSubmissions_JotForm':
+            filter_field = 'SubmissionID'
+        elif table_name == 'CIEResults':
+            filter_field ='CIEResults_Id'
+        elif table_name == 'SchoolResultsGrade8':
+            filter_field = 'SchoolResultsGrade8_Id'
+        elif table_name == 'SchoolResultsGrade9':
+            filter_field = 'SchoolResultsGrade9_Id'
+        elif table_name == 'SchoolResultsGrade10':
+            filter_field = 'SchoolResultsGrade10_Id'
+        elif table_name == 'SchoolResultsGrade11':
+            filter_field = 'SchoolResultsGrade11_Id'
+        elif table_name == 'ECACertificates':
+            filter_field = 'ECACertificates_Id'
+        return db.session.query(model_class).filter(getattr(model_class, filter_field) == record_id).first()
+
+    def _update_record(self, record, fields):
+        """Helper to update an existing record."""
+        for key, value in fields.items():
+            setattr(record, key, value)
+        logging.info(f"Updated record with ID {fields.get('SubmissionID') or fields.get('CIEResults_Id') or fields.get('SchoolResultsGrade8_Id') or fields.get('SchoolResultsGrade9_Id') or fields.get('SchoolResultsGrade10_Id') or fields.get('SchoolResultsGrade11_Id') or fields.get('ECACertificates_Id')}")

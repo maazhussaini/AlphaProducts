@@ -81,5 +81,7 @@ def register_routes(app):
     api.add_resource(StudentSubmissions_JotForms, '/submit_student_data')
     
     api.add_resource(User_Signup, '/signup')
+    
+    api.add_resource(Jot_FormUpdate, '/Jot_FormUpdate')
 
     

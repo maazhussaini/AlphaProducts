@@ -5525,3 +5525,245 @@ class StudentSubmissions_JotForm(db.Model):
             'UpdatedDate': self.UpdatedDate,
             'Inactive': self.Inactive
         }
+
+class AdmisionInterviewSchedule(db.Model):
+    __tablename__ = 'AdmisionInterviewSchedule'
+
+    AdmisionInterviewSchedule_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AdmisionInterviewSchedule_Date = db.Column(db.DateTime, nullable=False)
+    AdmisionInterviewSchedule_Venue = db.Column(db.String(500), nullable=True)
+    AdmisionInterviewSchedule_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)
+    AdmisionInterviewSchedule_InterviewerId = db.Column(db.Integer, db.ForeignKey('StaffInfo.Staff_ID'), nullable=True)
+    AdmisionInterviewSchedule_CalledBy = db.Column(db.Integer, db.ForeignKey('StaffInfo.Staff_ID'), nullable=False)
+    AdmisionInterviewSchedule_CallerRemarks = db.Column(db.String(500), nullable=True)
+    AdmisionInterviewSchedule_Status = db.Column(db.String(50), nullable=False)
+    AdmisionInterviewSchedule_IsEmailSent = db.Column(db.Boolean, nullable=False, default=False)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Relationships
+    Interviewer = db.relationship('StaffInfo', foreign_keys=[AdmisionInterviewSchedule_InterviewerId])
+    CalledBy = db.relationship('StaffInfo', foreign_keys=[AdmisionInterviewSchedule_CalledBy])
+    JotForm = db.relationship('StudentSubmissions_JotForm', foreign_keys=[AdmisionInterviewSchedule_JotFormId])
+
+    def __repr__(self):
+        return f"<AdmisionInterviewSchedule {self.AdmisionInterviewSchedule_Id}>"
+
+    def to_dict(self):
+        return {
+            "AdmisionInterviewSchedule_Id": self.AdmisionInterviewSchedule_Id,
+            "AdmisionInterviewSchedule_Date": self.AdmisionInterviewSchedule_Date.strftime('%Y-%m-%d %H:%M:%S') if self.AdmisionInterviewSchedule_Date else None,
+            "AdmisionInterviewSchedule_Venue": self.AdmisionInterviewSchedule_Venue,
+            "AdmisionInterviewSchedule_JotFormId": self.AdmisionInterviewSchedule_JotFormId,
+            "AdmisionInterviewSchedule_InterviewerId": self.AdmisionInterviewSchedule_InterviewerId,
+            "AdmisionInterviewSchedule_CalledBy": self.AdmisionInterviewSchedule_CalledBy,
+            "AdmisionInterviewSchedule_CallerRemarks": self.AdmisionInterviewSchedule_CallerRemarks,
+            "AdmisionInterviewSchedule_Status": self.AdmisionInterviewSchedule_Status,
+            "AdmisionInterviewSchedule_IsEmailSent": self.AdmisionInterviewSchedule_IsEmailSent,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive
+        }
+        
+class CIEResults(db.Model):
+    __tablename__ = 'CIEResults'
+
+    CIEResults_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    CIEResultsPath = db.Column(db.String(255), nullable=False)
+    CIEResults_Remarks = db.Column(db.String(255), nullable=True)
+    CIEResults_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to StudentSubmissions_JotForm
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='cieresults', lazy=True)
+
+    def __repr__(self):
+        return f"<CIEResults {self.CIEResults_Id}>"
+    
+    def to_dict(self):
+        return {
+            "CIEResults_Id": self.CIEResults_Id,
+            "CIEResultsPath": self.CIEResultsPath,
+            "CIEResults_Remarks": self.CIEResults_Remarks,
+            "CIEResults_JotFormId": self.CIEResults_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
+
+class SchoolResultsGrade8(db.Model):
+    __tablename__ = 'SchoolResultsGrade8'
+
+    SchoolResultsGrade8_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SchoolResultsGrade8Path = db.Column(db.String(255), nullable=False)
+    SchoolResultsGrade8_Remarks = db.Column(db.String(255), nullable=True)
+    SchoolResultsGrade8_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)  # Assuming JotFormId is related
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to JotForm (assuming StudentSubmissions_JotForm is the related model)
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='schoolresults8', lazy=True)
+
+    def __repr__(self):
+        return f"<SchoolResultsGrade8 {self.SchoolResultsGrade8_Id}>"
+
+    def to_dict(self):
+        return {
+            "SchoolResultsGrade8_Id": self.SchoolResultsGrade8_Id,
+            "SchoolResultsGrade8Path": self.SchoolResultsGrade8Path,
+            "SchoolResultsGrade8_Remarks": self.SchoolResultsGrade8_Remarks,
+            "SchoolResultsGrade8_JotFormId": self.SchoolResultsGrade8_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
+     
+class SchoolResultsGrade9(db.Model):
+    __tablename__ = 'SchoolResultsGrade9'
+
+    SchoolResultsGrade9_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SchoolResultsGrade9Path = db.Column(db.String(255), nullable=False)
+    SchoolResultsGrade9_Remarks = db.Column(db.String(255), nullable=True)
+    SchoolResultsGrade9_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)  # Assuming JotFormId is related
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to JotForm (assuming StudentSubmissions_JotForm is the related model)
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='schoolresults9', lazy=True)
+
+    def __repr__(self):
+        return f"<SchoolResultsGrade9 {self.SchoolResultsGrade9_Id}>"
+
+    def to_dict(self):
+        return {
+            "SchoolResultsGrade9_Id": self.SchoolResultsGrade9_Id,
+            "SchoolResultsGrade9Path": self.SchoolResultsGrade9Path,
+            "SchoolResultsGrade9_Remarks": self.SchoolResultsGrade9_Remarks,
+            "SchoolResultsGrade9_JotFormId": self.SchoolResultsGrade9_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
+        
+class SchoolResultsGrade10(db.Model):
+    __tablename__ = 'SchoolResultsGrade10'
+
+    SchoolResultsGrade10_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SchoolResultsGrade10Path = db.Column(db.String(255), nullable=False)
+    SchoolResultsGrade10_Remarks = db.Column(db.String(255), nullable=True)
+    SchoolResultsGrade10_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)  # Assuming JotFormId is related
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to JotForm (assuming StudentSubmissions_JotForm is the related model)
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='schoolresults10', lazy=True)
+
+    def __repr__(self):
+        return f"<SchoolResultsGrade10 {self.SchoolResultsGrade10_Id}>"
+
+    def to_dict(self):
+        return {
+            "SchoolResultsGrade10_Id": self.SchoolResultsGrade10_Id,
+            "SchoolResultsGrade10Path": self.SchoolResultsGrade10Path,
+            "SchoolResultsGrade10_Remarks": self.SchoolResultsGrade10_Remarks,
+            "SchoolResultsGrade10_JotFormId": self.SchoolResultsGrade10_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
+        
+class SchoolResultsGrade11(db.Model):
+    __tablename__ = 'SchoolResultsGrade11'
+
+    SchoolResultsGrade11_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SchoolResultsGrade11Path = db.Column(db.String(255), nullable=False)
+    SchoolResultsGrade11_Remarks = db.Column(db.String(255), nullable=True)
+    SchoolResultsGrade11_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)  # Assuming JotFormId is related
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to JotForm (assuming StudentSubmissions_JotForm is the related model)
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='schoolresults11', lazy=True)
+
+    def __repr__(self):
+        return f"<SchoolResultsGrade11 {self.SchoolResultsGrade11_Id}>"
+
+    def to_dict(self):
+        return {
+            "SchoolResultsGrade11_Id": self.SchoolResultsGrade11_Id,
+            "SchoolResultsGrade11Path": self.SchoolResultsGrade11Path,
+            "SchoolResultsGrade11_Remarks": self.SchoolResultsGrade11_Remarks,
+            "SchoolResultsGrade11_JotFormId": self.SchoolResultsGrade11_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
+        
+class ECACertificates(db.Model):
+    __tablename__ = 'ECACertificates'
+
+    ECACertificates_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ECACertificatesPath = db.Column(db.String(255), nullable=False)
+    ECACertificates_Remarks = db.Column(db.String(255), nullable=True)
+    ECACertificates_JotFormId = db.Column(db.Integer, db.ForeignKey('StudentSubmissions_JotForm.SubmissionID'), nullable=False)  # Assuming JotFormId is related
+    CreatedBy = db.Column(db.String(255), nullable=True)
+    CreatedDate = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    UpdatedBy = db.Column(db.String(255), nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Relationship to JotForm (assuming StudentSubmissions_JotForm is the related model)
+    jotform_submission = db.relationship('StudentSubmissions_JotForm', backref='ecacertificates', lazy=True)
+
+    def __repr__(self):
+        return f"<ECACertificates {self.ECACertificates_Id}>"
+
+    def to_dict(self):
+        return {
+            "ECACertificates_Id": self.ECACertificates_Id,
+            "ECACertificatesPath": self.ECACertificatesPath,
+            "ECACertificates_Remarks": self.ECACertificates_Remarks,
+            "ECACertificates_JotFormId": self.ECACertificates_JotFormId,
+            "CreatedBy": self.CreatedBy,
+            "CreatedDate": self.CreatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.CreatedDate else None,
+            "UpdatedBy": self.UpdatedBy,
+            "UpdatedDate": self.UpdatedDate.strftime('%Y-%m-%d %H:%M:%S') if self.UpdatedDate else None,
+            "InActive": self.InActive,
+            "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
+        }
