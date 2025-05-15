@@ -25,11 +25,19 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
 from resources.crypto_utils import encrypt, decrypt
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from io import BytesIO
+from barcode import Code128
+from barcode.writer import ImageWriter
+from copy import deepcopy
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 import ast
 import uuid
 import smtplib
 import random
 from email.mime.text import MIMEText
+from PIL import Image
+
 
 
 load_dotenv()
@@ -40,6 +48,9 @@ UPLOAD_FOLDER = 'uploads/'
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def get_model_by_tablename(table_name):
+    return globals().get(table_name)
 
 class DateTimeEncoder(json.JSONEncoder):
         #Override the default method
@@ -5494,7 +5505,19 @@ class EmployeeCreationResource(Resource):
             record_fields["ShiftId"] = inserted_ids.get('Shifts')
         elif table_name == "StaffShifts":
             record_fields["StaffId"] = inserted_ids.get('StaffInfo')
-            record_fields["ShiftId"] = inserted_ids.get('Shifts')
+
+            # ✅ Use ShiftId from frontend if available
+            if "ShiftId" in record_fields and record_fields["ShiftId"]:
+                # Optional: Validate ShiftId exists
+                shift_exists = db.session.query(Shifts).filter_by(Id=record_fields["ShiftId"]).first()
+                if not shift_exists:
+                    raise ValueError(f"Provided ShiftId {record_fields['ShiftId']} does not exist.")
+            else:
+                # Fallback to inserted ShiftId
+                shift_id = inserted_ids.get('Shifts')
+                if not shift_id:
+                    raise ValueError("ShiftId is required for StaffShifts but not provided and not found in inserted_ids.")
+                record_fields["ShiftId"] = shift_id
         elif table_name == "USERS":
             record_fields["Teacher_Id"] = str(inserted_ids.get('StaffInfo'))
             record_fields["Username"] = encrypt(str(inserted_ids.get('StaffInfo')) + "." + str(record_fields["Firstname"]).lower() + "@alpha.edu.pk")
@@ -7265,11 +7288,15 @@ class ForgotPasswordResource(Resource):
             msg['Subject'] = subject
             msg['From'] = "noreply@alpha.edu.pk"
             msg['To'] = email
-
+            SERVER = os.environ.get("MAIL_SERVER")
+            PORT = os.environ.get("MAIL_PORT")
+            
             # Sending the email using smtplib
-            with smtplib.SMTP('smtp.office365.com', 587) as smtp:
+            with smtplib.SMTP(SERVER, int(PORT)) as smtp:
                 smtp.starttls()  # Secure the connection
-                smtp.login("noreply@alpha.edu.pk", "Alpha123")  # Use correct credentials
+                smtp_user = os.environ.get("EMAIL_USER")
+                smtp_pass = os.environ.get("EMAIL_PASS")
+                smtp.login("smtp_user", "smtp_pass")  # Use correct credentials
                 smtp.send_message(msg)  # Send the email
 
             return True
@@ -7380,34 +7407,39 @@ class StudentSubmissions_JotForms(Resource):
     def post(self):
         if request.is_json:
             data = request.get_json()
-            logging.info (f"Parameters: {data}")
+            logging.info(f"Parameters: {data}")
         else:
             data = request.form
 
-            # Ensure form_id and API_KEY are provided
-            if 'form_id' not in data or 'api_key' not in data or 'userid' not in data:
-                return Response('{"error": "form_id, api_key and userid are required"}', status=400, content_type='application/json')
+        # Ensure form_id, API_KEY, and userid are provided
+        if 'form_id' not in data or 'api_key' not in data or 'userid' not in data:
+            return Response('{"error": "form_id, api_key, and userid are required"}', status=400, content_type='application/json')
 
-            form_id = data['form_id']
-            API_KEY = data['api_key']
-            user_id = data['userid']
+        form_id = data['form_id']
+        API_KEY = data['api_key']
+        user_id = data['userid']
 
-            # Make request to the JotForm API
-            url = f"https://api.jotform.com/form/{form_id}/submissions?apiKey={API_KEY}"
-            response = requests.get(url)
-            data = json.loads(response.text)
-            logging.info(f"Data Received:{data}")
+        # Base URL for the JotForm API endpoint
+        url = f"https://api.jotform.com/form/{form_id}/submissions?apiKey={API_KEY}"
+        records_added = 0
+        records_skipped = 0
+        offset = 0
+        limit = 5000  # Adjust this based on the maximum number of records per request
 
-            if not data or "content" not in data:
-                logging.info("Invalid request data: Missing 'content' key")
-                return {"message": "Invalid request data"}, 400
+        try:
+            while True:
+                # Add pagination parameters
+                paginated_url = f"{url}&limit={limit}&offset={offset}"
+                response = requests.get(paginated_url)
+                data = response.json()
 
-            # Extract the content array from the JSON
-            content = data.get('content', [])
-            records_added = 0
-            records_skipped = 0
+                if not data or "content" not in data:
+                    logging.info("No submissions or invalid response received.")
+                    break  # Stop if no content is returned
 
-            try:
+                content = data["content"]
+                if not content:
+                    break  # No more submissions
                 for submission in content:
                     jotform_id = submission.get('id')
                     logging.info(f"JotFormId: {jotform_id}")
@@ -7549,17 +7581,17 @@ class StudentSubmissions_JotForms(Resource):
                 # Commit all valid records at once
                 db.session.commit()
                 logging.info(f"Submission completed: {records_added} records added, {records_skipped} records skipped.")
-
+                offset += limit
                 return {"message": "Records Inserted Successfully", "records_added": records_added, "records_skipped(duplicate)":records_skipped}, 200
 
-            except SQLAlchemyError as e:
-                db.session.rollback()  # Rollback in case of DB error
-                logging.info(f"Database error: {str(e)}")
-                return {"message": "Database error occurred", "error": str(e)}, 500
+        except SQLAlchemyError as e:
+            db.session.rollback()  # Rollback in case of DB error
+            logging.info(f"Database error: {str(e)}")
+            return {"message": "Database error occurred", "error": str(e)}, 500
 
-            except Exception as e:
-                logging.info(f"Unexpected error: {str(e)}")
-                return {"message": "An unexpected error occurred", "error": str(e)}, 500
+        except Exception as e:
+            logging.info(f"Unexpected error: {str(e)}")
+            return {"message": "An unexpected error occurred", "error": str(e)}, 500
 
 class User_Signup(Resource):
     def post(self):
@@ -7851,3 +7883,200 @@ class Jot_FormUpdate(Resource):
         for key, value in fields.items():
             setattr(record, key, value)
         logging.info(f"Updated record with ID {fields.get('SubmissionID') or fields.get('CIEResults_Id') or fields.get('SchoolResultsGrade8_Id') or fields.get('SchoolResultsGrade9_Id') or fields.get('SchoolResultsGrade10_Id') or fields.get('SchoolResultsGrade11_Id') or fields.get('ECACertificates_Id')}")
+
+
+# class AdmissionInterviewSchedule(Resource):
+#     def post(self):
+#         data = request.get_json()
+#         table_name = data.get('Table_Name')
+#         #logging.info(f"table_name {table_name}")
+#         insert_data = data.get('Data')
+#         update_data = data.get('existedData')
+#         #logging.info(f"update_data {update_data}")
+
+#         if not table_name or (not insert_data and not update_data):
+#             return {'status': 'error', 'message': 'Missing Table_Name or data to process'}, 400
+
+#         model_class = get_model_by_tablename(table_name)
+#         if not model_class:
+#             return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+#         try:
+#             inserted_records = []
+#             updated_records = 0
+
+#             # Handle new insertions
+#             if insert_data:
+#                 logging.info(f"Received request for the insertion of new records")
+#                 db_data = deepcopy(insert_data)
+#                 for item in db_data:
+#                     item.pop('Email', None)
+
+#                 records = [model_class(**item) for item in db_data]
+#                 db.session.bulk_save_objects(records)
+#                 db.session.commit()
+#                 inserted_records = records
+
+#                 # Send emails for inserted records
+#                 for item in insert_data:
+#                     jotform_id = item.get('AdmisionInterviewSchedule_JotFormId')
+#                     email = item.get('Email')
+#                     is_email_sent = item.get('AdmisionInterviewSchedule_IsEmailSent', False)
+
+#                     if jotform_id and email and is_email_sent:
+#                         send_interview_barcode_email(jotform_id, email)
+
+#             # Handle updates to existing records
+#             if update_data:
+#                 logging.info(f"Received request to update record")
+                
+#                 schedule_id = update_data.get("ScheduleId")
+#                 email = update_data.get("Email")
+#                 jotform_id = update_data.get("JotFormId")
+#                 is_email_sent = update_data.get("IsEmailSent", False)
+
+#                 if schedule_id:
+#                     existing_record = db.session.query(model_class).get(schedule_id)
+#                     if existing_record:
+#                         existing_record.AdmisionInterviewSchedule_IsEmailSent = is_email_sent
+#                         db.session.add(existing_record)
+#                         updated_records += 1
+
+#                         if jotform_id and email and is_email_sent:
+#                             send_interview_barcode_email(jotform_id, email)
+
+#                 db.session.commit()
+
+#             return {
+#                 'status': 'success',
+#                 'message': f"{len(inserted_records)} new record(s) inserted, {updated_records} record(s) updated, emails sent where applicable."
+#             }, 201
+
+#         except SQLAlchemyError as e:
+#             db.session.rollback()
+#             return {'status': 'error', 'message': str(e)}, 500
+#         except Exception as e:
+#             db.session.rollback()
+#             return {'status': 'error', 'message': str(e)}, 500
+#     def put(self):
+#         data = request.get_json()
+#         table_name = data.get('Table_Name')
+#         record_id = data.get('id')  
+#         update_fields = data.get('Data')  
+#         #logging.info (f"fields {update_fields}")
+
+#         if not table_name or not record_id or not update_fields:
+#             return {'status': 'error', 'message': 'Missing Table_Name, ID, or Data'}, 400
+
+#         model_class = get_model_by_tablename(table_name)
+#         if not model_class:
+#             return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+
+#         try:
+#             # Fetch the record by primary key
+#             record = db.session.query(model_class).get(record_id)
+#             if not record:
+#                 return {'status': 'error', 'message': f"Record with ID {record_id} not found"}, 404
+
+#             # Extract email-related fields before popping 'Email'
+#             jotform_id = update_fields.get('JotFormId')
+#             email = update_fields.get('Email')
+#             is_email_sent = update_fields.get('AdmisionInterviewSchedule_IsEmailSent', False)
+
+#             # Remove Email before updating database record
+#             update_fields.pop('Email', None)
+
+#             # Update record using only allowed fields
+#             for key, value in update_fields.items():
+#                 if hasattr(record, key):
+#                     setattr(record, key, value)
+
+#             db.session.add(record)
+#             db.session.commit()
+
+#             # Send email with barcode if necessary
+#             if jotform_id and email and is_email_sent:
+#                 #logging.info(f"Calling Email Setup")
+#                 send_interview_barcode_email(jotform_id, email)
+
+#             return {'status': 'success', 'message': f'Record {record_id} updated successfully'}, 200
+
+#         except SQLAlchemyError as e:
+#             db.session.rollback()
+#             return {'status': 'error', 'message': str(e)}, 500
+#         except Exception as e:
+#             db.session.rollback()
+#             return {'status': 'error', 'message': str(e)}, 500
+
+
+
+# def send_interview_barcode_email(jotform_id, email):
+#     try:
+#         barcode_data = f"0{jotform_id}0"
+#        # logging.info(f"Encoding barcode: '{barcode_data}'")
+
+#         writer_options = {
+#             'module_height': 4,
+#             'write_text': False
+#         }
+
+#         # Generate barcode
+#         barcode_io = BytesIO()
+#         barcode = Code128(barcode_data, writer=ImageWriter())
+#         barcode.write(barcode_io, options=writer_options)
+#         barcode_io.seek(0)
+
+#         # Resize image
+#         img = Image.open(barcode_io)
+#         img_resized = img.resize((img.width, img.height), Image.LANCZOS)
+
+#         # Convert to base64
+#         resized_io = BytesIO()
+#         img_resized.save(resized_io, format='PNG')
+#         resized_io.seek(0)
+#         barcode_base64 = base64.b64encode(resized_io.getvalue()).decode('utf-8')
+
+#         # Create email
+#         msg = MIMEMultipart()
+#         msg['Subject'] = "Your Interview Barcode"
+#         msg['From'] = os.environ.get("EMAIL_USER")
+#         msg['To'] = email
+
+#         html_body = f"""
+#         <p>Dear Candidate,</p>
+#         <p>Here is your interview barcode:</p>
+#         <img src="data:image/png;base64,{barcode_base64}" alt="barcode" style="width:100%;height:auto;" />
+#         <p>If you can't scan the image above, please open the attached image and try scanning from there.</p>
+#         """
+#         msg.attach(MIMEText(html_body, 'html'))
+
+#         # Attach barcode image
+#         resized_io.seek(0)
+#         attachment = MIMEApplication(resized_io.read(), _subtype="png")
+#         attachment.add_header('Content-Disposition', 'attachment',
+#                               filename=f"barcode_{barcode_data}.png")
+#         msg.attach(attachment)
+
+#         # Send email
+#         SERVER = os.environ.get("MAIL_SERVER")
+#         PORT = os.environ.get("MAIL_PORT")
+#         smtp_user = os.environ.get("EMAIL_USER")
+#         smtp_pass = os.environ.get("EMAIL_PASS")
+
+#         with smtplib.SMTP(SERVER, int(PORT)) as smtp:
+#             smtp.starttls()
+#             smtp.login(smtp_user, smtp_pass)
+#             smtp.send_message(msg)
+
+#        # logging.info(f"Email sent to {email}")
+#         return True
+#     except Exception as e:
+#         logging.error(f"Failed to send email to {email}: {e}")
+#         return False
+
+
+
+
+
+
+    
