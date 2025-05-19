@@ -12,3 +12,5 @@ flask-jwt-extended
 pycryptodome
 Flask-Mail
 requests
+Pillow
+qrcode[pil]

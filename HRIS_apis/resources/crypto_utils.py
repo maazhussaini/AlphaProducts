@@ -1,5 +1,9 @@
 from base64 import b64encode, b64decode
 from Crypto.Cipher import DES
+from models.models import *
+from datetime import datetime, date, timedelta
+from flask import request
+import logging
 
 ENCRYPT_KEY = "!@#$%^EncryptDecrypt^%$#@!"
 BY_KEY = ENCRYPT_KEY[:8].encode('utf-8')
@@ -45,3 +49,26 @@ def decrypt(encrypted_text):
             return "Error when decrypt"
     except Exception as ex:
         return ""
+
+def log_forgot_password_attempt(user_id, status, message):
+    try:
+        user = USERS.query.filter_by(User_Id=user_id).first()
+        name = f"{user.Firstname} {user.Lastname}" if user else "Unknown"
+        user_type = user.user_type.UserTypeName if user and user.user_type else "Unknown"
+
+        log_entry = ForgettPasswordLogs(
+            UserId=user_id,
+            UserName=name,
+            Usertype=user_type,
+            RequestDate=datetime.utcnow() + timedelta(hours=5),
+            RequestType="ForgotPassword HRIS APP",
+            Status=status,
+            Message=message,
+            IpAddress=request.remote_addr,
+            CreatorTerminal=request.user_agent.string if request.user_agent else "Unknown"
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Failed to log forgot password attempt: {e}")

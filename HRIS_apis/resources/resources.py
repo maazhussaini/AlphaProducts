@@ -23,11 +23,9 @@ from sqlalchemy import text, literal
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from resources.crypto_utils import encrypt, decrypt
+from resources.crypto_utils import encrypt, decrypt,log_forgot_password_attempt
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from io import BytesIO
-from barcode import Code128
-from barcode.writer import ImageWriter
 from copy import deepcopy
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
@@ -37,7 +35,7 @@ import smtplib
 import random
 from email.mime.text import MIMEText
 from PIL import Image
-
+import qrcode
 
 
 load_dotenv()
@@ -7316,7 +7314,7 @@ class ForgotPasswordResource(Resource):
                 UserName=name,
                 Usertype=user.user_type.UserTypeName if user and user.user_type else "Unknown",  # Access UserTypeName through the relationship
                 RequestDate=datetime.utcnow() + timedelta(hours=5),
-                RequestType="ForgotPasswordHRIS",
+                RequestType="ForgotPasswordHRIS WEB",
                 Status=status,
                 Message=message,
                 IpAddress=request.remote_addr,  # Get the user's IP address
@@ -7885,198 +7883,363 @@ class Jot_FormUpdate(Resource):
         logging.info(f"Updated record with ID {fields.get('SubmissionID') or fields.get('CIEResults_Id') or fields.get('SchoolResultsGrade8_Id') or fields.get('SchoolResultsGrade9_Id') or fields.get('SchoolResultsGrade10_Id') or fields.get('SchoolResultsGrade11_Id') or fields.get('ECACertificates_Id')}")
 
 
-# class AdmissionInterviewSchedule(Resource):
-#     def post(self):
-#         data = request.get_json()
-#         table_name = data.get('Table_Name')
-#         #logging.info(f"table_name {table_name}")
-#         insert_data = data.get('Data')
-#         update_data = data.get('existedData')
-#         #logging.info(f"update_data {update_data}")
+class AdmissionInterviewSchedule(Resource):
+    def post(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        #logging.info(f"table_name {table_name}")
+        insert_data = data.get('Data')
+        update_data = data.get('existedData')
+        #logging.info(f"update_data {update_data}")
 
-#         if not table_name or (not insert_data and not update_data):
-#             return {'status': 'error', 'message': 'Missing Table_Name or data to process'}, 400
+        if not table_name or (not insert_data and not update_data):
+            return {'status': 'error', 'message': 'Missing Table_Name or data to process'}, 400
 
-#         model_class = get_model_by_tablename(table_name)
-#         if not model_class:
-#             return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
 
-#         try:
-#             inserted_records = []
-#             updated_records = 0
+        try:
+            inserted_records = []
+            updated_records = 0
 
-#             # Handle new insertions
-#             if insert_data:
-#                 logging.info(f"Received request for the insertion of new records")
-#                 db_data = deepcopy(insert_data)
-#                 for item in db_data:
-#                     item.pop('Email', None)
+            # Handle new insertions
+            if insert_data:
+                logging.info(f"Received request for the insertion of new records")
+                db_data = deepcopy(insert_data)
+                for item in db_data:
+                    item.pop('Email', None)
 
-#                 records = [model_class(**item) for item in db_data]
-#                 db.session.bulk_save_objects(records)
-#                 db.session.commit()
-#                 inserted_records = records
+                records = [model_class(**item) for item in db_data]
+                db.session.bulk_save_objects(records)
+                db.session.commit()
+                inserted_records = records
 
-#                 # Send emails for inserted records
-#                 for item in insert_data:
-#                     jotform_id = item.get('AdmisionInterviewSchedule_JotFormId')
-#                     email = item.get('Email')
-#                     is_email_sent = item.get('AdmisionInterviewSchedule_IsEmailSent', False)
+                # Send emails for inserted records
+                for item in insert_data:
+                    jotform_id = item.get('AdmisionInterviewSchedule_JotFormId')
+                    email = item.get('Email')
+                    is_email_sent = item.get('AdmisionInterviewSchedule_IsEmailSent', False)
 
-#                     if jotform_id and email and is_email_sent:
-#                         send_interview_barcode_email(jotform_id, email)
+                    if jotform_id and email and is_email_sent:
+                        send_interview_barcode_email(jotform_id, email)
 
-#             # Handle updates to existing records
-#             if update_data:
-#                 logging.info(f"Received request to update record")
-                
-#                 schedule_id = update_data.get("ScheduleId")
-#                 email = update_data.get("Email")
-#                 jotform_id = update_data.get("JotFormId")
-#                 is_email_sent = update_data.get("IsEmailSent", False)
+            # Handle updates to existing records
+            if update_data:
+                logging.info(f"Received request to update records")
 
-#                 if schedule_id:
-#                     existing_record = db.session.query(model_class).get(schedule_id)
-#                     if existing_record:
-#                         existing_record.AdmisionInterviewSchedule_IsEmailSent = is_email_sent
-#                         db.session.add(existing_record)
-#                         updated_records += 1
+                for record in update_data:
+                    schedule_id = record.get("ScheduleId")
+                    email = record.get("Email")
+                    jotform_id = record.get("JotFormId")
+                    is_email_sent = record.get("IsEmailSent", False)
 
-#                         if jotform_id and email and is_email_sent:
-#                             send_interview_barcode_email(jotform_id, email)
+                    if schedule_id:
+                        existing_record = db.session.query(model_class).get(schedule_id)
+                        if existing_record:
+                            existing_record.AdmisionInterviewSchedule_IsEmailSent = is_email_sent
+                            db.session.add(existing_record)
+                            updated_records += 1
 
-#                 db.session.commit()
+                            if jotform_id and email and is_email_sent:
+                                send_interview_barcode_email(jotform_id, email)
 
-#             return {
-#                 'status': 'success',
-#                 'message': f"{len(inserted_records)} new record(s) inserted, {updated_records} record(s) updated, emails sent where applicable."
-#             }, 201
+                db.session.commit()
 
-#         except SQLAlchemyError as e:
-#             db.session.rollback()
-#             return {'status': 'error', 'message': str(e)}, 500
-#         except Exception as e:
-#             db.session.rollback()
-#             return {'status': 'error', 'message': str(e)}, 500
-#     def put(self):
-#         data = request.get_json()
-#         table_name = data.get('Table_Name')
-#         record_id = data.get('id')  
-#         update_fields = data.get('Data')  
-#         #logging.info (f"fields {update_fields}")
+            return {
+                'status': 'success',
+                'message': f"{len(inserted_records)} new record(s) inserted, {updated_records} record(s) updated, emails sent where applicable."
+            }, 201
 
-#         if not table_name or not record_id or not update_fields:
-#             return {'status': 'error', 'message': 'Missing Table_Name, ID, or Data'}, 400
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+    def put(self):
+        data = request.get_json()
+        table_name = data.get('Table_Name')
+        record_id = data.get('id')  
+        update_fields = data.get('Data')  
+        #logging.info (f"fields {update_fields}")
 
-#         model_class = get_model_by_tablename(table_name)
-#         if not model_class:
-#             return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
+        if not table_name or not record_id or not update_fields:
+            return {'status': 'error', 'message': 'Missing Table_Name, ID, or Data'}, 400
 
-#         try:
-#             # Fetch the record by primary key
-#             record = db.session.query(model_class).get(record_id)
-#             if not record:
-#                 return {'status': 'error', 'message': f"Record with ID {record_id} not found"}, 404
+        model_class = get_model_by_tablename(table_name)
+        if not model_class:
+            return {'status': 'error', 'message': f'Table {table_name} does not exist'}, 400
 
-#             # Extract email-related fields before popping 'Email'
-#             jotform_id = update_fields.get('JotFormId')
-#             email = update_fields.get('Email')
-#             is_email_sent = update_fields.get('AdmisionInterviewSchedule_IsEmailSent', False)
+        try:
+            # Fetch the record by primary key
+            record = db.session.query(model_class).get(record_id)
+            if not record:
+                return {'status': 'error', 'message': f"Record with ID {record_id} not found"}, 404
 
-#             # Remove Email before updating database record
-#             update_fields.pop('Email', None)
+            # Extract email-related fields before popping 'Email'
+            jotform_id = update_fields.get('JotFormId')
+            email = update_fields.get('Email')
+            is_email_sent = update_fields.get('AdmisionInterviewSchedule_IsEmailSent', False)
 
-#             # Update record using only allowed fields
-#             for key, value in update_fields.items():
-#                 if hasattr(record, key):
-#                     setattr(record, key, value)
+            # Remove Email before updating database record
+            update_fields.pop('Email', None)
 
-#             db.session.add(record)
-#             db.session.commit()
+            # Update record using only allowed fields
+            for key, value in update_fields.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
 
-#             # Send email with barcode if necessary
-#             if jotform_id and email and is_email_sent:
-#                 #logging.info(f"Calling Email Setup")
-#                 send_interview_barcode_email(jotform_id, email)
+            db.session.add(record)
+            db.session.commit()
 
-#             return {'status': 'success', 'message': f'Record {record_id} updated successfully'}, 200
+            # Send email with barcode if necessary
+            if jotform_id and email and is_email_sent:
+                #logging.info(f"Calling Email Setup")
+                send_interview_barcode_email(jotform_id, email)
 
-#         except SQLAlchemyError as e:
-#             db.session.rollback()
-#             return {'status': 'error', 'message': str(e)}, 500
-#         except Exception as e:
-#             db.session.rollback()
-#             return {'status': 'error', 'message': str(e)}, 500
+            return {'status': 'success', 'message': f'Record {record_id} updated successfully'}, 200
 
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
 
+def send_interview_barcode_email(jotform_id, email):
+    try:
+        qr_data = jotform_id # Format your QR content as needed
 
-# def send_interview_barcode_email(jotform_id, email):
-#     try:
-#         barcode_data = f"0{jotform_id}0"
-#        # logging.info(f"Encoding barcode: '{barcode_data}'")
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
-#         writer_options = {
-#             'module_height': 4,
-#             'write_text': False
-#         }
+        # Resize (optional)
+        img_resized = img.resize((300, 300), Image.LANCZOS)
 
-#         # Generate barcode
-#         barcode_io = BytesIO()
-#         barcode = Code128(barcode_data, writer=ImageWriter())
-#         barcode.write(barcode_io, options=writer_options)
-#         barcode_io.seek(0)
+        # Convert to base64
+        img_io = BytesIO()
+        img_resized.save(img_io, format='PNG')
+        img_io.seek(0)
+        qr_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
 
-#         # Resize image
-#         img = Image.open(barcode_io)
-#         img_resized = img.resize((img.width, img.height), Image.LANCZOS)
+        # Prepare email
+        msg = MIMEMultipart()
+        msg['Subject'] = "Your Interview QR Code"
+        msg['From'] = os.environ.get("EMAIL_USER")
+        msg['To'] = email
 
-#         # Convert to base64
-#         resized_io = BytesIO()
-#         img_resized.save(resized_io, format='PNG')
-#         resized_io.seek(0)
-#         barcode_base64 = base64.b64encode(resized_io.getvalue()).decode('utf-8')
+        html_body = f"""
+        <p>Dear Candidate,</p>
+        <p>Here is your interview QR code:</p>
+        <img src="data:image/png;base64,{qr_base64}" alt="qr code" style="width:200px;height:200px;" />
+        <p>If you can't scan the image above, please open the attached image and try scanning from there.</p>
+        """
+        msg.attach(MIMEText(html_body, 'html'))
 
-#         # Create email
-#         msg = MIMEMultipart()
-#         msg['Subject'] = "Your Interview Barcode"
-#         msg['From'] = os.environ.get("EMAIL_USER")
-#         msg['To'] = email
+        # Attach QR image
+        img_io.seek(0)
+        attachment = MIMEApplication(img_io.read(), _subtype="png")
+        attachment.add_header('Content-Disposition', 'attachment',
+                              filename=f"qr_code_{qr_data}.png")
+        msg.attach(attachment)
 
-#         html_body = f"""
-#         <p>Dear Candidate,</p>
-#         <p>Here is your interview barcode:</p>
-#         <img src="data:image/png;base64,{barcode_base64}" alt="barcode" style="width:100%;height:auto;" />
-#         <p>If you can't scan the image above, please open the attached image and try scanning from there.</p>
-#         """
-#         msg.attach(MIMEText(html_body, 'html'))
+        # Send the email
+        SERVER = os.environ.get("MAIL_SERVER")
+        PORT = os.environ.get("MAIL_PORT")
+        smtp_user = os.environ.get("EMAIL_USER")
+        smtp_pass = os.environ.get("EMAIL_PASS")
 
-#         # Attach barcode image
-#         resized_io.seek(0)
-#         attachment = MIMEApplication(resized_io.read(), _subtype="png")
-#         attachment.add_header('Content-Disposition', 'attachment',
-#                               filename=f"barcode_{barcode_data}.png")
-#         msg.attach(attachment)
+        with smtplib.SMTP(SERVER, int(PORT)) as smtp:
+            smtp.starttls()
+            smtp.login(smtp_user, smtp_pass)
+            smtp.send_message(msg)
 
-#         # Send email
-#         SERVER = os.environ.get("MAIL_SERVER")
-#         PORT = os.environ.get("MAIL_PORT")
-#         smtp_user = os.environ.get("EMAIL_USER")
-#         smtp_pass = os.environ.get("EMAIL_PASS")
-
-#         with smtplib.SMTP(SERVER, int(PORT)) as smtp:
-#             smtp.starttls()
-#             smtp.login(smtp_user, smtp_pass)
-#             smtp.send_message(msg)
-
-#        # logging.info(f"Email sent to {email}")
-#         return True
-#     except Exception as e:
-#         logging.error(f"Failed to send email to {email}: {e}")
-#         return False
+        logging.info(f"QR email sent to {email}")
+        return True
+    except Exception as e:
+        logging.error(f"Failed to send QR email to {email}: {e}")
+        return False
 
 
+class RequestOtp(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+            username = data.get('Username')
+
+            if not username:
+                return {"error": "Username is required", "success": False}, 200
+
+            encrypted_email = encrypt(username)
+            user = USERS.query.filter_by(Username=encrypted_email).first()
+
+            if not user:
+                log_forgot_password_attempt(user.User_Id, "Failure", "User not found")
+                return {"error": "User not found", "success": False}, 200
+
+            email_to_send_otp = None
+            user_campus = UserCampus.query.filter_by(UserId=user.User_Id).first()
+            staff_info = None
+            staff_email = None
+             
+            if user_campus:
+                staff_info = StaffInfo.query.filter_by(Staff_ID=user_campus.StaffId).first()
+                if staff_info:
+                    staff_email = staff_info.S_Email
+
+            if not staff_email:
+                log_forgot_password_attempt(user.User_Id, "Failure", "Staff email not found")
+                return {"error": "There is an error in fetching records", "success": False}, 404
+
+            email_to_send_otp = staff_email
+
+            otp = generate_otp()
+
+            try:
+                user.Otp = otp
+                user.OtpGeneratedAt = datetime.utcnow() + timedelta(hours=5)
+                db.session.commit()
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                log_forgot_password_attempt(user.User_Id, "Failure", "Failed to save OTP in database")
+                return {"error": "Failed to save OTP in database", "success": False}, 500
+
+            email_sent, error_msg = send_otp_email(email_to_send_otp, otp)
+
+            if not email_sent:
+                log_forgot_password_attempt(user.User_Id, "Failure", f"Failed to send OTP email: {error_msg}")
+                return {"error": "Failed to send OTP email", "success": False}, 500
+
+            log_forgot_password_attempt(user.User_Id, "Sucess", f"Email And Otp: {otp} Sent Successfully")
+            return {
+                "message": "OTP sent successfully",
+                "success": True,
+                "OtpGeneratedAt": user.OtpGeneratedAt,
+                #"otp": otp,
+                "userId": user.User_Id,
+                "email": email_to_send_otp
+            }, 200
+            
+
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}", "success": False}, 500
+
+def generate_otp():
+    return str(random.randint(1000, 9999))
+
+def send_otp_email(email, otp):
+    try:
+        # Create email
+        msg = MIMEMultipart()
+        msg['Subject'] = "ALPHA APP OTP Verification"
+        msg['From'] = os.environ.get("EMAIL_USER")
+        msg['To'] = email
+
+        html_body = f"""
+        <p>Hello,</p>
+        <p>We received a request to verify your identification. Please use the OTP below to complete your request:</p>
+        <h2>{otp}</h2>
+        <p>This OTP is valid for a limited time only. Do not share it with anyone.</p>
+        <p>Best regards,<br/>The ALPHA APP Team</p>
+        """
+
+        msg.attach(MIMEText(html_body, 'html'))
+
+        # Send email
+        SERVER = os.environ.get("MAIL_SERVER") or "smtp.office365.com"
+        PORT = int(os.environ.get("MAIL_PORT") or 587)
+        smtp_user = os.environ.get("EMAIL_USER")
+        smtp_pass = os.environ.get("EMAIL_PASS")
+
+        with smtplib.SMTP(SERVER, PORT) as smtp:
+            smtp.starttls()
+            smtp.login(smtp_user, smtp_pass)
+            smtp.send_message(msg)
+
+        return True, None  # Success, no error message
+    except Exception as e:
+        logging.error(f"Failed to send OTP email to {email}: {e}")
+        return False, str(e)  # Failure, return error message
 
 
+class ResetPassword(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+            if not data:
+                return {"error": "Data is required", "success": False}, 200
 
+            user_id = data.get('userId')
+            new_password = data.get('newPassword')
 
-    
+            if not user_id or not new_password:
+                return {"error": "Valid userId and newPassword are required", "success": False}, 200
+
+            user = USERS.query.filter_by(User_Id=user_id).first()
+
+            if not user:
+                log_forgot_password_attempt(user_id, "Failure", "User not found for password reset")
+                return {"error": "User not found", "success": False}, 200
+
+            reset_password(user, new_password)
+
+            log_forgot_password_attempt(user.User_Id, "Success", "Password changed successfully")
+
+            return {"message": "Password changed successfully", "success": True}, 200
+
+        except Exception as ex:
+            print(str(ex))
+            return {"error": "An error occurred while changing the password", "success": False}, 500
+
+def reset_password(user, new_password):
+    try:
+        user.Password = encrypt(new_password)
+        user.ispasswordchanged = True
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise e  # propagate for logging or error return
+
+class VerifyOtp(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+            user_id = data.get('userId')
+            otp = data.get('otp')
+
+            if not user_id or not otp:
+                return {"error": "userId and otp are required", "success": False}, 400
+
+            user = USERS.query.filter_by(User_Id=user_id).first()
+
+            if not user or user.Otp != otp:
+                log_forgot_password_attempt(user.User_Id if user else 0, "Failure", "Invalid OTP or user not found")
+                return {"error": "Invalid OTP or user not found", "success": False}, 200
+
+            # ✅ Check if OTP is expired (after 3 minutes)
+            if not user.OtpGeneratedAt or datetime.utcnow() + timedelta(hours=5) - user.OtpGeneratedAt > timedelta(minutes=1):
+                log_forgot_password_attempt(user.User_Id, "Failure", "OTP has expired")
+                return {"error": "OTP has expired", "success": False}, 200
+
+            # ✅ Invalidate OTP after use
+            user.Otp = None
+            user.OtpGeneratedAt = None
+            db.session.commit()
+            
+            log_forgot_password_attempt(user.User_Id, "Success", "OTP verified successfully")
+
+            return {"message": "OTP verified", "success": True}, 200
+
+        except Exception as e:
+            print(str(e))
+            return {"error": "An error occurred during OTP verification", "success": False}, 500   
+

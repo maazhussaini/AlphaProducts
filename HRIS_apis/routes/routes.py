@@ -82,4 +82,6 @@ def register_routes(app):
     api.add_resource(Jot_FormUpdate, '/Jot_FormUpdate')
     api.add_resource(AdmissionInterviewSchedule, '/AdmissionInterviewSchedule')
 
-    
+    api.add_resource(RequestOtp, '/RequestOtp')
+    api.add_resource(ResetPassword, '/ResetPasswordOtp')
+    api.add_resource(VerifyOtp, '/VerifyOtp')

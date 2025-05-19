@@ -203,6 +203,7 @@ class UserLoginResource(Resource):
                     'address': staffInfo.PresentAddress if staffInfo else None,
                     'Age': age,
                     'phoneNumber': staffInfo.S_ContactNo,
+                    'EmergencyContactNo': staffInfo.EmergencyContactNo,
                     "photoURL": staffInfo.PhotoPath if staffInfo else None,
                     'rights': [{'Controller': right.Controller, 'Action': right.Action} for right in user_rights],
                     "schoolDetails": [],

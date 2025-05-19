@@ -70,6 +70,8 @@ class USERS(db.Model):
     NotificationToken = db.Column(db.String(200), nullable=True)
     ispasswordchanged = db.Column(db.Boolean, nullable=False)
     IsAEN = db.Column(db.Integer, nullable=True)
+    OtpGeneratedAt = db.Column(db.DateTime, nullable=True)
+    Otp = db.Column(db.String(), nullable=True)
 
     # Define the reverse relationship for UserCampus
     USERCAMPUS = db.relationship('UserCampus', back_populates='Users')
@@ -112,7 +114,8 @@ class USERS(db.Model):
             "UserToken": self.UserToken,
             "NotificationToken": self.NotificationToken,
             "ispasswordchanged": self.ispasswordchanged,
-            "IsAEN": self.IsAEN
+            "IsAEN": self.IsAEN,
+            "OtpGeneratedAt":self.OtpGeneratedAt
         }
 
 class UserType(db.Model):
