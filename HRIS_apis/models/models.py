@@ -115,7 +115,8 @@ class USERS(db.Model):
             "NotificationToken": self.NotificationToken,
             "ispasswordchanged": self.ispasswordchanged,
             "IsAEN": self.IsAEN,
-            "OtpGeneratedAt":self.OtpGeneratedAt
+            "OtpGeneratedAt":self.OtpGeneratedAt,
+            "Otp":self.Otp
         }
 
 class UserType(db.Model):
