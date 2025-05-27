@@ -3054,8 +3054,9 @@ class StaffTransferResource(Resource):
                 # Update related tables
                 self.update_staff_info(staff, to_campus_id, args['ReportingOfficerId'], args['DepartmentId'],args['OldDepartmentId'], args['DesignationId'], args['OldDesignationId'])
                 self.update_staff_shift(args['StaffId'], to_campus_id)
-                self.update_user_campus(args['StaffId'], to_campus_id, current_campus_id)
-                self.update_user(args['StaffId'], to_campus_id)
+                # Only update user if user_campus was found and updated
+                if self.update_user_campus(args['StaffId'], to_campus_id, current_campus_id):
+                    self.update_user(args['StaffId'], to_campus_id)
 
             # Commit the transaction
             db.session.commit()
@@ -3132,6 +3133,9 @@ class StaffTransferResource(Resource):
         try:
             print(f"to_campus_id: {to_campus_id}, staff_id: {staff_id}, current_campus_id: {current_campus_id}")
             user_campus = UserCampus.query.filter_by(StaffId=staff_id, CampusId=current_campus_id).first()
+            if not user_campus:
+                print("No UserCampus record found; skipping update.")
+                return False
             user_campus.CampusId = to_campus_id
             user_campus.UpdateDate = datetime.utcnow() + timedelta(hours=5)
             db.session.add(user_campus)
@@ -8123,7 +8127,7 @@ class RequestOtp(Resource):
             return {
                 "message": "OTP sent successfully",
                 "success": True,
-                "OtpGeneratedAt": user.OtpGeneratedAt,
+                "OtpGeneratedAt": user.OtpGeneratedAt.isoformat() if user.OtpGeneratedAt else None,
                 #"otp": otp,
                 "userId": user.User_Id,
                 "email": email_to_send_otp
@@ -8225,7 +8229,7 @@ class VerifyOtp(Resource):
                 log_forgot_password_attempt(user.User_Id if user else 0, "Failure", "Invalid OTP or user not found")
                 return {"error": "Invalid OTP or user not found", "success": False}, 200
 
-            # ✅ Check if OTP is expired (after 3 minutes)
+            # ✅ Check if OTP is expired (after 1 minutes)
             if not user.OtpGeneratedAt or datetime.utcnow() + timedelta(hours=5) - user.OtpGeneratedAt > timedelta(minutes=1):
                 log_forgot_password_attempt(user.User_Id, "Failure", "OTP has expired")
                 return {"error": "OTP has expired", "success": False}, 200
