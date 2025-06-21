@@ -1015,6 +1015,101 @@ class Get_JotForms(Resource):
         except requests.exceptions.RequestException as e:
             return Response(f'{{"error": "{str(e)}"}}', status=500, content_type='application/json')
 
+class DynamicHistoryPostResource(Resource):
+    def post(self):
+        data = request.get_json()
+        input_type = data.get('input_type')
+
+        if input_type not in ('new', 'old'):
+            return {'status': 'error', 'message': 'input_type must be either "new" or "old"'}, 400
+
+        try:
+            if input_type == 'new':
+                # Handle NEW data directly inserted into history
+                history_table = data.get('HistoryTableName')
+                updatedata = data.get('Data')
+
+                if not history_table or not updatedata:
+                    return {'status': 'error', 'message': 'HistoryTableName and updatedata are required'}, 400
+
+                if not isinstance(updatedata, list) or not all(isinstance(item, dict) for item in updatedata):
+                    return {'status': 'error', 'message': 'updatedata must be a list of dictionaries'}, 400
+
+                model_class = get_model_by_tablename(history_table)
+                if not model_class:
+                    return {'status': 'error', 'message': f'History table {history_table} not found'}, 400
+
+                from datetime import datetime
+                for item in updatedata:
+                    if 'StatusDate' in item:
+                        try:
+                            item['StatusDate'] = datetime.fromisoformat(item['StatusDate'])
+                        except ValueError:
+                            return {'status': 'error', 'message': 'Invalid StatusDate format'}, 400
+
+                records = [model_class(**item) for item in updatedata]
+                db.session.add_all(records)
+                db.session.commit()
+
+                pk_name = model_class.__mapper__.primary_key[0].name
+                pk_values = [getattr(r, pk_name) for r in records]
+
+                return {
+                    'status': 'success',
+                    'message': f'{len(records)} records inserted into {history_table}',
+                    'primary_keys': pk_values
+                }, 201
+
+            elif input_type == 'old': #Main and history table column name must be the samel
+                # Handle OLD data copied from main table
+                main_table = data.get('MainTableName')
+                history_table = data.get('HistoryTableName')
+                pk_values = data.get('MainTablePK')
+
+                if not main_table or not history_table or not pk_values:
+                    return {'status': 'error', 'message': 'MainTableName, HistoryTableName, and MainTablePK are required'}, 400
+
+                if not isinstance(pk_values, list):
+                    return {'status': 'error', 'message': 'MainTablePK must be a list of primary key values'}, 400
+
+                main_model = get_model_by_tablename(main_table)
+                history_model = get_model_by_tablename(history_table)
+
+                if not main_model or not history_model:
+                    return {'status': 'error', 'message': 'One or both model tables not found'}, 400
+
+                pk_col = main_model.__mapper__.primary_key[0]
+                main_records = db.session.query(main_model).filter(pk_col.in_(pk_values)).all()
+
+                if not main_records:
+                    return {'status': 'error', 'message': 'No records found for provided MainTablePK'}, 404
+
+                copied_data = []
+                for record in main_records:
+                    row_dict = {col.name: getattr(record, col.name) for col in main_model.__table__.columns}
+                    copied_data.append(row_dict)
+
+                history_records = [history_model(**item) for item in copied_data]
+                db.session.add_all(history_records)
+                db.session.commit()
+
+                history_pk_name = history_model.__mapper__.primary_key[0].name
+                inserted_ids = [getattr(r, history_pk_name) for r in history_records]
+
+                return {
+                    'status': 'success',
+                    'message': f'{len(history_records)} record(s) copied to {history_table}',
+                    'primary_keys': inserted_ids
+                }, 201
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+        except Exception as e:
+            db.session.rollback()
+            return {'status': 'error', 'message': str(e)}, 500
+
+
 
 
 

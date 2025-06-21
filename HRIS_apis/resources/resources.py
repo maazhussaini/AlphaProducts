@@ -7442,6 +7442,10 @@ class StudentSubmissions_JotForms(Resource):
                 content = data["content"]
                 if not content:
                     break  # No more submissions
+                    
+                # Ensure first-come-first-serve order by sorting manually
+                content.sort(key=lambda x: x.get('created_at'))
+                
                 for submission in content:
                     jotform_id = submission.get('id')
                     logging.info(f"JotFormId: {jotform_id}")
@@ -7477,10 +7481,21 @@ class StudentSubmissions_JotForms(Resource):
 
                     sports3_desc=answers.get('73', {}).get('answer', None)
                     Sports3Description = sports3_desc.strip().replace("\n", " ") if sports3_desc else None
+                    # Extract and parse the submission timestamp
+                    created_at_str = submission.get('created_at')
+                    created_at = None
+
+                    if created_at_str:
+                        try:
+                            # Try parsing with milliseconds
+                            created_at = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S.%f")
+                        except ValueError:
+                            # Fallback to parsing without milliseconds
+                            created_at = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S")
                     
                     student_submission = StudentSubmissions_JotForm(
-                        FullName=answers.get('85', {}).get('answer', None),
-                        SubmissionDate = submission.get('created_at'),
+                        FullName=answers.get('85', {}).get('answer', None),                      
+                        SubmissionDate=created_at,
                         Gender=answers.get('86', {}).get('answer', None),
                         Private=Private,
                         IfPrivate=answers.get('56', {}).get('answer', {}).get('first', None),
@@ -7894,7 +7909,7 @@ class AdmissionInterviewSchedule(Resource):
         #logging.info(f"table_name {table_name}")
         insert_data = data.get('Data')
         update_data = data.get('existedData')
-        #logging.info(f"update_data {update_data}")
+        logging.info(f"update_data {update_data}")
 
         if not table_name or (not insert_data and not update_data):
             return {'status': 'error', 'message': 'Missing Table_Name or data to process'}, 400
@@ -7929,7 +7944,8 @@ class AdmissionInterviewSchedule(Resource):
                         send_interview_barcode_email(jotform_id, email)
 
             # Handle updates to existing records
-            if update_data:
+            if update_data and isinstance(update_data, dict):
+                update_data = [update_data]
                 logging.info(f"Received request to update records")
 
                 for record in update_data:
@@ -8011,9 +8027,11 @@ class AdmissionInterviewSchedule(Resource):
             db.session.rollback()
             return {'status': 'error', 'message': str(e)}, 500
 
+
+
 def send_interview_barcode_email(jotform_id, email):
     try:
-        qr_data = jotform_id # Format your QR content as needed
+        qr_data = jotform_id  # QR content
 
         # Generate QR code
         qr = qrcode.QRCode(
@@ -8026,10 +8044,10 @@ def send_interview_barcode_email(jotform_id, email):
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
-        # Resize (optional)
+        # Resize QR image
         img_resized = img.resize((300, 300), Image.LANCZOS)
 
-        # Convert to base64
+        # Convert image to base64
         img_io = BytesIO()
         img_resized.save(img_io, format='PNG')
         img_io.seek(0)
@@ -8037,26 +8055,63 @@ def send_interview_barcode_email(jotform_id, email):
 
         # Prepare email
         msg = MIMEMultipart()
-        msg['Subject'] = "Your Interview QR Code"
+        msg['Subject'] = "Alpha College Interview Details & QR Code"
         msg['From'] = os.environ.get("EMAIL_USER")
         msg['To'] = email
 
+        # Email body HTML
         html_body = f"""
-        <p>Dear Candidate,</p>
-        <p>Here is your interview QR code:</p>
-        <img src="data:image/png;base64,{qr_base64}" alt="qr code" style="width:200px;height:200px;" />
-        <p>If you can't scan the image above, please open the attached image and try scanning from there.</p>
+        <html>
+        <body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">
+            <p>Dear Candidate,</p>
+            <p>Your interview process for <strong>Alpha College</strong> is scheduled as follows:</p>
+            <p><strong>🕒 Time:</strong> 12:30 PM<br>
+            <strong>📅 Date:</strong> Saturday, 26th April, 2025</p>
+
+            <p><strong>Important Instructions:</strong></p>
+            <ul>
+                <li>Wear formal attire.</li>
+                <li>You must be accompanied by your parents/guardian.</li>
+                <li>Bring photocopies of the following documents:
+                    <ol>
+                        <li>CAIE certificate</li>
+                        <li>School results (Grade 8, 9, 10, and 11)</li>
+                        <li>Sports and extra-curricular certificates</li>
+                    </ol>
+                </li>
+                <li>Submit all documents at the desk upon arrival.</li>
+            </ul>
+
+            <p><strong>🕐 Orientation Session:</strong> 1:00 PM (Mandatory)<br>
+            <strong>🎤 Interview:</strong> Immediately after orientation<br>
+            <em>Note: The entire process may take up to 3 hours.</em></p>
+
+            <p><strong>📍 Location:</strong>
+            <a href="https://maps.app.goo.gl/SvGwqpPZA8128gDSA">View on Google Maps</a></p>
+
+            <p><strong>🔳 Your QR Code:</strong></p>
+            <img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="width:200px;height:200px;" />
+
+            <p>If you cannot scan the QR above, please check the attached QR image.</p>
+
+            <p style="color: red;"><strong>PLEASE BE PUNCTUAL & PREPARED!</strong></p>
+
+            <p>Warm regards,<br>
+            <strong>Admissions Team</strong><br>
+            Alpha College</p>
+        </body>
+        </html>
         """
         msg.attach(MIMEText(html_body, 'html'))
 
-        # Attach QR image
+        # Attach QR image file
         img_io.seek(0)
         attachment = MIMEApplication(img_io.read(), _subtype="png")
         attachment.add_header('Content-Disposition', 'attachment',
                               filename=f"qr_code_{qr_data}.png")
         msg.attach(attachment)
 
-        # Send the email
+        # Send email via SMTP
         SERVER = os.environ.get("MAIL_SERVER")
         PORT = os.environ.get("MAIL_PORT")
         smtp_user = os.environ.get("EMAIL_USER")
@@ -8072,6 +8127,7 @@ def send_interview_barcode_email(jotform_id, email):
     except Exception as e:
         logging.error(f"Failed to send QR email to {email}: {e}")
         return False
+
 
 
 class RequestOtp(Resource):

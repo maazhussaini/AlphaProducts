@@ -5422,6 +5422,7 @@ class StudentSubmissions_JotForm(db.Model):
     UpdatedBy = db.Column(db.Integer, nullable=True)
     UpdatedDate = db.Column(db.DateTime, nullable=True)
     Inactive = db.Column(db.Boolean, nullable=True)
+    AdmissionsStatusId = db.Column(db.Integer, nullable=True)
     
     def __repr__(self):
         return f'<StudentSubmissions_JotForm {self.SubmissionID}>'
@@ -5527,7 +5528,8 @@ class StudentSubmissions_JotForm(db.Model):
             'CreatedDate': self.CreatedDate,
             'UpdatedBy': self.UpdatedBy,
             'UpdatedDate': self.UpdatedDate,
-            'Inactive': self.Inactive
+            'Inactive': self.Inactive,
+            'AdmissionsStatusId': self.AdmissionsStatusId
         }
 
 class AdmisionInterviewSchedule(db.Model):
@@ -5771,3 +5773,110 @@ class ECACertificates(db.Model):
             "InActive": self.InActive,
             "JotFormSubmission": self.jotform_submission.to_dict() if self.jotform_submission else None
         }
+
+class AdmissionOfferForm(db.Model):
+    __tablename__ = 'AdmissionOfferForm'
+
+    OfferForm_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    JotFormId = db.Column(db.Integer, nullable=False)
+    Subject1TeacherRecomendationId = db.Column(db.Integer, nullable=True)
+    Subject2TeacherRecomendationId = db.Column(db.Integer, nullable=True)
+    Subject3TeacherRecomendationId = db.Column(db.Integer, nullable=True)
+    Subject4TeacherRecomendationId = db.Column(db.Integer, nullable=True)
+    Subject5TeacherRecomendationId = db.Column(db.Integer, nullable=True)
+    IsConditionalOffer = db.Column(db.Boolean, nullable=False, default=False)
+    Scholarship = db.Column(db.Integer, nullable=False, default=0)
+    AdmissionFeeDiscount = db.Column(db.Integer, nullable=False, default=0)
+    ScholarshipSeat = db.Column(db.Boolean, nullable=False, default=False)
+    Installments = db.Column(db.Integer, nullable=False, default=0)
+    RemarksForConditional = db.Column(db.String(500), nullable=True)
+    InterviewerRemarks = db.Column(db.String(1000), nullable=True)
+    ApprovalStatus = db.Column(db.Integer, nullable=True)
+    ApprovedBy = db.Column(db.Integer, nullable=True)
+    ApprovalDate = db.Column(db.DateTime, nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=False)
+    CreatedDate = db.Column(db.DateTime, nullable=False)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    UpdatedDate = db.Column(db.DateTime, nullable=True)
+    InActive = db.Column(db.Boolean, nullable=False, default=False)
+
+    def to_dict(self):
+        return {
+            'OfferForm_Id': self.OfferForm_Id,
+            'JotFormId': self.JotFormId,
+            'Subject1TeacherRecomendationId': self.Subject1TeacherRecomendationId,
+            'Subject2TeacherRecomendationId': self.Subject2TeacherRecomendationId,
+            'Subject3TeacherRecomendationId': self.Subject3TeacherRecomendationId,
+            'Subject4TeacherRecomendationId': self.Subject4TeacherRecomendationId,
+            'Subject5TeacherRecomendationId': self.Subject5TeacherRecomendationId,
+            'IsConditionalOffer': self.IsConditionalOffer,
+            'Scholarship': self.Scholarship,
+            'AdmissionFeeDiscount': self.AdmissionFeeDiscount,
+            'ScholarshipSeat': self.ScholarshipSeat,
+            'Installments': self.Installments,
+            'RemarksForConditional': self.RemarksForConditional,
+            'InterviewerRemarks': self.InterviewerRemarks,
+            'ApprovalStatus': self.ApprovalStatus,
+            'ApprovedBy': self.ApprovedBy,
+            'ApprovalDate': self.ApprovalDate.isoformat() if self.ApprovalDate else None,
+            'CreatedBy': self.CreatedBy,
+            'CreatedDate': self.CreatedDate.isoformat() if self.CreatedDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'UpdatedDate': self.UpdatedDate.isoformat() if self.UpdatedDate else None,
+            'InActive': self.InActive
+        }
+
+class AdmissionsRecommendation(db.Model):
+    __tablename__ = 'AdmissionsRecommendation'
+
+    Recommendation_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    JotFormId = db.Column(db.Integer, nullable=False)
+    Recommendation1 = db.Column(db.Integer, nullable=True)
+    Recommendation2 = db.Column(db.Integer, nullable=True)
+    Recommendation3 = db.Column(db.Integer, nullable=True)
+    Recommendation4 = db.Column(db.Integer, nullable=True)
+    Recommendation5 = db.Column(db.Integer, nullable=True)
+    CreateDate = db.Column(db.DateTime, nullable=True)
+    CreatedBy = db.Column(db.Integer, nullable=True)
+    CampusId = db.Column(db.Integer, nullable=True)
+    UpdateDate = db.Column(db.DateTime, nullable=True)
+    UpdatedBy = db.Column(db.Integer, nullable=True)
+    InActive = db.Column(db.Boolean, default=False)
+
+    def to_dict(self):
+        return {
+            'Recommendation_Id': self.Recommendation_Id,
+            'JotFormId': self.JotFormId,
+            'Recommendation1': self.Recommendation1,
+            'Recommendation2': self.Recommendation2,
+            'Recommendation3': self.Recommendation3,
+            'Recommendation4': self.Recommendation4,
+            'Recommendation5': self.Recommendation5,
+            'CreateDate': self.CreateDate.isoformat() if self.CreateDate else None,
+            'CreatedBy': self.CreatedBy,
+            'CampusId': self.CampusId,
+            'UpdateDate': self.UpdateDate.isoformat() if self.UpdateDate else None,
+            'UpdatedBy': self.UpdatedBy,
+            'InActive': self.InActive
+        }
+
+class AdmissionsRecommendation_History(db.Model):
+    __tablename__ = 'AdmissionsRecommendation_History'
+
+    RecommendationHistory_Id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    Recommendation_Id = db.Column(db.Integer, nullable=False)
+    RecommendationText = db.Column(db.String, nullable=True)
+    RecommendationStaff = db.Column(db.String, nullable=True)
+    Status = db.Column(db.String, nullable=True)
+    StatusDate = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'RecommendationHistory_Id': self.RecommendationHistory_Id,
+            'Recommendation_Id': self.Recommendation_Id,
+            'RecommendationText': self.RecommendationText,
+            'RecommendationStaff': self.RecommendationStaff,
+            'Status': self.Status,
+            'StatusDate': self.StatusDate.isoformat() if self.StatusDate else None
+        }
+    
